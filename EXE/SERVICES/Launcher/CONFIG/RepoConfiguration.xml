@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone="no" ?>
+<configuration>
+    <host>ftpnumerique.cgrcinemas.fr</host>
+    <port>21</port>
+    <credentials>WVhKMGFIVnlDbGxYWlZaTVZITlRXa2c9</credentials>
+    <rights>QC</rights>
+    <type>ROOM</type>
+    <scriptsPath>/data/ICE2/SCRIPTS/</scriptsPath>
+    <connector>FTP</connector>
+</configuration>

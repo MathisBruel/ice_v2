@@ -1,0 +1,198 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="feature">
+    <h1>FEATURE</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Name</div>
+            <input type="text" id="name">
+        </li>
+    </ul>
+
+    <h2 id="title-releases">Releases</h2>
+    <ul class="list" id="list-releases"></ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<script type="text/javascript">
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+
+    const listReleases = document.getElementById("list-releases");
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getFeatures`, options)).json();
+
+            if (result.ok == true) {
+                console.dir(result.data);
+
+                const feature = result.data.feature;
+                document.getElementById("name").value = feature.$.name;
+
+                const li = createDOM("li", {className:"list-item-add"});
+                const imgAdd = createDOM("img", { id:"addRelease", className:"image-line-add", src:"/add.png" });
+                imgAdd.addEventListener('click', async function(){
+                    window.location.assign("/release?id=-1&id_feature=" + id);
+                });
+                li.appendChild(imgAdd);
+                listReleases.appendChild(li);
+                
+                // -- releases
+                if (feature.releases.length > 0 && feature.releases[0] != "") {
+                    feature.releases[0].release.forEach(release => {
+                        const li = createDOM("li", {className:"list-item"});
+                        listReleases.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/release.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/release?id=" + release.$.id + "&id_feature=" + id);
+                        });
+                        const name = createDOM("div", { className:"param", innerText: release.$.name });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:release.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonDelete = {id_release: this.id};
+                            const optionsDelete = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDelete) };
+                            const resultDelete = await fetch(`/deleteRelease`, optionsDelete);
+                            if (resultDelete.ok == true) {
+                                const body = await resultDelete.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", resultDelete.message);
+                            }
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        li.appendChild(imgDelete);
+                    });
+                }
+                else {
+                    const li = createDOM("li", {className:"list-item-none"});
+                    listReleases.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/release.png", title:"none" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+            document.getElementById("title-releases").style.display = "none";
+            document.getElementById("list-releases").style.display = "none";
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+
+        else {
+            const json = {name: name};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/createFeature`, options);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/features");
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+
+        else {
+            const json = {
+                id: id,
+                name: name
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/updateFeature`, options);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.ok == true) {
+                    window.location.assign("/features");
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const json = {id: id};
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteFeature`, options);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/features");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

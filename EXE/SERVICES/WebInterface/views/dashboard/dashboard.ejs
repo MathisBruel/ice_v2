@@ -1,0 +1,147 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+<%- include ("statusIms") %>
+<%- include ("parameters") %>
+<%- include ("scripts") %>
+<%- include ("../foot") %>
+
+<script>
+    
+    async function setMode(e){
+        const json = JSON.stringify({ mode:e.innerText });
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const result = await ( await fetch(`/dashboard/mode`, options) ).json();
+        showMessage('message-box-mode', result, DEFAULT_DELAY);
+        await updateMode();
+    }
+
+    async function updateMode() {
+        const id_error = "message-box-mode";
+        try {
+            const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+            response = await ( await fetch(`/dashboard/mode`, options) ).json();
+            const mode_button = document.getElementsByClassName('mode');
+            for (const button of mode_button){
+                button.setAttribute('data-select', false);
+            }
+            if (response.ok){
+                document.getElementById(response.data.Mode).setAttribute('data-select', true);
+            } else {
+                showErrorMessage(id_error, response.err, DEFAULT_DELAY);
+            }
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+            return;
+        }        
+    }
+
+    async function setProjection(e){
+        const json = JSON.stringify({ projection:e.id });
+        const options =  { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const result = await ( await fetch(`/dashboard/projection`, options) ).json();
+        showMessage('message-box-projection', result, DEFAULT_DELAY);
+        await updateProjection();
+    }
+
+    async function updateProjection() {
+        const id_error = "message-box-projection"
+        try {
+            const options =  { method:"GET", headers:{ "Content-Type": "application/json "} };
+            response = (await (await fetch(`/dashboard/projection`, options)).json());
+            const mode_button = document.getElementsByClassName('projection');
+            for (const button of mode_button){
+                button.setAttribute('data-select', false);
+            }
+            if (response.ok){
+                document.getElementById(response.data.Projection).setAttribute('data-select', true);
+            } else {
+                showErrorMessage(id_error, response.err, DEFAULT_DELAY);
+            }
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY)
+            return;
+        }        
+    }
+
+    async function getCurrentSync(){
+        try {
+            const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+            const response = await ( await fetch(`/dashboard/sync`, options) ).json();
+            updateScript(response);
+        }
+        catch(error){
+            showErrorMessage("error_script", error, DEFAULT_DELAY);
+        }
+    }
+
+    async function updateScript(response){
+        const id_error = "error_script";
+        if (response.ok){
+            const json = response.data.Sync;
+            const name = json.Name ? json.Name[0]: '-';
+            const loop = json.Loop ? json.Loop[0]: '-';
+            document.getElementById('Name').innerText = name;
+            document.getElementById('Loop').innerText = loop;
+            
+        } else {
+            showErrorMessage(id_error, response.err, DEFAULT_DELAY);
+        }
+    }
+
+    const default_values_ims = {
+        State:"Unknown",
+        CplId:"-",
+        CplTitle:"-",
+        Timecode:"00:00:00.000"
+    }
+
+    async function getStatusIMS(){
+        try {
+            const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+            const response = await ( await fetch(`/dashboard/statusIMS`, options) ).json();
+            updateIMS(response);
+        }
+        catch(error){
+            showErrorMessage("errorIMS", error, DEFAULT_DELAY);
+        }
+    }
+
+    async function updateIMS(response){
+        const error_id = "errorIMS";
+        if (response.ok){
+            const json = response.data.Player;
+            for (const element in json){
+                const value = json[element][0];
+                if (value === "" || value === "-nan"){
+                    document.getElementById(element).innerText = default_values_ims[element];
+                }
+                else {
+                    document.getElementById(element).innerText = value;
+                }
+            }
+        } else {
+            showErrorMessage(error_id, response.err, DEFAULT_DELAY);
+        }
+    }
+
+   
+
+    document.addEventListener('DOMContentLoaded', function(event){
+        updateMode();
+        updateProjection();
+        getCurrentSync();
+        getStatusIMS();
+        setInterval(async function(){
+            updateMode();
+            updateProjection();
+        }, 5000);
+        setInterval(async function(){
+            getCurrentSync()
+        }, 1000);
+        setInterval(function(){
+            getStatusIMS();
+        }, 1000);
+    });
+</script>

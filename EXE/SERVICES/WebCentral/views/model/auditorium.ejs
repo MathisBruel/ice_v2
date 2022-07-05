@@ -1,0 +1,366 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="auditorium">
+    <h1>AUDITORIUM</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Name</div>
+            <input type="text" maxlength="45" id="name" style="width:60%">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Room</div>
+            <input type="number" id="room">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Type IMS</div>
+            <select id="type_ims">
+                <option value="1">Doremi</option>
+                <option value="2">Barco</option>
+                <option value="3">Christie</option>
+            </select>
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Ip IMS</div>
+            <input type="text" maxlength="15" id="ip_ims">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Port IMS</div>
+            <input type="number" id="port_ims">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">User IMS</div>
+            <input type="text" id="user_ims">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Pass IMS</div>
+            <input type="password" id="pass_ims">
+        </li>
+    </ul>
+
+    <h2 id="title-servers">Servers</h2>
+    <ul class="list" id="list-servers"></ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<script type="text/javascript">
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+    const id_cinema = urlParams.get('id_cinema');
+
+    const listServers = document.getElementById("list-servers");
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getAuditoriums`, options)).json();
+            
+            const jsonServers = {id_auditorium: id};
+            const optionsServers = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonServers) };
+            const resultServers = await (await fetch(`/getServers`, optionsServers)).json();
+
+            if (result.ok == true) {
+                console.dir(result.data);
+
+                const auditorium = result.data.auditorium;
+                document.getElementById("name").value = auditorium.$.name;
+                document.getElementById("room").value = auditorium.$.room;
+                document.getElementById("type_ims").value = auditorium.$.type_ims;
+                document.getElementById("ip_ims").value = auditorium.$.ip_ims;
+                document.getElementById("port_ims").value = auditorium.$.port_ims;
+                document.getElementById("user_ims").value = auditorium.$.user_ims;
+                document.getElementById("pass_ims").value = auditorium.$.pass_ims;
+
+                // -- servers
+                let hasFeature = false;
+                auditorium.server.forEach(server => {
+
+                    if (server.$.type_server == 1) {
+                        hasFeature = true;
+                        const li = createDOM("li", {className:"list-item"});
+                        listServers.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/server?id=" + server.$.id + "&id_auditorium=" + id + "&id_cinema=" + id_cinema + "&type=FEATURE");
+                        });
+                        const name = createDOM("div", { className:"param", innerText: server.$.ip });
+                        const imgType = createDOM("img", { className:"image-line", src:"/feature-server.png" });
+                        const type = createDOM("div", { className:"param", innerText: "FEATURE" });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:server.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonDeleteServer = {id: this.id};
+                            const optionsDeleteServer = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteServer) };
+                            const resultDeleteServer = await fetch(`/deleteServer`, optionsDeleteServer);
+                            if (resultDeleteServer.ok == true) {
+                                const body = await resultDeleteServer.json();
+                                if (body.code == 200) {window.location.reload();}
+                                else {showErrorMessage("message-box", body.message);}
+                            }
+                            else {showErrorMessage("message-box", resultDeleteServer.message);}
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        li.appendChild(imgType);
+                        li.appendChild(type);
+                        li.appendChild(imgDelete);
+                    }
+                });
+
+                if (hasFeature == false) {
+                    const liFeature = createDOM("li", {className:"list-item-none"});
+                    listServers.appendChild(liFeature);
+                    const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    const imgType = createDOM("img", { className:"image-line", src:"/feature-server.png" });
+                    const type = createDOM("div", { className:"param", innerText: "FEATURE" });
+                    const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+                    imgAdd.addEventListener('click', async function(){
+                        window.location.assign("/server?id=-1&id_cinema=" + id_cinema + "&id_auditorium=" + id + "&type=FEATURE");
+                    });
+                    liFeature.appendChild(imgName);
+                    liFeature.appendChild(name);
+                    liFeature.appendChild(imgType);
+                    liFeature.appendChild(type);
+                    liFeature.appendChild(imgAdd);
+                }
+
+                let hasSas = false;
+                auditorium.server.forEach(server => {
+
+                    if (server.$.type_server == 2) {
+                        hasSas = true;
+                        const li = createDOM("li", {className:"list-item"});
+                        listServers.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/server?id=" + server.$.id + "&id_auditorium=" + id + "&id_cinema=" + id_cinema + "&type=SAS");
+                        });
+                        const name = createDOM("div", { className:"param", innerText: server.$.ip });
+                        const imgType = createDOM("img", { className:"image-line", src:"/sas-server.png" });
+                        const type = createDOM("div", { className:"param", innerText: "SAS" });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:server.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonDeleteServer = {id: this.id};
+                            const optionsDeleteServer = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteServer) };
+                            const resultDeleteServer = await fetch(`/deleteServer`, optionsDeleteServer);
+                            if (resultDeleteServer.ok == true) {
+                                const body = await resultDeleteServer.json();
+                                if (body.code == 200) {window.location.reload();}
+                                else {showErrorMessage("message-box", body.message);}
+                            }
+                            else {showErrorMessage("message-box", resultDeleteServer.message);}
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        li.appendChild(imgType);
+                        li.appendChild(type);
+                        li.appendChild(imgDelete);
+                    }
+                });
+
+                if (hasSas == false) {
+                        const liSas = createDOM("li", {className:"list-item-none"});
+                        listServers.appendChild(liSas);
+                        const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                        const name = createDOM("div", { className:"param", innerText:"NONE" });
+                        const imgType = createDOM("img", { className:"image-line", src:"/sas-server.png" });
+                        const type = createDOM("div", { className:"param", innerText: "SAS" });
+                        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+                        imgAdd.addEventListener('click', async function(){
+                            window.location.assign("/server?id=-1&id_cinema=" + id_cinema + "&id_auditorium=" + id + "&type=SAS");
+                        });
+                        liSas.appendChild(imgName);
+                        liSas.appendChild(name);
+                        liSas.appendChild(imgType);
+                        liSas.appendChild(type);
+                        liSas.appendChild(imgAdd);
+                    }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+            document.getElementById("title-servers").style.display = "none";
+            document.getElementById("list-servers").style.display = "none";
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const room = document.getElementById("room").value;
+        const type_ims = document.getElementById("type_ims").value;
+        const ip_ims = document.getElementById("ip_ims").value;
+        const port_ims = document.getElementById("port_ims").value;
+        const user_ims = document.getElementById("user_ims").value;
+        const pass_ims = document.getElementById("pass_ims").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+        else if (ip_ims == "") {
+            document.getElementById("room").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field ip_ims is empty !");
+        }
+        else if (port_ims == "") {
+            document.getElementById("port_ims").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field port_ims is empty !");
+        }
+        else if (user_ims == "") {
+            document.getElementById("user_ims").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field user_ims is empty !");
+        }
+        else if (pass_ims == "") {
+            document.getElementById("pass_ims").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field pass_ims is empty !");
+        }
+
+        else {
+            const json = {
+                name: name,
+                room: room,
+                type_ims: type_ims,
+                ip_ims: ip_ims,
+                port_ims: port_ims,
+                user_ims: user_ims,
+                pass_ims: pass_ims,
+                id_cinema: id_cinema
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/createAuditorium`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/cinema?id_cinema=" + id_cinema);
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const room = document.getElementById("room").value;
+        const type_ims = document.getElementById("type_ims").value;
+        const ip_ims = document.getElementById("ip_ims").value;
+        const port_ims = document.getElementById("port_ims").value;
+        const user_ims = document.getElementById("user_ims").value;
+        const pass_ims = document.getElementById("pass_ims").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+        else if (ip_ims == "") {
+            document.getElementById("room").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field ip_ims is empty !");
+        }
+        else if (port_ims == "") {
+            document.getElementById("port_ims").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field port_ims is empty !");
+        }
+        else if (user_ims == "") {
+            document.getElementById("user_ims").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field user_ims is empty !");
+        }
+        else if (pass_ims == "") {
+            document.getElementById("pass_ims").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field pass_ims is empty !");
+        }
+
+        else {
+
+            const json = {
+                id: id,
+                name: name,
+                room: room,
+                type_ims: type_ims,
+                ip_ims: ip_ims,
+                port_ims: port_ims,
+                user_ims: user_ims,
+                pass_ims: pass_ims,
+                id_cinema: id_cinema
+            };
+
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/updateAuditorium`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/cinema?id_cinema=" + id_cinema);
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const json = {
+            id: id
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteAuditorium`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/cinema?id_cinema=" + id_cinema);
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

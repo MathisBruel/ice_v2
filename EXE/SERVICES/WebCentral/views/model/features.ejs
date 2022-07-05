@@ -1,0 +1,75 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="features">
+    <h1>FEATURES</h1>
+    <ul class="ul-model" id="ul-feature"></ul>
+    <div id="message-box" class="success"></div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        let response = await ( getFeatures(-1) );
+        if (response.ok == true) {
+            drawFeatures(response.data.features.feature);
+        }
+    });
+
+    async function getFeatures(idFeature) {
+        var response;
+        try {
+            const json = JSON.stringify({ id:idFeature });
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            response = await ( await fetch(`/getFeatures`, options) ).json();
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+        }
+        return response;
+    }
+
+    function drawFeatures(features) {
+        const tabFeatures = document.getElementById("ul-feature");
+
+        // -- remove all childs
+        let child = tabFeatures.lastChild;
+        while(child){
+            tabFeatures.removeChild(child);
+            child = tabFeatures.lastChild;
+        }
+
+        // -- create add line
+        const liAdd = createDOM("li", {className:"list-item-add"});
+        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAdd.addEventListener('click', async function(){
+            window.location.assign("/feature?id=-1");
+        });
+        liAdd.appendChild(imgAdd);
+        tabFeatures.appendChild(liAdd);
+
+        // -- foreach group
+        for (const feature of features) {
+
+            // -- clickable
+            const li = document.createElement("li");
+            li.addEventListener('click', async function(){
+                window.location.assign("/feature?id=" + li.id);
+            });
+            li.className = "li-model";
+            li.id = feature.$.id;
+            const imageFeature = document.createElement("img");
+            imageFeature.className = "image-line";
+            imageFeature.src = "feature.png";
+            li.appendChild(imageFeature);
+            const nameDom = document.createElement("div");
+            nameDom.className = "param";
+            nameDom.innerText = feature.$.name;
+            li.appendChild(nameDom);
+            tabFeatures.appendChild(li);
+        }
+    }
+</script>
+
+
+<%- include ("../foot") %>

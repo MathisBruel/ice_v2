@@ -1,0 +1,26 @@
+<style>
+    #statusIMS {
+        display: grid;
+        grid-gap: 10px;
+        grid-template-columns: 40px 1fr;
+    }
+    #statusIMS > h1 {
+        grid-column: 1 / 3 ;
+        grid-row: 1;
+    }
+    #statusIMS > img {
+        max-width: 40px;
+    }
+    #errorIMS {
+        grid-column: 1 / 3 ;
+        grid-row: 6;
+    }
+</style>
+<div class="block" id="statusIMS">
+    <h1>IMS</h1>
+    <img class="image-line" src="play.png" title="State of player"/><p id="State">Unknown</p>
+    <img class="image-line" src="id.png" title="Current CPL ID"/><p  id="CplId">-</p>
+    <img class="image-line" src="title.png" title="Current CPL title"/><p id="CplTitle">-</p>
+    <img class="image-line" src="timecode.png" title="Timecode"/><p id="Timecode">00:00:00:000</p>
+    <p class="error" id="errorIMS"></p>
+</div>

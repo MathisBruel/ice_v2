@@ -1,0 +1,23 @@
+<style>
+    #div-force{
+        margin-left: auto;
+        margin-right: auto;
+        width: 80%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+</style>
+
+<div class="block" style="display: none;" id="details-script">
+    <h1 id="details-title"></h1>
+
+    <ul class="script" id="sync-list">
+    </ul>
+
+    <div id="div-force">
+        <label >Force</label>
+        <input type="checkbox" id="force"></input>
+    </div>
+    <input class="collapsible" id="play-button" type="button" value="PLAY" disabled style="width: 90%; text-align: center;"></input>
+    <div id="message-box-details"> </div>
+</div>

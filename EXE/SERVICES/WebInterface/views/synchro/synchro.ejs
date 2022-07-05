@@ -1,0 +1,573 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<style>
+    .div-id {
+        display:grid;
+        margin: auto;
+    }
+    .li-cpl {
+        display:inline-flex;
+        vertical-align: middle;
+        align-items: center;
+        height: 40px;
+    }
+    .li-cpl:hover {
+        background-color: gold;
+    }
+    .li-cpl[selected=true]{
+        background-color: goldenrod;
+    }
+</style>
+
+<div class="block-devices">
+    <div>
+        <h1>CPLS</h1>
+        <input type="search" style="margin: 20px;" id="filter-cpl" oninput="renderListCPLS()" placeholder="Enter text to filter CPLs"/>
+        <input class="collapsible" type="button" value="Synchronize" onclick="synchronize()" style="float: right; margin: 20px;"/>
+    </div>
+    <ul class="cpl" style="display: grid;" id="ul-cpls"></ul>
+    <div id="message-box-CPL"></div>
+</div>
+
+<div class="block-devices">
+    <h1>SCRIPTS</h1>
+    <input type="search" style="margin: 20px;" id="filter-script" oninput="renderListScripts()" placeholder="Enter text to filter Scripts"/>
+    <ul class="script" style="display: grid;" id="ul-scripts"></ul>
+    <div id="message-box-script"></div>
+</div>
+
+<div id="div-modal-synchro" class="modal-synchro">
+    <div id="content-synchro" class="modal-content">
+        <span id="span-close" class="close">&times;</span>
+        <p id="result-text" class="result"></p>
+        <canvas id='render-synchro'></canvas>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    let CPLS = undefined, scripts = undefined;
+    let currentCPL = undefined, currentScripts = undefined;
+    let refreshID = 0;
+    let dataSynchro = 0;
+    const coveredByScript = [];
+    const coveredByCPL = [];
+
+    const spanClose = document.getElementById("span-close");
+    const divModal = document.getElementById("div-modal-synchro");
+    const divModalContent = document.getElementById("content-synchro");
+    const resultText = document.getElementById("result-text");
+    const canvas = document.getElementById("render-synchro");
+
+    async function getScripts(){
+        const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/scripts/scripts`, options)).json();
+        return result;
+    }
+
+    function renderListScripts(){
+        const list = filterScripts(scripts);
+        showListScripts(list);
+    }
+
+    function filterScripts(list_to_filter){
+        const list = [];
+        coveredByScript.splice(0, coveredByScript.length);
+        const filterValue = (document.getElementById('filter-script').value).toLowerCase();
+        for (const script of list_to_filter){
+            const name = script.Name[0].replace('.lcp', '').toLowerCase();
+            if (script.Syncs[0]){
+                for (const sync of script.Syncs[0].Sync){
+                    const nameSync = sync._.replace('.sync', '');
+                    coveredByScript.push(nameSync);
+                }
+            }
+            if (name.indexOf(filterValue) !== -1){
+                list.push(script);
+            }
+        }
+        return list;
+    }
+
+    function showListScripts(list){
+        const ul = document.getElementById('ul-scripts');
+        removeAllChild(ul);
+        for (const script of list){
+            const name = script.Name[0].replace('.lcp', '');
+            const is_current = currentScripts && currentScripts.Name[0] === script.Name[0];
+            const li = createDOM('li', { class:'li-script', display:'grid', 'name':name, data:script, selected:is_current });
+            li.addEventListener('click', changeScript);
+            addImage(li, { src:'playable.png', title:'Playable' }, script.Playable[0] !== 'true');
+            const name_label = createDOM('label', { class:'param', innerText:name });
+            li.appendChild(name_label);
+
+            if (is_current){
+                const ul_sync = createDOM('ul', { class: 'ul-scripts' } );
+                if (script.Syncs[0]){
+                    for (const sync of script.Syncs[0].Sync){
+                        const nameSync = sync._.replace('.sync', '');
+                        const syncLi = createDOM('li', { class:'li-script' });
+                        addImage(syncLi, { src:'covering.png', title:'Covering CPL' }, !coveredByCPL.includes(nameSync));
+                        const label_name = createDOM('label', {class: 'param', innerText:nameSync});
+                        syncLi.appendChild(label_name);
+                        addDownloadSyncImage(syncLi, { src:'download.png', title:'Download SYNC', id:nameSync });
+                        ul_sync.appendChild(syncLi);
+                    }
+                }
+                li.appendChild(ul_sync);
+            }
+
+
+
+            ul.appendChild(li);
+        }
+    }
+
+    function changeScript(event){
+        if (currentScripts !== event.currentTarget.data){
+            currentScripts = event.currentTarget.data;
+            renderListScripts();
+        }
+    }
+
+    async function getCPLInfo(){
+        const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/synchro/cpl`, options)).json();
+        return result;
+    }
+
+    function renderListCPLS(){
+        const list = filterCPL(CPLS);
+        showListCPLS(list);
+    }
+
+    function filterCPL(list_to_filter){
+        const list = [];
+        const filterValue = (document.getElementById('filter-cpl').value).toLowerCase();
+        coveredByCPL.splice(0, coveredByCPL.length);
+
+        if (list_to_filter != undefined) {
+            for (const CPL of list_to_filter){
+                const id = CPL.$.id;
+                coveredByCPL.push(id);
+                const name = CPL.title[0].toLowerCase();
+                if (name.indexOf(filterValue) !== -1){
+                    list.push(CPL);
+                }
+            }
+        }
+        return list;
+    }
+
+    function showListCPLS(list){
+        refreshID++;
+        const current_refresh = refreshID;
+        const DOM_list = document.getElementById('ul-cpls');
+        removeAllChild(DOM_list);
+        for (const CPL of list){
+            const id = CPL.$.id;
+            const name = CPL.title[0];
+            const is_current = currentCPL && CPL.title[0] === currentCPL.title[0];
+            const li = createDOM('li', { data:CPL, name:id, class:'li-cpl', selected:is_current, data:CPL } );
+            li.addEventListener('click', changeCPL);
+            addImage(li, { src:'title.png', title: 'Cover by script'}, !coveredByScript.includes(id));
+            addImage(li, { src:'timecode.png', title: 'Duration'}, false);
+            const label_duration = createDOM('label', { class: 'param', innerText: CPL.cplDuration[0]});
+            li.appendChild(label_duration);
+            const div_id = createDOM('div', { class:'param div-id'} );
+            const label_name = createDOM('label', { class: 'param', innerText: name});
+            div_id.appendChild(label_name);
+            const label_id = createDOM('label', { class: 'param', innerText: id});
+            if (!is_current){
+                label_id.style.display = 'none';
+            }
+            div_id.appendChild(label_id);
+            li.appendChild(div_id);
+            addDownloadCplImage(li, { src:'download.png', title: 'Download', cplId: CPL.$.id});
+            DOM_list.appendChild(li);
+            if (current_refresh !== refreshID){
+                break;
+            }
+        }
+    }
+
+    function changeCPL(event){
+        if (currentCPL !== event.currentTarget.data){
+            currentCPL = event.currentTarget.data;
+            renderListCPLS();
+        };
+    }
+
+    function addImage(li, obj, is_grey){
+        const title = is_grey ? `Not ${obj.title}`: `${obj.title}`;
+        const filter = is_grey ? 'grey' : '';
+        const img = createDOM("img", { class: `image-line ${filter}`, src:obj.src, title:title});
+        li.appendChild(img);
+    }
+
+    function addDownloadCplImage(li, obj){
+        const title = `${obj.title}`;
+        const filter = '';
+        const img = createDOM("img", { class: `image-line ${filter}`, src:obj.src, title:title, id:obj.cplId});
+        img.addEventListener('click', downloadCpl);
+        li.appendChild(img);
+    }
+
+    function addDownloadSyncImage(li, obj){
+        const title = `${obj.title}`;
+        const filter = '';
+        const img = createDOM("img", { class: `image-line ${filter}`, src:obj.src, title:title, id:obj.id});
+        img.addEventListener('click', downloadSync);
+        li.appendChild(img);
+    }
+
+    async function downloadCpl(event) {
+        const json = JSON.stringify({ cplId:this.id });
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const result = await ( await fetch(`/synchro/cplContent`, options) ).json();
+
+        if (result.code === 200) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result.data.Content));
+            element.setAttribute('download', this.id + ".xml");
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    }
+
+    async function downloadSync(event) {
+        const json = JSON.stringify({ syncId:this.id });
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const result = await ( await fetch(`/synchro/syncContent`, options) ).json();
+
+        if (result.code === 200) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result.data.Content));
+            element.setAttribute('download', this.id + ".sync");
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    }
+
+    async function synchronize(event){
+        if (!currentCPL || !currentScripts){
+            alert(`Invalid arg (missing a cpl and/or a script)`);
+            return;
+        }
+        const name_cpl = currentCPL.title[0];
+        const name_script = currentScripts.Name[0].replace('.lcp', '');
+
+        const json = JSON.stringify({ scriptName:name_script, cpl:currentCPL.$.id, method:'byDuration' });
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const result = await ( await fetch(`/synchro/synchronize`, options) ).json();
+
+        divModal.style.display = "block";
+        if (result.code === 200) {
+            divModalContent.style.borderColor = "green";
+            resultText.innerText = result.message;
+        }
+        else {
+            divModalContent.style.borderColor = "red";
+            resultText.innerText = result.message;
+        }
+
+        if (result.data.SYNCHRO) {
+            canvas.style.display = 'block';
+            drawCanvas(canvas, result.data.SYNCHRO);
+            dataSynchro = result.data.SYNCHRO;
+        }
+        else {
+            canvas.style.display = 'none';
+        }
+    }
+
+    function drawCanvas(canvas, data) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = 360;
+
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const durationRef = calculateDurationMs(data.ref);
+        const durationNew = calculateDurationMs(data.new);
+        const ratioWidth = (canvas.width*0.95) / Math.max(durationRef, durationNew);
+        const globalOffset = (canvas.width*0.025);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        ctx.fillText("Reels of new CPL :", 3, 15);
+        drawReelsNew(ctx, 20, ratioWidth, data.new, globalOffset)
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        ctx.fillText("Reels of REF synchronized content :", 3, 75);
+        drawReelsRef(ctx, 80, ratioWidth, data.ref, globalOffset);
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        ctx.fillText("Matches :", 3, 135);
+        drawMatches(ctx, 140, ratioWidth, data.matches, data.ref, globalOffset);
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        ctx.fillText("Intermatches :", 3, 195);
+        drawInterMatches(ctx, 200, ratioWidth, data.interMatches, globalOffset);
+    }
+
+    function calculateDurationMs(synchronizable) {
+        var duration = 0;
+        for (var i = 0; i < synchronizable[0].reel.length; i++) {
+            duration += synchronizable[0].reel[i].duration[0] * 1000 / synchronizable[0].reel[i].speedRate[0];
+        }
+        return duration;
+    }
+
+    function calculateDurationUntilIdx(synchronizable, idx) {
+        var duration = 0;
+
+        for (i = 0; i < idx; i++) {
+            duration += synchronizable[0].reel[i].duration[0] * 1000 / synchronizable[0].reel[i].speedRate[0];
+        }
+        return duration;
+    }
+
+    function calculateDurationBetweenIdx(synchronizable, idx1, idx2) {
+
+        var duration = 0;
+        for (j = 0; j < synchronizable[0].reel.length; j++) {
+            if (j >= idx1 && j <= idx2) {
+                duration += synchronizable[0].reel[j].duration[0] * 1000 / synchronizable[0].reel[j].speedRate[0];
+            }
+        }
+        return duration;
+    }
+    
+    function drawReelsRef(ctx, height, ratioWidth, reels, globalOffset) {
+
+        var offset = globalOffset;
+        for (var i = 0; i < reels[0].reel.length; i++) {
+            const sizeReel = reels[0].reel[i].duration * 1000 * ratioWidth / reels[0].reel[i].speedRate[0];
+            ctx.fillStyle = 'rgba(20, 20, 20, 0.4)';
+            ctx.fillRect(offset, height, sizeReel, 40);
+            ctx.strokeRect(offset, height, sizeReel, 40);
+            offset += sizeReel;
+        }
+    }
+
+    function drawReelsNew(ctx, height, ratioWidth, reels, globalOffset) {
+
+        var offset = globalOffset;
+        for (var i = 0; i < reels[0].reel.length; i++) {
+            const sizeReel = reels[0].reel[i].duration * 1000 * ratioWidth / reels[0].reel[i].speedRate[0];
+            ctx.fillStyle = 'rgba(20, 120, 120, 0.4)';
+            ctx.fillRect(offset, height, sizeReel, 40);
+            ctx.strokeRect(offset, height, sizeReel, 40);
+            offset += sizeReel;
+        }
+    }
+
+    function drawMatches(ctx, height, ratioWidth, matches, ref, globalOffset) {
+
+        for (i = 0; i < matches[0].match.length; i++) {
+            if (matches[0].match[i].idxStartNew != -1 && matches[0].match[i].idxEndNew != -1){
+
+                const offsetMatch = globalOffset + calculateDurationUntilIdx(ref, matches[0].match[i].idxStartRef) * ratioWidth + 0.5;
+                const idx2 = parseInt(matches[0].match[i].idxStartRef, 10)+parseInt(matches[0].match[i].nbReelRef, 10)-1;
+                const widthMatch = calculateDurationBetweenIdx(ref, matches[0].match[i].idxStartRef, idx2) * ratioWidth + 0.5;
+                ctx.fillStyle = 'rgba(120, 120, 20, 0.4)';
+                ctx.fillRect(offsetMatch, height, widthMatch, 40);
+                ctx.strokeRect(offsetMatch, height, widthMatch, 40);
+            }
+        }
+        return list;
+    }
+
+    function drawInterMatches(ctx, height, ratioWidth, inters, globalOffset) {
+        for (i = 0; i < inters[0].inter.length; i++) {
+            const offsetInter = globalOffset + (inters[0].inter[i].startRefUncut * ratioWidth) + 0.5;
+            const widthInter = ((inters[0].inter[i].endRefUncut - inters[0].inter[i].startRefUncut) * ratioWidth) + 0.5;
+
+            if (widthInter < 10) {
+                offsetInter = offsetInter + widthInter/2 - 5;
+                widthInter = 10;
+            }
+
+            if (inters[0].inter[i].valid != 0) {
+                ctx.fillStyle = 'rgba(20, 120, 20, 0.4)';
+            }
+            else {
+                ctx.fillStyle = 'rgba(120, 20, 20, 0.4)';
+            }
+            ctx.fillRect(offsetInter, height, widthInter, 40);
+            ctx.strokeRect(offsetInter, height, widthInter, 40);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        scripts = (await getScripts()).data.Downloaded.Script;
+        renderListScripts();
+
+        CPLS = (await getCPLInfo()).data.CPLS.CPL;
+        renderListCPLS();
+    });
+
+    spanClose.onclick = function() {
+        divModal.style.display = "none";
+    }
+
+    canvas.onclick = function(event) {
+        let x, y;
+        if (event.pageX || event.pageY) { 
+            x = event.pageX;
+            y = event.pageY;
+        }
+        else { 
+            x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
+            y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
+        }
+
+        x -= canvas.offsetLeft;
+        y -= canvas.offsetTop;
+
+        const ctx = canvas.getContext("2d");
+        
+        const durationRef = calculateDurationMs(dataSynchro.ref);
+        const durationNew = calculateDurationMs(dataSynchro.new);
+        const ratioWidth = (canvas.width*0.95) / Math.max(durationRef, durationNew);
+        const globalOffset = (canvas.width*0.025);
+        
+        ctx.clearRect(globalOffset-1, 259, 502, 102);
+        ctx.fillStyle = 'rgba(20, 20, 20, 0.4)';
+
+        // -- click on reel new
+        if (y >= 20 && y < 60) {
+            clickOnReel(ctx, ratioWidth, dataSynchro.new, globalOffset, x);
+        }
+        // -- click on reel ref
+        else if (y >= 80 && y < 120) {
+            clickOnReel(ctx, ratioWidth, dataSynchro.ref, globalOffset, x);
+        }
+        // -- click on matches
+        else if (y >= 140 && y < 180) {
+            clickOnMatch(ctx, ratioWidth, dataSynchro.matches, dataSynchro.ref, dataSynchro.new, globalOffset, x);
+        }
+        // -- click on intermatches
+        else if (y >= 200 && y < 240) {
+            clickOnInter(ctx, ratioWidth, dataSynchro.interMatches, globalOffset, x);
+        }
+
+    };
+
+    function clickOnReel(ctx, ratioWidth, reels, globalOffset, x) {
+
+        var offset = globalOffset;
+        for (var i = 0; i < reels[0].reel.length; i++) {
+            const sizeReel = reels[0].reel[i].duration * 1000 * ratioWidth / reels[0].reel[i].speedRate[0];
+
+            if (x >= offset && x < offset + sizeReel) {
+                ctx.fillRect(globalOffset, 260, 500, 100);
+                ctx.strokeRect(globalOffset, 260, 500, 100);
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+                if (reels[0].reel[i].id) {
+                    ctx.fillText("ID : " + reels[0].reel[i].id, globalOffset+5, 280);
+                }
+                else {
+                    ctx.fillText("ID : N/A", globalOffset+5, 280);
+                }
+                ctx.fillText("Duration : " + reels[0].reel[i].duration + " frames", globalOffset+5, 300);
+                ctx.fillText("Speedrate : " + reels[0].reel[i].speedRate + " frames/s", globalOffset+5, 320);
+            }
+            offset += sizeReel;
+        }
+    }
+
+    function clickOnMatch(ctx, ratioWidth, matches, ref, newR, globalOffset, x) {
+
+        for (i = 0; i < matches[0].match.length; i++) {
+            if (matches[0].match[i].idxStartNew != -1 && matches[0].match[i].idxEndNew != -1){
+
+                const offsetMatch = globalOffset + calculateDurationUntilIdx(ref, matches[0].match[i].idxStartRef) * ratioWidth + 0.5;
+                const idx2 = parseInt(matches[0].match[i].idxStartRef, 10)+parseInt(matches[0].match[i].nbReelRef, 10)-1;
+                const durationRef = calculateDurationBetweenIdx(ref, matches[0].match[i].idxStartRef, idx2);
+                const durationNew = calculateDurationBetweenIdx(newR, matches[0].match[i].idxStartNew, matches[0].match[i].idxEndNew);
+                const widthMatch = durationRef * ratioWidth + 0.5;
+
+                if (x >= offsetMatch && x < offsetMatch + widthMatch) {
+                    ctx.fillRect(globalOffset, 260, 500, 100);
+                    ctx.strokeRect(globalOffset, 260, 500, 100);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+
+                    ctx.fillText("Reels ref : " + matches[0].match[i].idxStartRef + " -> " + idx2, globalOffset+5, 280);
+                    ctx.fillText("Duration ref : " + durationRef + " ms", globalOffset+5, 300);
+                    ctx.fillText("Reels new : " + matches[0].match[i].idxStartNew + " -> " + matches[0].match[i].idxEndNew, globalOffset+5, 320);
+                    ctx.fillText("Duration new : " + durationNew + " ms", globalOffset+5, 340);
+                }
+            }
+        }
+    }
+
+    function clickOnInter(ctx, ratioWidth, inters, globalOffset, x) {
+
+        for (i = 0; i < inters[0].inter.length; i++) {
+            const offsetInter = globalOffset + (inters[0].inter[i].startRefUncut * ratioWidth) + 0.5;
+            const widthInter = ((inters[0].inter[i].endRefUncut - inters[0].inter[i].startRefUncut) * ratioWidth) + 0.5;
+
+            if (widthInter < 10) {
+                offsetInter = offsetInter + widthInter/2 - 5;
+                widthInter = 10;
+            }
+
+            if (x >= offsetInter && x < offsetInter+widthInter) {
+                ctx.fillRect(globalOffset, 260, 500, 100);
+                ctx.strokeRect(globalOffset, 260, 500, 100);
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+
+                if (inters[0].inter[i].valid != 0) {
+                    ctx.fillText("Valid match ", globalOffset+5, 280);
+
+                    // -- entry point or start delay at begin
+                    if (inters[0].inter[i].startMsMatchNew == -1 && inters[0].inter[i].endMsMatchNew == -1) {
+                        if (inters[0].inter[i].startMsMatchRef == 0) {
+                            ctx.fillText("Entry point : " + inters[0].inter[i].endMsMatchRefUncut + " frames", globalOffset+5, 300);
+                        }
+                        else {
+                            ctx.fillText("Start delay : " + (-inters[0].inter[i].startMsMatchRefUncut) + " frames", globalOffset+5, 300);
+                        }
+                    }
+
+                    // -- diff acceptable at the end
+                    else {
+                        ctx.fillText("Ref : " + inters[0].inter[i].startRefUncut + " ms -> " + inters[0].inter[i].endRefUncut + " ms", globalOffset+5, 300);
+                        ctx.fillText("New : " + inters[0].inter[i].startNew + " ms -> " + inters[0].inter[i].endNew + " ms", globalOffset+5, 320);
+                        ctx.fillText("Duration : " + (inters[0].inter[i].endRefUncut-inters[0].inter[i].startRefUncut) + " ms / " + (inters[0].inter[i].endNew-inters[0].inter[i].startNew) + " ms", globalOffset+5, 340);
+                    }
+                }
+                else {
+                    ctx.fillText("Invalid match ", globalOffset+5, 280);
+
+                    if (inters[0].inter[i].startNew == -1) {
+                        ctx.fillText("More than one REF reel do not match at begin !", globalOffset+5, 300);
+                    }
+                    else if (inters[0].inter[i].endNew == -1) {
+                        ctx.fillText("More than one REF reel do match at end !", globalOffset+5, 300);
+                    }
+                    else {
+                        ctx.fillText("Ref : " + inters[0].inter[i].startRefUncut + " ms -> " + inters[0].inter[i].endRefUncut + " ms", globalOffset+5, 300);
+                        ctx.fillText("New : " + inters[0].inter[i].startNew + " ms -> " + inters[0].inter[i].endNew + " ms", globalOffset+5, 320);
+                        ctx.fillText("Duration : " + (inters[0].inter[i].endRefUncut-inters[0].inter[i].startRefUncut) + " ms / " + (inters[0].inter[i].endNew-inters[0].inter[i].startNew) + " ms", globalOffset+5, 340);
+                    }
+                }
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        scripts = (await getScripts()).data.Downloaded.Script;
+        renderListScripts();
+
+        CPLS = (await getCPLInfo()).data.CPLS.CPL;
+        renderListCPLS();
+        
+    });
+
+</script>
+
+<%- include ("../foot") %>

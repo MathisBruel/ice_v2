@@ -1,0 +1,83 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="groups">
+    <h1>GROUPS</h1>
+    <ul class="ul-model" id="ul-group"></ul>
+    <div id="message-box" class="success"></div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        let response = await ( getGroups(-1) );
+        if (response.ok == true) {
+            drawGroups(response.data.groups.group);
+        }
+    });
+
+    async function getGroups(idGroup) {
+        var response;
+        try {
+            const json = JSON.stringify({ id:idGroup });
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            response = await ( await fetch(`/getGroups`, options) ).json();
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+        }
+        return response;
+    }
+
+    function drawGroups(groups) {
+        const tabGroups = document.getElementById("ul-group");
+
+        // -- remove all childs
+        let child = tabGroups.lastChild;
+        while(child){
+            tabGroups.removeChild(child);
+            child = tabGroups.lastChild;
+        }
+
+        // -- create add line
+        const liAdd = createDOM("li", {className:"list-item-add"});
+        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAdd.addEventListener('click', async function(){
+            window.location.assign("/group?id=-1");
+        });
+        liAdd.appendChild(imgAdd);
+        tabGroups.appendChild(liAdd);
+
+        // -- foreach group
+        for (const group of groups) {
+
+            // -- clickable
+            const li = document.createElement("li");
+            li.addEventListener('click', async function(){
+                window.location.assign("/group?id=" + li.id);
+            });
+            li.className = "li-model";
+            li.id = group.$.id;
+            const imageGroup = document.createElement("img");
+            imageGroup.className = "image-line";
+            imageGroup.src = "group.png";
+            li.appendChild(imageGroup);
+            const nameDom = document.createElement("div");
+            nameDom.className = "param";
+            nameDom.innerText = group.$.name;
+            li.appendChild(nameDom);
+            const imageDescr = document.createElement("img");
+            imageDescr.className = "image-line";
+            imageDescr.src = "description.png";
+            li.appendChild(imageDescr);
+            const descrDom = document.createElement("div");
+            descrDom.className = "param";
+            descrDom.innerText = group.$.description;
+            li.appendChild(descrDom);
+            tabGroups.appendChild(li);
+        }
+    }
+</script>
+
+
+<%- include ("../foot") %>

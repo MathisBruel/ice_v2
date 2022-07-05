@@ -1,0 +1,27 @@
+<style>
+    #script {
+        display: grid;
+        grid-gap: 10px;
+        grid-template-columns: 40px 1fr;
+    }
+    #script > h1 {
+        grid-column: 1 / 3 ;
+        grid-row: 1;
+    }
+    #script > img {
+        max-width: 40px;
+    }
+    #error_script {
+        grid-column: 1 / 3 ;
+        grid-row: 6;
+    }
+</style>
+
+<div class="block" id="script">
+    <h1>ICE Immmersive</h1>
+    <img class="image-line" src="script.png" title="Script name"/><p id="Name">-</p>
+    <img class="image-line" src="projection.png" title="Type of projection"/><p id="" >-</p>
+    <img class="image-line" src="loop.png" title="Script looping ?"/><p id="Loop">-</p>
+    <img class="image-line" src="file.png" title="Current sync file"/><p id="">-</p>
+    <p id="error_script" class="error"></p>
+</div>

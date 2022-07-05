@@ -1,0 +1,174 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="server">
+    <h1>SERVER</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Ip</div>
+            <input type="text" maxlength="15" id="ip">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Type Server</div>
+            <select id="type_server" disabled>
+                <option value="1">Feature</option>
+                <option value="2">Sas</option>
+            </select>
+        </li>
+    </ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<script type="text/javascript">
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+    const id_auditorium = urlParams.get('id_auditorium');
+    const id_cinema = urlParams.get('id_cinema');
+    const type = urlParams.get('type');
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (type == "FEATURE") {
+            document.getElementById("type_server").value = 1;
+        }
+        else if (type == "SAS") {
+            document.getElementById("type_server").value = 2;
+        }
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getServers`, options)).json();
+
+            if (result.ok == true) {
+                console.dir(result.data);
+
+                const server = result.data.server;
+                document.getElementById("ip").value = server.$.ip;
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const ip = document.getElementById("ip").value;
+        const type_server = document.getElementById("type_server").value;
+
+        if (ip == "") {
+            document.getElementById("ip").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field ip is empty !");
+        }
+
+        else {
+            const json = {
+                ip: ip,
+                id_auditorium: id_auditorium,
+                type_server: type_server
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/createServer`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/auditorium?id_cinema=" + id_cinema + "&id=" + id_auditorium);
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const ip = document.getElementById("ip").value;
+        const type_server = document.getElementById("type_server").value;
+
+        if (ip == "") {
+            document.getElementById("ip").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field ip is empty !");
+        }
+
+        else {
+
+            const json = {
+                id: id,
+                ip: ip,
+                id_auditorium: id_auditorium,
+                type_server: type_server
+            };
+
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/updateServer`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/auditorium?id_cinema=" + id_cinema + "&id=" + id_auditorium);
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const json = {
+            id: id
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteServer`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/auditorium?id_cinema=" + id_cinema + "&id=" + id_auditorium);
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

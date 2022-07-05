@@ -1,0 +1,132 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="scripts">
+    <h1>SCRIPTS</h1>
+    <h2 id="title-feature">FEATURE</h2>
+    <ul class="ul-model" id="ul-feature"></ul>
+    <h2 id="title-loop">LOOP</h2>
+    <ul class="ul-model" id="ul-loop"></ul>
+    <h2 id="title-sas">SAS</h2>
+    <ul class="ul-model" id="ul-sas"></ul>
+    <div id="message-box" class="success"></div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        let response = await ( getScripts(-1) );
+        if (response.ok == true) {
+            drawScripts(response.data.scripts.script);
+        }
+    });
+
+    async function getScripts(idGroup) {
+        var response;
+        try {
+            const json = JSON.stringify({ id:idGroup });
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            response = await ( await fetch(`/getScripts`, options) ).json();
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+        }
+        return response;
+    }
+
+    function drawScripts(scripts) {
+        const tabFeature = document.getElementById("ul-feature");
+        const tabLoop = document.getElementById("ul-loop");
+        const tabSas = document.getElementById("ul-sas");
+
+        // -- remove all childs
+        let child = tabFeature.lastChild;
+        while(child){
+            tabFeature.removeChild(child);
+            child = tabFeature.lastChild;
+        }
+        child = tabLoop.lastChild;
+        while(child){
+            tabLoop.removeChild(child);
+            child = tabLoop.lastChild;
+        }
+        child = tabSas.lastChild;
+        while(child){
+            tabSas.removeChild(child);
+            child = tabSas.lastChild;
+        }
+
+        // -- create add line
+        const liAddFeature = createDOM("li", {className:"list-item-add"});
+        const imgAddFeature = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAddFeature.addEventListener('click', async function(){
+            window.location.assign("/script?id=-1&type=FEATURE");
+        });
+        liAddFeature.appendChild(imgAddFeature);
+        tabFeature.appendChild(liAddFeature);
+
+        const liAddLoop = createDOM("li", {className:"list-item-add"});
+        const imgAddLoop = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAddLoop.addEventListener('click', async function(){
+            window.location.assign("/script?id=-1&type=LOOP");
+        });
+        liAddLoop.appendChild(imgAddLoop);
+        tabLoop.appendChild(liAddLoop);
+
+        const liAddSas = createDOM("li", {className:"list-item-add"});
+        const imgAddSas = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAddSas.addEventListener('click', async function(){
+            window.location.assign("/script?id=-1&type=SAS");
+        });
+        liAddSas.appendChild(imgAddSas);
+        tabSas.appendChild(liAddSas);
+
+
+        // -- foreach script
+        for (const script of scripts) {
+
+            // -- clickable
+            const li = document.createElement("li");
+            li.className = "li-model";
+            li.id = script.$.id;
+            const imageScript = document.createElement("img");
+            imageScript.className = "image-line";
+            imageScript.src = "script.png";
+            li.appendChild(imageScript);
+            const nameDom = document.createElement("div");
+            nameDom.className = "param";
+            nameDom.innerText = script.$.name;
+            li.appendChild(nameDom);
+            const imageVersion = document.createElement("img");
+            imageVersion.className = "image-line";
+            imageVersion.src = "description.png";
+            li.appendChild(imageVersion);
+            const versionDom = document.createElement("div");
+            versionDom.className = "param";
+            versionDom.innerText = script.$.version;
+            li.appendChild(versionDom);
+
+            if (script.$.type == 1) {
+                tabFeature.appendChild(li);
+                li.addEventListener('click', async function(){
+                    window.location.assign("/script?id=" + li.id + "&type=FEATURE");
+                });
+            }
+            else if (script.$.type == 2) {
+                tabLoop.appendChild(li);
+                li.addEventListener('click', async function(){
+                    window.location.assign("/script?id=" + li.id + "&type=LOOP");
+                });
+            }
+            else if (script.$.type == 3) {
+                tabSas.appendChild(li);
+                li.addEventListener('click', async function(){
+                    window.location.assign("/script?id=" + li.id + "&type=SAS");
+                });
+            }
+        }
+    }
+</script>
+
+
+<%- include ("../foot") %>

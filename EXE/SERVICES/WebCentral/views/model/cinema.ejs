@@ -1,0 +1,216 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="cinema">
+    <h1>CINEMA</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Name</div>
+            <input type="text" maxlength="45" id="name" style="width:60%">
+        </li>
+    </ul>
+
+    <h2 id="title-auditoriums">Auditoriums</h2>
+    <ul class="list" id="list-auditoriums"></ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<script type="text/javascript">
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+
+    const listAuditoriums = document.getElementById("list-auditoriums");
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getCinemas`, options)).json();
+            
+            const jsonAuditoriums = {id_cinema: id};
+            const optionsAuditoriums = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonAuditoriums) };
+            const resultAuditoriums = await (await fetch(`/getAuditoriums`, optionsAuditoriums)).json();
+
+            if (result.ok == true) {
+                console.dir(result.data);
+
+                const cinema = result.data.cinema;
+                document.getElementById("name").value = cinema.$.name;
+
+                // -- creation auditorium
+                const liAdd = createDOM("li", {className:"list-item-add"});
+                const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+                imgAdd.addEventListener('click', async function(){
+                    window.location.assign("/auditorium?id=-1&id_cinema=" + id);
+                });
+                liAdd.appendChild(imgAdd);
+                listAuditoriums.appendChild(liAdd);
+
+                // -- auditoriums
+                if (cinema.auditoriums.length > 0 && cinema.auditoriums[0] != "") {
+                    cinema.auditoriums[0].auditorium.forEach(auditorium => {
+                        const li = createDOM("li", {className:"list-item"});
+                        listAuditoriums.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/auditorium.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/auditorium?id=" + auditorium.$.id + "&id_cinema=" + id);
+                        });
+                        const name = createDOM("div", { className:"param", innerText: auditorium.$.name });
+                        const imgRoom = createDOM("img", { className:"image-line", src:"/room.png" });
+                        const room = createDOM("div", { className:"param", innerText: auditorium.$.room });
+                        const imgTypeIms = createDOM("img", { className:"image-line", src:"/projector.png" });
+                        
+                        let typeImsValue = "Doremi";
+                        if (auditorium.$.type_ims == 2) {typeImsValue = "Barco";}
+                        else if (auditorium.$.type_ims == 3) {typeImsValue = "Christie";}
+                        const typeIms = createDOM("div", { className:"param", innerText: typeImsValue });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:auditorium.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonDeleteAuditorium = {id: this.id};
+                            const optionsDeleteAuditorium = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteAuditorium) };
+                            const resultDeleteAuditorium = await fetch(`/deleteAuditorium`, optionsDeleteAuditorium);
+                            if (resultDeleteAuditorium.ok == true) {
+                                const body = await resultDeleteAuditorium.json();
+                                if (body.code == 200) {window.location.reload();}
+                                else {showErrorMessage("message-box", body.message);}
+                            }
+                            else {showErrorMessage("message-box", resultDeleteAuditorium.message);}
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        li.appendChild(imgRoom);
+                        li.appendChild(room);
+                        li.appendChild(imgTypeIms);
+                        li.appendChild(typeIms);
+                        li.appendChild(imgDelete);
+                    });
+                }
+                else {
+                    const li = createDOM("li", {className:"list-item-none"});
+                    listAuditoriums.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/auditorium.png" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+            document.getElementById("title-auditoriums").style.display = "none";
+            document.getElementById("list-auditoriums").style.display = "none";
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+
+        else {
+            const json = {
+                name: name
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/createCinema`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/cinemas");
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+
+        else {
+            const json = {
+                id: id,
+                name: name
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/updateCinema`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/cinemas");
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const json = {
+            id: id
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteCinema`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/cinemas");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

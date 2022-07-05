@@ -1,0 +1,68 @@
+#include "seamCarvingThread.h"
+#include <cuda.h>
+
+SeamCarvingThread::SeamCarvingThread()
+{
+    thread = nullptr;
+    state = IDLE;
+    idx = -1;
+    in = nullptr;
+    out = nullptr;
+    seamsLeft = nullptr;
+    seamsRight = nullptr;
+}
+    
+SeamCarvingThread::~SeamCarvingThread()
+{
+    if (thread != nullptr) {
+        thread->join();
+        delete thread;
+    }
+}
+
+void SeamCarvingThread::startThread(int64_t idx, Image* img, bool startStage)
+{
+    state = WORKING;
+    this->idx = idx;
+    this->in = img;
+    this->startStage = startStage;
+
+    if (thread == nullptr) {
+        thread = new Poco::Thread("SeamCarving");
+        thread->setPriority(Poco::Thread::Priority::PRIO_HIGHEST);
+    }
+    thread->start(*this);
+}
+
+void SeamCarvingThread::releaseDatas()
+{
+    idx = -1;
+    in = nullptr;
+    out = nullptr;
+    state = IDLE;
+}
+
+void SeamCarvingThread::run()
+{
+    // -- launch processing
+    int sizeWindow = 460*in->getWidth()/2048;
+    int sizeImage = in->getWidth()+720;
+
+    // -- process left
+    unsigned char* datas = new unsigned char[in->getHeight()*sizeImage*3];
+
+    if (startStage) {
+        //addResizeVideoFirst(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas, seamsLeft, seamsRight);
+        //addResizeVideoMotionFirst(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas, seamsLeft, seamsRight);
+        addResizeVideoDiffFirst(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas, sobelLeft, sobelRight);
+    }
+    else {
+        //addResizeVideoOther(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas, seamsLeft, seamsRight);
+        //addResizeVideoMotionOther(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas, seamsLeft, seamsRight);
+        addResizeVideoDiffOther(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas, sobelLeft, sobelRight);
+    }
+    //addResize(in->getWidth(), in->getHeight(), sizeImage, in->getData(), datas);
+    out = new Image(sizeImage, in->getHeight(), PNG_FORMAT_RGB, datas);
+
+    state = FINISHED;
+}

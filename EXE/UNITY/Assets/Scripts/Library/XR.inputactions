@@ -1,0 +1,159 @@
+{
+    "name": "XR",
+    "maps": [
+        {
+            "name": "VR",
+            "id": "7927ee91-7617-4af2-adb5-31937ec2390b",
+            "actions": [
+                {
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "e9f92427-d5ea-45ea-93da-87f3d51cb498",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Up",
+                    "type": "Button",
+                    "id": "7c670d21-4c09-4b0d-9aa2-7bdead4a6352",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Down",
+                    "type": "Button",
+                    "id": "4b2c9726-cc18-4ec6-a0b7-94d0a57ece54",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Pause",
+                    "type": "Button",
+                    "id": "87eb3545-6ba5-438d-ad35-02869027de6f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "StartStop",
+                    "type": "Button",
+                    "id": "56bff07d-94c8-445e-80e0-23c714cb8cce",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Next",
+                    "type": "Button",
+                    "id": "af1844c4-f132-407b-99f6-4fac0605368c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Quit",
+                    "type": "Button",
+                    "id": "eaf95b97-2920-4a2c-b1d6-bf7b0cbaae63",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "693c8f1a-3581-49e0-9d32-6daed0b8674f",
+                    "path": "<XRInputV1::HP::HPReverbG2ControllerOpenXR>/thumbstick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c63bbd5e-7a9a-47b1-8a3e-631179297e32",
+                    "path": "<XRController>/secondaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bbd293dc-9141-4939-a756-346053ed09bb",
+                    "path": "<XRController>/primaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "39d9a051-8c45-4e3d-8cff-456a1c6ccfde",
+                    "path": "<HPMixedRealityController>/thumbstickClicked",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e5fccbe8-46d0-45ce-a5ca-bc888ff93a66",
+                    "path": "<HPMixedRealityController>/triggerPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "StartStop",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "33f7517c-ac31-4221-97c5-0bdcb5012bd7",
+                    "path": "<HPMixedRealityController>/gripPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "Next",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e9d64d94-19ae-4a14-a62e-2637abdb8bb0",
+                    "path": "<XRInputV1::HP::HPReverbG2ControllerOpenXR>/menu",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "HP REVERB G2",
+                    "action": "Quit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": [
+        {
+            "name": "HP REVERB G2",
+            "bindingGroup": "HP REVERB G2",
+            "devices": [
+                {
+                    "devicePath": "<HPMixedRealityController>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        }
+    ]
+}

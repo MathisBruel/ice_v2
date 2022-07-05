@@ -1,0 +1,75 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="cinemas">
+    <h1>CINEMAS</h1>
+    <ul class="ul-model" id="ul-cinema"></ul>
+    <div id="message-box" class="success"></div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        let response = await ( getCinemas(-1) );
+        if (response.ok == true) {
+            drawCinemas(response.data.cinemas.cinema);
+        }
+    });
+
+    async function getCinemas(idCinema) {
+        var response;
+        try {
+            const json = JSON.stringify({ id:idCinema });
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            response = await ( await fetch(`/getCinemas`, options) ).json();
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+        }
+        return response;
+    }
+
+    function drawCinemas(cinemas) {
+        const tabCinemas = document.getElementById("ul-cinema");
+
+        // -- remove all childs
+        let child = tabCinemas.lastChild;
+        while(child){
+            tabCinemas.removeChild(child);
+            child = tabCinemas.lastChild;
+        }
+
+        // -- create add line
+        const liAdd = createDOM("li", {className:"list-item-add"});
+        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAdd.addEventListener('click', async function(){
+            window.location.assign("/cinema?id=-1");
+        });
+        liAdd.appendChild(imgAdd);
+        tabCinemas.appendChild(liAdd);
+
+        // -- foreach cinema
+        for (const cinema of cinemas) {
+
+            // -- clickable
+            const li = document.createElement("li");
+            li.addEventListener('click', async function(){
+                window.location.assign("/cinema?id=" + li.id);
+            });
+            li.className = "li-model";
+            li.id = cinema.$.id;
+            const imageCinema = document.createElement("img");
+            imageCinema.className = "image-line";
+            imageCinema.src = "cinema.png";
+            li.appendChild(imageCinema);
+            const nameDom = document.createElement("div");
+            nameDom.className = "param";
+            nameDom.innerText = cinema.$.name;
+            li.appendChild(nameDom);
+            tabCinemas.appendChild(li);
+        }
+    }
+</script>
+
+
+<%- include ("../foot") %>

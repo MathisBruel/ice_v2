@@ -1,0 +1,13 @@
+[Unit]
+Description=ICE CORE
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/ICE-CORE/ICE-SERVICE.pid
+User=root
+Group=sudo
+ExecStart=/data/ICE2/ICE-SERVICE --daemon --pidfile=/var/run/ICE-CORE/ICE-SERVICE.pid configPath:/data/ICE2/CONFIG/ priority:information
+
+[Install]
+WantedBy=multi-user.target

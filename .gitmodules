@@ -1,0 +1,26 @@
+[submodule "EXTERN/POCO"]
+	path = EXTERN/POCO
+	url = https://github.com/pocoproject/poco.git
+	branch = poco-1.10.1
+[submodule "EXTERN/LIBTIFF"]
+	path = EXTERN/LIBTIFF
+	url = git@gitlab.com:libtiff/libtiff.git
+	branch = master
+[submodule "EXTERN/LIBPNG"]
+	path = EXTERN/LIBPNG
+	url = git@github.com:glennrp/libpng.git
+	branch = master
+[submodule "EXTERN/LIBJPEG"]
+	path = EXTERN/LIBJPEG
+	url = git@github.com:libjpeg-turbo/libjpeg-turbo.git
+	branch = master
+[submodule "EXTERN/ZLIB"]
+	path = EXTERN/ZLIB
+	url = git@github.com:madler/zlib.git
+	branch = master
+[submodule "EXTERN/LIBTAR"]
+	path = EXTERN/LIBTAR
+	url = https://github.com/libarchive/libarchive.git
+[submodule "EXTERN/WEBP"]
+	path = EXTERN/WEBP
+	url = https://github.com/webmproject/libwebp.git

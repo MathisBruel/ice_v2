@@ -1,0 +1,41 @@
+<?xml version="1.0" standalone="no" ?>
+<configuration interface="eno2">
+    <!-- name is important to relate to the template, sizePixel (or pitch) in mm, nbPixels is width * height-->
+    <panel name="L1" ip="10.0.0.141" serial="0xffffffff" sizePixel="60" nbPixels="1440">
+        <lut>PanelV2</lut>
+    </panel>
+    <panel name="L2" ip="10.0.0.142" serial="0xeeeeeeee" sizePixel="60" nbPixels="1440">
+        <lut>PanelV2</lut>
+    </panel>
+    <panel name="R1" ip="10.0.0.151" serial="0xdddddddd" sizePixel="60" nbPixels="1440">
+        <lut>PanelV2</lut>
+    </panel>
+    <panel name="R2" ip="10.0.0.152" serial="0xcccccccc" sizePixel="60" nbPixels="1440">
+        <lut>PanelV2</lut>
+    </panel>
+
+    <DMX name="Data Enabler Pro" ip="10.0.0.100" serial="0xbbbbbbbb">
+        <device name="BL-1" type="BACKLIGHT" dmxOffset="138" formatBuffer="RGB">
+            <calib>BackV1</calib>
+        </device>
+        <device name="BL-2" type="BACKLIGHT" dmxOffset="141" formatBuffer="RGB">
+            <calib>BackV1</calib>
+        </device>
+        <device name="BL-3" type="BACKLIGHT" dmxOffset="144" formatBuffer="RGB">
+            <calib>BackV1</calib>
+        </device>
+        <device name="BL-4" type="BACKLIGHT" dmxOffset="147" formatBuffer="RGB">
+            <calib>BackV1</calib>
+        </device>
+        <device name="MH-LF" type="MOVINGHEAD" dmxOffset="80" formatBuffer="I.PpTtZR.G.B.W........" zoom="128" lumens="1750">
+            <calib>MhV2</calib>
+            <ref>MhV1</ref>
+        </device>
+        <device name="PAR-L1" type="PAR" category="FEATURE" dmxOffset="0" formatBuffer="I.ZR.G.B.W....." zoom="128" lumens="3500" >
+            <calib>ParV1</calib>
+        </device>
+        <device name="PAR-L2" type="PAR" category="FEATURE" dmxOffset="20" formatBuffer="I.ZR.G.B.W....." zoom="128" lumens="3500">
+            <calib>ParV1</calib>
+        </device>
+    </DMX>
+</configuration>

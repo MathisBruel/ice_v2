@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no" ?>
+<configuration>
+    <type>Doremi</type>
+    <port>10000</port>
+    <ip></ip>
+    <interface>eno1</interface>
+    <credentials></credentials>
+    <syncRate>6</syncRate>
+    <offsetPlayer2K>167</offsetPlayer2K>
+    <offsetPlayer4K>85</offsetPlayer4K>
+</configuration>

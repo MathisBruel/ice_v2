@@ -1,0 +1,171 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="cut">
+    <h1>CUT</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Description</div>
+            <textarea id="description" rows="5"></textarea>
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Position</div>
+            <input type="number" id="position">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Size</div>
+            <input type="number" id="size">
+        </li>
+    </ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<script type="text/javascript">
+
+    const modal = document.getElementById("loading");
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+    const id_release = urlParams.get('id_release');
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getCuts`, options)).json();
+
+            if (result.ok == true) {
+
+                const cuts = result.data.cut;
+
+                document.getElementById("description").value = cpl.$.description;
+                document.getElementById("position").value = cpl.$.position;
+                document.getElementById("size").value = cpl.$.size;
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const description = document.getElementById("description").value;
+        const position = document.getElementById("position").value;
+        const size = document.getElementById("size").value;
+
+        if (description == "") {
+            document.getElementById("description").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field description is empty !");
+        }
+        
+        else {
+
+            const json = {
+                id_release: id_release,
+                description: description,
+                position: position,
+                size: size
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/createCut`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/release?id=" + id_release);
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const description = document.getElementById("description").value;
+        const position = document.getElementById("position").value;
+        const size = document.getElementById("size").value;
+
+        if (description == "") {
+            document.getElementById("description").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field description is empty !");
+        }
+
+        const json = {
+            id: id,
+            id_release: id_release,
+            description: description,
+            position: position,
+            size: size
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/updateCut`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.ok == true) {
+                window.location.assign("/release?id=" + id_release);
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const json = {
+            id: id
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteCut`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/release?id=" + id_release);
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

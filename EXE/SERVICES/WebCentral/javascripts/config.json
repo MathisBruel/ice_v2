@@ -1,0 +1,6 @@
+{
+    "DEFAULT_PATH_LAUNCH_ICE_API":"/data/ICE2/",
+    "ICE_API_URL": "localhost",
+    "ICE_API_PORT":8500,
+    "API_PORT":3000
+}

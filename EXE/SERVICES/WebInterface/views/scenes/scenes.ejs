@@ -1,0 +1,694 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<style>
+    #render-scene {
+        display:none;
+    }
+    .local {
+        color:rgb(131, 23, 23);
+    }
+    .saved {
+        color:rgb(2, 48, 2);
+    }
+</style>
+
+<div class="block-scene">
+    <h1>Scene</h1>
+    <div id="scene-info" style="display: none;"></div>
+    <canvas id='render-scene'></canvas>
+    <div id="message-box" class="success"></div>
+</div>
+
+<%- include ("listScenes") %>
+
+<%- include ("../control") %>
+
+<script>
+
+    let currentScene;
+    let maxX = 0, maxY = 0;
+    let posXSeat = 0, posYSeat = 0;
+    let widthSeat = 0, heightSeat = 0;
+    const localScenes = new Map();
+
+    async function init(){
+        document.getElementById("create-scene").addEventListener('click', createLocalScene);
+        document.getElementById("remove-scene").addEventListener('click', removeScene);
+        document.getElementById("play-scene").addEventListener('click', playScene);
+        document.getElementById("save-scene").addEventListener('click', saveScene);
+        document.getElementById('render-scene').addEventListener('click', clickOnCanvas);
+        document.getElementById('color-device').addEventListener('change', changeDataDevice);
+        document.getElementById('white').addEventListener('change', changeDataDevice);
+        document.getElementById('intensity').addEventListener('change', changeDataDevice);
+        document.getElementById('zoom').addEventListener('change', changeDataDevice);
+        document.getElementById('x').addEventListener('change', changeDataDevice);
+        document.getElementById('y').addEventListener('change', changeDataDevice);
+        window.addEventListener("load", resizeCanvas);
+        window.addEventListener("resize", resizeCanvas);
+    }
+
+    async function create_scene(name, is_local = true){
+        document.getElementById('color-device').value = '#000000';
+        document.getElementById('white').value = 0;
+        document.getElementById('intensity').value = 0;
+        document.getElementById('zoom').value = 0;
+        document.getElementById('x').value = 0;
+        document.getElementById('y').value = 0;
+        document.getElementById("scene-name").value = '';
+        const config = await getConfiguration();
+        const scene = config.data.ICE;
+        scene.name = name;
+        if (scene.screen){
+            const obj = {
+                height:scene.screen[0].$.height,
+                offsetX:scene.screen[0].$.offsetX,
+                offsetZ:scene.screen[0].$.offsetZ,
+                width:scene.screen[0].$.width,
+            }
+            const offsetX = parseInt(obj.offsetX);
+            maxX = offsetX > maxX ? offsetX : maxX;
+            scene.screen = obj;
+        }
+        const panels = [];
+        if (scene.panel) {
+            for (const panel of scene.panel){
+                const obj = {
+                    color: { red:0, green:0, blue:0 },
+                    height:panel.$.height,
+                    name:panel.$.name,
+                    offsetX:panel.$.offsetX,
+                    offsetY:panel.$.offsetY,
+                    offsetZ:panel.$.offsetZ,
+                    side:panel.$.side,
+                    width:panel.$.width
+                }
+                panels.push(obj);
+                const offsetX = parseInt(obj.offsetX);
+                const offsetY = parseInt(obj.offsetY);
+                maxX = offsetX > maxX ? offsetX : maxX;
+                maxY = offsetY > maxY ? offsetY : maxY;
+            }
+        }
+        scene.panel = panels;
+
+        const movingheads = [];
+        if (scene.movingHead) {
+            for (const movinghead of scene.movingHead){
+                const obj = {
+                    color: { red:0, green:0, blue:0 },
+                    depth:movinghead.$.depth,
+                    intensity: 0,
+                    name:movinghead.$.name,
+                    offsetX:movinghead.$.offsetX,
+                    offsetY:movinghead.$.offsetY,
+                    offsetZ:movinghead.$.offsetZ,
+                    panFullAngle:movinghead.$.panFullAngle,
+                    ratioX: 0,
+                    ratioY: 0,
+                    side:movinghead.$.side,
+                    tiltFullAngle:movinghead.$.tiltFullAngle,
+                    white: 0,
+                    zoom: 0
+                }
+                const offsetX = parseInt(obj.offsetX);
+                const offsetY = parseInt(obj.offsetY);
+                maxX = offsetX > maxX ? offsetX : maxX;
+                maxY = offsetY > maxY ? offsetY : maxY;
+                movingheads.push(obj);
+            }
+        }
+        scene.movingHead = movingheads;
+
+        const seats = []
+        if (scene.seat) {
+            for (const seat of scene.seat){
+                const offsetX = parseInt(seat.$.offsetX);
+                const offsetY = parseInt(seat.$.offsetY);
+                maxX = offsetX > maxX ? offsetX : maxX;
+                maxY = offsetY > maxY ? offsetY : maxY;
+                seats.push(seat.$);
+            }
+        }
+        scene.seat = seats;
+
+        const devices = await getListDevices();
+        const par = [];
+        const backlight = [];
+        if (devices.data.Devices.Device) {
+            for (const device of devices.data.Devices.Device){
+                if (device.Type[0] === "DATA_ENABLER_PRO"){
+                    if (device.DMXS[0] != "") {
+                        for (const dmx of device.DMXS[0].DMX){
+                            if (dmx.Type[0] === "PAR"){
+                                par.push({ 
+                                    name:dmx.Name[0],
+                                    color:{ red:0, green:0, blue:0 },
+                                    intensity:0,
+                                    white:0,
+                                    zoom:0
+                                });
+                            } else if (dmx.Type[0] === "BACKLIGHT"){
+                                backlight.push({
+                                    name:dmx.Name[0],
+                                    color:{ red:0, green:0, blue:0 }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        scene.par = par;
+        scene.backlight = backlight;
+        scene.is_local = is_local;
+        return scene;
+    }
+
+    async function resizeCanvas() {
+        if (currentScene === undefined){ return ;}
+        const canvas = document.getElementById('render-scene');
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = (maxY * canvas.width) / maxX;
+        drawCanvas();
+    }
+
+    async function drawCanvas(){
+        const canvas = document.getElementById('render-scene');
+        canvas.style.display = 'grid';
+        // -- recalculate size of canvas
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = (maxY * canvas.width) / maxX;
+
+        // -- calculate ratios
+        const globalWidth = canvas.width - 20;
+        const globalHeight = canvas.height - 100;
+        const ratioXToCanvas = globalWidth / maxX;
+        const ratioYToCanvas = globalHeight / maxY;
+
+        // -- clear draws on canvas at first
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawScreen(ctx, ratioXToCanvas, ratioYToCanvas);
+        drawSeats(ctx, ratioXToCanvas, ratioYToCanvas);
+        drawPanels(ctx, ratioXToCanvas, ratioYToCanvas);
+        drawMovingHead(ctx, ratioXToCanvas, ratioYToCanvas);
+        drawPar(canvas, ctx, ratioXToCanvas, ratioYToCanvas);
+        drawBacklight(canvas, ctx, ratioXToCanvas, ratioYToCanvas);
+    }
+
+    function drawScreen(ctx, ratioXToCanvas, ratioYToCanvas){
+        if (currentScene.screen){
+            const posXScreen = currentScene.screen.offsetX * ratioXToCanvas + 10;
+            const widthScreen = (currentScene.screen.width * ratioXToCanvas);
+
+            const gradient = ctx.createLinearGradient(0, 30, 0, 60);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(posXScreen, 30);
+            ctx.lineTo(posXScreen+widthScreen, 30);
+            ctx.lineTo(posXScreen+widthScreen+30, 60);
+            ctx.lineTo(posXScreen-30, 60);
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(20, 20, 20, 0.4)';
+            ctx.fillRect(posXScreen, 0, widthScreen, 30);
+            ctx.strokeRect(posXScreen, 0, widthScreen, 30);
+        }
+    }
+
+    function drawSeats(ctx, ratioXToCanvas, ratioYToCanvas){
+        posXSeat = Math.min(currentScene.seat[0].offsetX, currentScene.seat[1].offsetX) * ratioXToCanvas + 10;
+        posYSeat = Math.min(currentScene.seat[0].offsetY, currentScene.seat[1].offsetY) * ratioYToCanvas + 10;
+        widthSeat = Math.abs(currentScene.seat[1].offsetX - currentScene.seat[0].offsetX) * ratioXToCanvas;
+        heightSeat = Math.abs(currentScene.seat[1].offsetY - currentScene.seat[0].offsetY) * ratioYToCanvas;
+        const gradient = ctx.createLinearGradient(posXSeat, posYSeat, posXSeat, posYSeat+heightSeat);
+        gradient.addColorStop(0, 'rgba(2, 2, 36, 0.3)');
+        gradient.addColorStop(1, 'rgba(62, 12, 81, 0.3)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(posXSeat, posYSeat, widthSeat, heightSeat);
+        ctx.strokeRect(posXSeat, posYSeat, widthSeat, heightSeat);
+    }
+
+    function drawPanels(ctx, ratioXToCanvas, ratioYToCanvas){
+        for (const panel of currentScene.panel) {
+            const posXPanel = panel.offsetX * ratioXToCanvas;
+            const posYPanel = panel.offsetY * ratioYToCanvas + 10;
+            const heightPanel = panel.width * ratioYToCanvas;
+
+            ctx.fillStyle = "rgba(216, 191, 216, 0.5)";
+            ctx.fillRect(posXPanel, posYPanel, 20, heightPanel);
+            ctx.strokeRect(posXPanel, posYPanel, 20, heightPanel);
+
+            if (panel.offsetX > maxX/2) {
+                var gradient = ctx.createLinearGradient(posXPanel-20, posYPanel, posXPanel, posYPanel);
+                gradient.addColorStop(0, 'rgba(' + panel.color.red + ',' + panel.color.green + ',' + panel.color.blue + ',0)');
+                gradient.addColorStop(1, 'rgba(' + panel.color.red + ',' + panel.color.green + ',' + panel.color.blue + ',0.5)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(posXPanel-20, posYPanel, 20, heightPanel);
+            }
+            else {
+                var gradient = ctx.createLinearGradient(posXPanel+20, posYPanel, posXPanel+40, posYPanel);
+                gradient.addColorStop(0, 'rgba(' + panel.color.red + ',' + panel.color.green + ',' + panel.color.blue + ',0.5)');
+                gradient.addColorStop(1, 'rgba(' + panel.color.red + ',' + panel.color.green + ',' + panel.color.blue + ',0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(posXPanel+20, posYPanel, 20, heightPanel);
+            }
+        }
+    }
+
+    function drawMovingHead(ctx, ratioXToCanvas, ratioYToCanvas){
+        for (const movinghead of currentScene.movingHead) {
+            let posXMH = movinghead.offsetX * ratioXToCanvas;
+            if (movinghead.offsetX > maxX / 2) {
+                posXMH += 10;
+            }
+            const posYMH = movinghead.offsetY * ratioYToCanvas;
+
+            // -- vectoring calculation
+            const xPointer = posXSeat + (widthSeat*movinghead.ratioX);
+            const yPointer = posYSeat + (heightSeat*movinghead.ratioY);
+            let vectorPointerX = xPointer - posXMH;
+            let vectorPointerY = yPointer - posYMH;
+            const lenghVector = Math.sqrt(Math.pow(vectorPointerX, 2) + Math.pow(vectorPointerY, 2));
+            vectorPointerX /= lenghVector;
+            vectorPointerY /= lenghVector;
+            let XPerpPointer = 1;
+            let YPerpPointer = -vectorPointerX / vectorPointerY;
+            const lenghVectorPerp = Math.sqrt(Math.pow(XPerpPointer, 2) + Math.pow(YPerpPointer, 2));
+            XPerpPointer /= lenghVectorPerp;
+            YPerpPointer /= lenghVectorPerp;
+
+            const gradient = ctx.createLinearGradient(posXMH, posYMH, lenghVector*vectorPointerX, lenghVector*vectorPointerY);
+            gradient.addColorStop(0, 'rgba(' + movinghead.color.red + ',' + movinghead.color.green + ',' + movinghead.color.blue + ',0.5');
+            gradient.addColorStop(1, 'rgba(' + movinghead.color.red + ',' + movinghead.color.green + ',' + movinghead.color.blue + ',0.0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+
+            ctx.moveTo(posXMH, posYMH);
+            ctx.lineTo(posXMH-10*XPerpPointer+lenghVector*vectorPointerX, posYMH-10*YPerpPointer+lenghVector*vectorPointerY);
+            ctx.lineTo(posXMH+10*XPerpPointer+lenghVector*vectorPointerX, posYMH+10*YPerpPointer+lenghVector*vectorPointerY);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(posXMH, posYMH, 20, 0, 2*Math.PI);
+            ctx.fillStyle = "rgba(70, 130, 180, 0.5)";
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+
+    function drawPar(canvas, ctx, ratioXToCanvas, ratioYToCanvas) {
+        let idxPar = 0;
+        for (const par of currentScene.par){
+            const x = 40+(idxPar*60);
+            const y = canvas.height-30;
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, 30);
+            gradient.addColorStop(0, 'rgba(' + par.color.red + ',' + par.color.green + ',' + par.color.blue + ',1.0');
+            gradient.addColorStop(1, 'rgba(' + par.color.red + ',' + par.color.green + ',' + par.color.blue + ',0.0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "midnightblue";
+            ctx.beginPath();
+            ctx.moveTo(20+(idxPar*60), canvas.height-50);
+            ctx.lineTo(60+(idxPar*60), canvas.height-10);
+            ctx.moveTo(60+(idxPar*60), canvas.height-50);
+            ctx.lineTo(20+(idxPar*60), canvas.height-10);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(40+(idxPar*60), canvas.height-30, 10, 0, 2*Math.PI);
+            ctx.stroke();
+            idxPar++;
+        }
+    }
+
+    function drawBacklight(canvas, ctx, ratioXToCanvas, ratioYToCanvas){
+        let idxBack = 0;
+        for (const backlight of currentScene.backlight){
+            ctx.fillStyle = "plum";
+            const x = canvas.width-50-(idxBack*60);
+            const y = canvas.height-30;
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, 30);
+            gradient.addColorStop(0, 'rgba(' + backlight.color.red + ',' + backlight.color.green + ',' + backlight.color.blue + ',1.0');
+            gradient.addColorStop(1, 'rgba(' + backlight.color.red + ',' + backlight.color.green + ',' + backlight.color.blue + ',0.0)');
+            ctx.fillStyle = gradient;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            idxBack++;
+        }
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(50, 50, 50, 0.5)";
+        ctx.fillRect(canvas.width-80-((idxBack-1)*60), canvas.height-60, idxBack*60, 60);
+        ctx.strokeRect(canvas.width-80-((idxBack-1)*60), canvas.height-60, idxBack*60, 60);
+    }
+
+    function clickOnCanvas(event){
+        let x, y;
+        if (event.pageX || event.pageY) { 
+            x = event.pageX;
+            y = event.pageY;
+        }
+        else { 
+            x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
+            y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
+        }
+
+        const canvas = document.getElementById("render-scene");
+        x -= canvas.offsetLeft;
+        y -= canvas.offsetTop - canvas.parentNode.scrollTop;
+
+        const globalWidth = canvas.width - 20;
+        const globalHeight = canvas.height - 100;
+        const ratioXToCanvas = globalWidth / maxX;
+        const ratioYToCanvas = globalHeight / maxY;
+
+        let idxPar = 0;
+        for (const par of currentScene.par){
+            const distPar = Math.sqrt(Math.pow(40+(idxPar*60)-x, 2) + Math.pow(canvas.height-30-y, 2));
+            if (distPar <= 20) {
+                showControlBlock({type:'PAR', data:par});
+                return;
+            }
+            idxPar++;
+        }
+        let idxBack = 0;
+        for (const backlight of currentScene.backlight){
+            const distBack = Math.sqrt(Math.pow(canvas.width-50-(idxBack*60)-x, 2) + Math.pow(canvas.height-30-y, 2));
+            if (distBack <= 20) {
+                showControlBlock({type:'BACKLIGHT', data:backlight});
+                return;
+            }
+            idxBack++;
+        }
+        for (const movinghead of currentScene.movingHead){
+            const posXMH = movinghead.offsetX * ratioXToCanvas;
+            if (movinghead.offsetX > maxX / 2) {
+                posXMH += 10;
+            }
+            const posYMH = movinghead.offsetY * ratioYToCanvas;
+            const distMH = Math.sqrt(Math.pow(posXMH-x, 2) + Math.pow(posYMH-y, 2));
+            if (distMH <= 20) {
+                showControlBlock({type:'MOVING_HEAD', data:movinghead});
+                return;
+            }
+
+        }
+        for (const panel of currentScene.panel){
+            const posXPanel = panel.offsetX * ratioXToCanvas;
+            const posYPanel = panel.offsetY * ratioYToCanvas + 10;
+            const heightPanel = panel.width * ratioYToCanvas;
+            if (x >= posXPanel && x < posXPanel+20 && y >= posYPanel && y <posYPanel + heightPanel) {
+                showControlBlock({data: panel, type:'PANEL'});
+                return;
+            }
+        }
+
+        document.getElementById('controlDevice').style.display = "none";
+    }
+
+    function showControlBlock(device){
+        console.dir(device);
+        console.dir(RGBToHex(device.data.color.red, device.data.color.green, device.data.color.blue));
+        document.getElementById("control-title").innerText = "Control " + device.data.name;
+        document.getElementById('color-device').value = RGBToHex(device.data.color.red, device.data.color.green, device.data.color.blue);
+        for (const element of document.getElementsByClassName("force")){
+            element.style.display = "none";
+        }
+        for (const element of document.getElementsByClassName("lut")){
+            element.style.display = "none";
+        }
+        document.getElementById('play-button').style.display = 'none';
+        const controlBlock = document.getElementById('controlDevice');
+        controlBlock.style.display = "grid";
+        controlBlock.data = device.data;
+
+        let mh_controls;
+        let par_controls;
+        switch(device.type){
+            case 'PAR':
+                setWhiteIntensityZoomInputs(device);
+                mh_controls="none";
+                par_controls="grid";
+                break;
+            case 'MOVING_HEAD':
+                setWhiteIntensityZoomInputs(device);
+                document.getElementById('x').value = device.data.ratioX;
+                document.getElementById('y').value = device.data.ratioY;
+                mh_controls="grid";
+                par_controls="grid";
+                break;
+            default:
+                mh_controls="none";
+                par_controls="none";
+                break;
+        }
+        for (const element of document.getElementsByClassName("par-control")){
+            element.style.display = par_controls;
+        }
+        for (const element of document.getElementsByClassName("mh-control")){
+            element.style.display = mh_controls;
+        }
+    }
+
+    function setWhiteIntensityZoomInputs(device){
+        document.getElementById('white').value = device.data.white;
+        document.getElementById('intensity').value = device.data.intensity;
+        document.getElementById('zoom').value = device.data.zoom;
+    }
+
+    async function changeDataDevice(event){
+        const data = document.getElementById('controlDevice').data;
+        data.color = hexToRGB(document.getElementById('color-device').value);
+        if (data.white !== undefined){
+            data.white = document.getElementById('white').value;
+        }
+        if (data.intensity !== undefined){
+            data.intensity = document.getElementById('intensity').value;
+        }
+        if (data.zoom !== undefined){
+            data.zoom = document.getElementById('zoom').value;
+        }
+        if (data.ratioX !== undefined){
+            data.ratioX = document.getElementById('x').value;
+        }
+        if (data.ratioY !== undefined){
+            data.ratioY = document.getElementById('y').value;
+        }
+        currentScene.is_local = true;
+        await showListScenes();
+        await drawCanvas();
+    }
+
+    async function saveScene(event){
+        if (currentScene === undefined){ return ; }
+        const panels = [];
+        for (const panel of currentScene.panel){
+            panels.push({
+                blue:panel.color.blue,
+                green:panel.color.green,
+                name:panel.name,
+                red:panel.color.red
+            });
+        }
+        const backlights = [];
+        for (const backlight of currentScene.backlight){
+            backlights.push({
+                blue:backlight.color.blue,
+                green:backlight.color.green,
+                name:backlight.name,
+                red:backlight.color.red
+            });
+        }
+        const pars = [];
+        for (const par of currentScene.par){
+            pars.push({
+                blue:par.color.blue,
+                green:par.color.green,
+                intensity:par.intensity,
+                name:par.name,
+                red:par.color.red,
+                white:par.white,
+                zoom:par.zoom
+            });
+        }
+        const movingheads = [];
+        for (const movinghead of currentScene.movingHead){
+            movingheads.push({
+                blue:movinghead.color.blue,
+                green:movinghead.color.green,
+                intensity:movinghead.intensity,
+                name:movinghead.name,
+                ratioX:movinghead.ratioX,
+                ratioY:movinghead.ratioY,
+                red:movinghead.color.red,
+                white:movinghead.white,
+                zoom:movinghead.zoom
+            });
+        }
+        const json = {
+            scene:currentScene.name,
+            content:{name:currentScene.name,
+            panel:panels,
+            backlight:backlights,
+            par:pars,
+            movinghead:movingheads}
+        }
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await (await fetch(`/scenes/scenes`, options)).json();
+        showMessage('message-list-box', result);
+        if (result.code === 200){
+            currentScene.is_local = false;
+        }
+        await showListScenes();
+    }
+
+    async function playScene(event){
+        if (currentScene === undefined){ return ; }
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/scenes/play/${currentScene.name}`, options)).json();
+        showMessage('message-list-box', result, DEFAULT_DELAY);
+    }
+
+    async function createLocalScene(){
+        inputDOM = document.getElementById("scene-name");
+        if (inputDOM.value === '' || inputDOM.value === null || inputDOM.value === undefined){ 
+            return ;
+        }
+        
+        const scene = await create_scene(inputDOM.value);
+        localScenes.set(scene.name, scene);
+        await showListScenes();
+        await changeScene({target:{name:scene.name}});
+    }
+
+    async function removeScene(){
+        if (currentScene === undefined){ return ; }
+        localScenes.delete(currentScene.name);
+        currentScene = undefined;
+        document.getElementById('render-scene').style.display = "none";
+        document.getElementById('controlDevice').style.display = "none";
+        await showListScenes();
+    }
+
+    async function getScenes(){
+        const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/scenes/scenes`, options)).json();
+        return result;
+    }
+
+    async function getConfiguration(){
+        const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/scenes/configuration`, options)).json();
+        return result;
+    }
+
+    async function getListDevices(){
+        const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/devices/devices`, options)).json();
+        return result;
+    }
+
+    async function showListScenes(){
+        const DOM = document.getElementById('sceneList');
+        removeAllChild(DOM);
+        localScenes.forEach(function(value, key, map){
+            const is_current = currentScene === undefined ? false : key === currentScene.name;
+            const is_local = value.is_local ? 'local':'saved';
+            const li = createDOM('li', { innerText:key, class:`li-scene ${is_local}`, name:key, selected:is_current });
+            li.addEventListener('click', changeScene);
+            DOM.appendChild(li);
+        });
+    }
+
+    async function changeScene(event){
+        if (currentScene !== undefined){
+            localScenes.set(currentScene.name, currentScene);
+        }
+        currentScene = localScenes.get(event.currentTarget.name);
+        
+
+        document.getElementById('controlDevice').style.display = "none";
+        await showListScenes();
+        await drawCanvas();
+    }
+
+    async function importScene(scene){
+        const newScene = await create_scene(scene.name[0], false);
+        for (const backlight of newScene.backlight){
+            for (const back of scene.backlight){
+                if (back.name[0] === backlight.name){
+                    backlight.color = {
+                        red:back.red[0],
+                        blue:back.blue[0],
+                        green:back.green[0],
+                    };
+                }
+            }
+        }
+        for (const panel of newScene.panel){
+            for (const p of scene.panel){
+                if (p.name[0] === panel.name){
+                    panel.color = {
+                        red:p.red[0],
+                        blue:p.blue[0],
+                        green:p.green[0],
+                    };
+                }
+            }
+        }
+        for (const movinghead of newScene.movingHead){
+            for (const mh of scene.movinghead){
+                if (mh.name[0] === movinghead.name){
+                    movinghead.color = {
+                        red:mh.red[0],
+                        blue:mh.blue[0],
+                        green:mh.green[0],
+                    };
+                    movinghead.intensity = mh.intensity[0];
+                    movinghead.ratioX = mh.ratioX[0];
+                    movinghead.ratioY = mh.ratioY[0];
+                    movinghead.zoom = mh.zoom[0];
+                }
+            }
+        }
+        for (const par of newScene.par){
+            for (const p of scene.par){
+                if (p.name[0] === par.name){
+                    par.color = {
+                        red:p.red[0],
+                        blue:p.blue[0],
+                        green:p.green[0],
+                    };
+                    par.intensity = p.intensity[0];
+                    par.zoom = p.zoom[0];
+                }
+            }
+        }
+        localScenes.set(newScene.name, newScene);
+    }
+    
+    document.addEventListener(`DOMContentLoaded`, async function(event){
+        const result = await getScenes();
+        showMessage('message-list-box', result, DEFAULT_DELAY);
+
+        if (result.data) {
+            for (const scene of result.data){
+                await importScene(scene);
+            }
+        }
+        await init();
+        await showListScenes();
+    });
+
+
+</script>

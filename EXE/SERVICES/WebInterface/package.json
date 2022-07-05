@@ -1,0 +1,29 @@
+{
+  "name": "app.js",
+  "version": "1.0.0",
+  "description": "ICE2-Web",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^3.2.0",
+    "bcrypt": "^3.0.8",
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.1.6",
+    "ejs-lint": "^1.2.0",
+    "eslint": "^7.28.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "http": "0.0.1-security",
+    "http-client": "^4.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "orm": "^5.0.7",
+    "pbkdf2": "^3.1.2",
+    "pbkdf2-password": "^1.2.1",
+    "xml2js": "^0.4.23",
+    "xmlbuilder": "^15.1.1"
+  }
+}

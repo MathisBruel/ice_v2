@@ -1,0 +1,161 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block-scene">
+    <h1>Scripts</h1>
+    <input type="search" style="margin: 20px;" id="filter-script" oninput="renderListScript()" placeholder="Enter text to filter">
+    </input>
+    <div id="script-info" style="display: none;"></div>
+    <ul class="script" style="display: grid;" id="ul-scripts" />
+    <div id="message-box">
+
+    </div>
+</div>
+
+<%- include ("details") %>
+
+
+<script type="text/javascript">
+
+    let list_scripts = [];
+    let current = undefined;
+
+    function showDetails(event){
+        current = event.currentTarget.data;
+        renderListScript();
+        const name = current.Name[0].replace(".lcp", "");
+        document.getElementById('details-script').style.display = "block";
+        document.getElementById('details-title').innerText = current.Name[0];
+
+        const sync_list =  document.getElementById('sync-list');
+        removeAllChild(sync_list);
+        if (current.Syncs[0]){
+            for (const sync of current.Syncs[0].Sync){
+                const name = sync._.replace(".sync", "");
+                const li = createDOM("li", { class: 'li-script', innerText:name });
+                sync_list.appendChild(li);
+            }
+        } else {
+            const li = createDOM('li', { innerText: 'No sync files associated'});
+            sync_list.appendChild(li);
+        }
+
+        const playButton = document.getElementById('play-button');
+        if (current.Loop[0] === "true" && current.Playable[0] === "true") {
+            playButton.disabled = false;
+        }
+        else {
+            playButton.disabled = true;
+        }
+    }
+
+    function renderListScript(){
+        const list = filter();
+        showListScripts(list);
+    }
+
+    function showListScripts(list){
+        const ul = document.getElementById('ul-scripts');
+        removeAllChild(ul);
+        for (const script of list){
+            const name = script.Name[0].replace(".lcp", "");
+            const is_current = current === undefined ? false : current.Name[0] === script.Name[0];
+
+            const li = createDOM('li', { class:'li-script', name:name, data:script, selected:is_current });
+            addImage(li, { src:'loop.png', title:'Loop' }, script.Loop[0] !== "true");
+            addPinImage(li, { src:'pinned.png', title:'Pinned', name:name }, script.Keep[0] !== "true");
+            addImage(li, { src:'playable.png', title:'Playable' }, script.Playable[0] !== "true");
+            if (script.Cis[0].$.percent != 100.0) {
+                var titleScript = "Script is uploading. Cis : " + script.Cis[0].$.percent + "% ";
+                const img = createDOM('img', { class:'image-line', src:"uploading.png", title:titleScript});
+                li.appendChild(img);
+            }
+
+            const div_text = createDOM('div', { class: 'param', innerText: name});
+            li.appendChild(div_text);
+            li.addEventListener('click', showDetails);
+            ul.appendChild(li);
+        }
+    }
+
+    function addImage(li, obj, is_grey){
+        const title = is_grey ? `Not ${obj.title}`: `${obj.title}`;
+        const filter = is_grey ? 'grey' : '';
+        const img = createDOM("img", { class: `image-line ${filter}`, src:obj.src, title:title});
+        li.appendChild(img);
+    }
+
+    function addPinImage(li, obj, is_grey){
+        const title = is_grey ? `Not ${obj.title}`: `${obj.title}`;
+        const filter = is_grey ? 'grey' : 'notGrey';
+        const img = createDOM("img", { class: `image-line ${filter}`, src:obj.src, title:title, name:obj.name, is_grey:is_grey});
+        img.addEventListener('click', changePriority);
+        li.appendChild(img);
+    }
+
+    async function changePriority(){
+
+        const grey = this.is_grey;
+        const nameLCP = this.name + '.lcp';
+        const priority = this.is_grey ? 'true' : 'false';
+        const json = JSON.stringify({ scriptName:nameLCP, priority:priority });
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const result = await (await fetch(`/scripts/changePriority`, options)).json();
+        
+        console.log(this.class);
+
+        // -- TODO : update of img not working
+        if (result.code === 200) {
+
+            if (grey) {
+                this.class = 'image-line notGrey';
+            }
+            else {
+                this.class = 'image-line grey';
+            }
+        }
+        console.log(this.class);
+    }
+
+    async function getListScripts(){
+        const options = { method:"GET", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/scripts/scripts`, options)).json();
+        return result;
+    }
+
+    async function launchScript(){
+        const json = {
+            force:document.getElementById('force').checked
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const name = current.Name[0];
+        const result = await (await fetch(`/scripts/launch/${name}`, options)).json();
+        showMessage('message-box-details', result, DEFAULT_DELAY);
+    }
+
+    function filter(){
+        const list = [];
+        const filterValue = document.getElementById('filter-script').value;
+        for (const script of list_scripts){
+            const name = script.Name[0].replace(".lcp", "").toLowerCase();
+            if (name.toLowerCase().indexOf(filterValue) !== -1){
+                list.push(script);
+            }
+        }
+        return list;
+    }
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        document.getElementById('play-button').addEventListener('click', launchScript);
+        list_scripts = (await getListScripts()).data.Downloaded.Script;
+        renderListScript();
+
+        setInterval(async function(){
+            list_scripts = (await getListScripts()).data.Downloaded.Script;
+            renderListScript();
+        }, 10000);
+    });
+
+</script>
+
+<%- include ("../foot") %>

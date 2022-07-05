@@ -1,0 +1,400 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="group">
+    <h1>GROUP</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Name</div>
+            <input type="text" id="name">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Description</div>
+            <textarea id="description" rows="5"></textarea>
+        </li>
+    </ul>
+
+    <h2 id="title-cinemas">Cinemas</h2>
+    <ul class="list" id="list-cinemas"></ul>
+
+    <h2 id="title-releases">Releases</h2>
+    <ul class="list" id="list-releases"></ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<script type="text/javascript">
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+
+    const listCinemas = document.getElementById("list-cinemas");
+    const listReleases = document.getElementById("list-releases");
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getGroups`, options)).json();
+            
+            const jsonCinemas = {id: -1};
+            const optionsCinemas = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonCinemas) };
+            const resultcinemas = await (await fetch(`/getCinemas`, optionsCinemas)).json();
+
+            const jsonReleases = {id: -1};
+            const optionsReleases = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonReleases) };
+            const resultReleases = await (await fetch(`/getReleases`, optionsReleases)).json();
+
+            if (result.ok == true) {
+                console.dir(result.data);
+
+                const group = result.data.group;
+                document.getElementById("name").value = group.$.name;
+                document.getElementById("description").value = group.$.description;
+
+                // -- cinemas list
+                var listCinemaData = [];
+                if (resultcinemas.data.cinemas) {
+                    if (resultcinemas.data.cinemas.cinema.length > 0) {
+                        resultcinemas.data.cinemas.cinema.forEach(cinema => {
+                            if (group.cinemas.length > 0 && group.cinemas[0] != "") {
+
+                                var found = false;
+                                group.cinemas[0].cinema.forEach(cinemaGroup => {
+                                    if (cinema.$.id == cinemaGroup.$.id) {
+                                        found = true;
+                                    }
+                                });
+
+                                if (!found) {
+                                    listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
+                                }
+                            }
+                            else {
+                                listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
+                            }
+                        });
+                    }
+                    if (listCinemaData.length > 0) {
+                        const li = createDOM("li", {className:"list-item-add"});
+                        listCinemas.appendChild(li);
+                        const drop = createDOM("select", { className:"drop", id:"dropCinemas"});
+                        li.appendChild(drop);
+                        listCinemaData.forEach(cinemaToAdd => {
+                            const select = createDOM("option", {value: cinemaToAdd.id, innerText: cinemaToAdd.name});
+                            drop.appendChild(select);
+                        });
+                        const imgAdd = createDOM("img", { id:"addCinema", className:"image-line-add", src:"/add.png" });
+                        imgAdd.addEventListener('click', async function(){
+
+                            const jsonLinkCinema = {
+                                id_cinema: document.getElementById("dropCinemas").value,
+                                id_group: id
+                            };
+                            const optionsLinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkCinema) };
+                            const resultLinkCinema = await fetch(`/linkCinemaToGroup`, optionsLinkcinema);
+                            console.log(resultLinkCinema);
+                            if (resultLinkCinema.ok == true) {
+                                const body = await resultLinkCinema.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", resultLinkCinema.message);
+                            }
+                        });
+                        li.appendChild(imgAdd);
+                        li.appendChild(drop);
+                    }
+                }
+
+                // -- cinemas
+                if (group.cinemas.length > 0 && group.cinemas[0] != "") {
+                    group.cinemas[0].cinema.forEach(cinema => {
+                        const li = createDOM("li", {className:"list-item"});
+                        listCinemas.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/cinema?id=" + cinema.$.id);
+                        });
+                        const name = createDOM("div", { className:"param", innerText: cinema.$.name });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:cinema.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonUnlinkCinema = {
+                                id_cinema: this.id,
+                                id_group: id
+                            };
+                            const optionsUnlinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkCinema) };
+                            const resultUnlinkCinema = await fetch(`/unlinkCinemaToGroup`, optionsUnlinkcinema);
+                            console.log(resultUnlinkCinema);
+                            if (resultUnlinkCinema.ok == true) {
+                                const body = await resultUnlinkCinema.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", resultUnlinkCinema.message);
+                            }
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        li.appendChild(imgDelete);
+                    });
+                }
+                else {
+                    const li = createDOM("li", {className:"list-item-none"});
+                    listCinemas.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                }
+
+                // -- releases list
+                var listReleaseData = [];
+                if (resultReleases.data.releases) {
+                    if (resultReleases.data.releases.release.length > 0) {
+                        resultReleases.data.releases.release.forEach(release => {
+                            if (group.releases.length > 0 && group.releases[0] != "") {
+
+                                var found = false;
+                                group.releases[0].release.forEach(releaseGroup => {
+                                    if (release.$.id == releaseGroup.$.id) {
+                                        found = true;
+                                    }
+                                });
+
+                                if (!found) {
+                                    listReleaseData.push({id: release.$.id, name: release.$.name});
+                                }
+                            }
+                            else {
+                                listReleaseData.push({id: release.$.id, name: release.$.name});
+                            }
+                        });
+                    }
+                    if (listReleaseData.length > 0) {
+                        const li = createDOM("li", {className:"list-item-add"});
+                        listReleases.appendChild(li);
+                        const drop = createDOM("select", { className:"drop", id:"dropReleases"});
+                        li.appendChild(drop);
+                        listReleaseData.forEach(releaseToAdd => {
+                            const select = createDOM("option", {value: releaseToAdd.id, innerText: releaseToAdd.name});
+                            drop.appendChild(select);
+                        });
+                        const imgAdd = createDOM("img", { id:"addRelease", className:"image-line-add", src:"/add.png" });
+                        imgAdd.addEventListener('click', async function(){
+
+                            const jsonLinkRelease = {
+                                id_release: document.getElementById("dropReleases").value,
+                                id_group: id
+                            };
+                            const optionsLinkRelease = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkRelease) };
+                            const resultLinkRelease = await fetch(`/linkReleaseToGroup`, optionsLinkRelease);
+                            console.log(resultLinkRelease);
+                            if (resultLinkRelease.ok == true) {
+                                const body = await resultLinkRelease.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", resultLinkContent.message);
+                            }
+                        });
+                        li.appendChild(imgAdd);
+                        li.appendChild(drop);
+                    }
+                }
+
+                // -- releases
+                if (group.releases.length > 0 && group.releases[0] != "") {
+                    group.releases[0].release.forEach(release => {
+                        const li = createDOM("li", {className:"list-item"});
+                        listReleases.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/release.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/release?id=" + release.$.id);
+                        });
+                        const name = createDOM("div", { className:"param", innerText: release.$.name });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:release.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonUnlinkRelease = {
+                                id_release: this.id,
+                                id_group: id
+                            };
+                            const optionsUnlinkRelease = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkRelease) };
+                            const resultUnlinkRelease = await fetch(`/unlinkReleaseToGroup`, optionsUnlinkRelease);
+                            console.log(resultUnlinkRelease);
+                            if (resultUnlinkRelease.ok == true) {
+                                const body = await resultUnlinkRelease.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", resultUnlinkRelease.message);
+                            }
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        li.appendChild(imgDelete);
+                    });
+                }
+                else {
+                    const li = createDOM("li", {className:"list-item-none"});
+                    listReleases.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/release.png", title:"none" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+            document.getElementById("title-cinemas").style.display = "none";
+            document.getElementById("title-releases").style.display = "none";
+            document.getElementById("list-cinemas").style.display = "none";
+            document.getElementById("list-releases").style.display = "none";
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const description = document.getElementById("description").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+        else if (description == "") {
+            document.getElementById("description").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field description is empty !");
+        }
+
+        else {
+            const json = {
+                name: name,
+                description: description
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/createGroup`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.code == 200) {
+                    window.location.assign("/groups");
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const description = document.getElementById("description").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+        else if (description == "") {
+            document.getElementById("description").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field description is empty !");
+        }
+
+        else {
+            const json = {
+                id: id,
+                name: name,
+                description: description
+            };
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await fetch(`/updateGroup`, options);
+            console.log(result);
+            if (result.ok == true) {
+                const body = await result.json();
+                if (body.ok == true) {
+                    window.location.assign("/groups");
+                }
+                else {
+                    showErrorMessage("message-box", body.message);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const json = {
+            id: id
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteGroup`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/groups");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

@@ -1,0 +1,93 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="cpls">
+    <h1>CPLS</h1>
+    <ul class="ul-model" id="ul-cpl"></ul>
+    <div id="message-box" class="success"></div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', async function(){
+        let response = await ( getCpls(-1) );
+        if (response.ok == true) {
+            drawCpls(response.data.cpls.cpl);
+        }
+    });
+
+    async function getCpls(idCpl) {
+        var response;
+        try {
+            const json = JSON.stringify({ id:idCpl });
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            response = await ( await fetch(`/getCpls`, options) ).json();
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+        }
+        return response;
+    }
+
+    function drawCpls(cpls) {
+        const tabCpls = document.getElementById("ul-cpl");
+
+        // -- remove all childs
+        let child = tabCpls.lastChild;
+        while(child){
+            tabCpls.removeChild(child);
+            child = tabCpls.lastChild;
+        }
+
+        // -- create add line
+        const liAdd = createDOM("li", {className:"list-item-add"});
+        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        imgAdd.addEventListener('click', async function(){
+            window.location.assign("/cpl?id=-1");
+        });
+        liAdd.appendChild(imgAdd);
+        tabCpls.appendChild(liAdd);
+
+        // -- foreach group
+        if (cpls != undefined) {
+
+            for (const cpl of cpls) {
+    
+                // -- clickable
+                const li = document.createElement("li");
+                li.addEventListener('click', async function(){
+                    window.location.assign("/cpl?id=" + li.id);
+                });
+                li.className = "li-model";
+                li.id = cpl.$.id;
+                const imageCpl = document.createElement("img");
+                imageCpl.className = "image-line";
+                imageCpl.src = "cpl.png";
+                li.appendChild(imageCpl);
+                const nameDom = document.createElement("div");
+                nameDom.className = "param";
+                nameDom.innerText = cpl.$.name;
+                li.appendChild(nameDom);
+                const imageDescr = document.createElement("img");
+                imageDescr.className = "image-line";
+                imageDescr.src = "description.png";
+                li.appendChild(imageDescr);
+                const descrDom = document.createElement("div");
+                descrDom.className = "param";
+                descrDom.innerText = cpl.$.uuid;
+                li.appendChild(descrDom);
+                tabCpls.appendChild(li);
+
+                if (cpl.$.path_sync != "") {
+                    const imageSynchro = document.createElement("img");
+                    imageSynchro.className = "image-line";
+                    imageSynchro.src = "synchro.png";
+                    li.appendChild(imageSynchro);
+                }
+            }
+        }
+    }
+</script>
+
+
+<%- include ("../foot") %>

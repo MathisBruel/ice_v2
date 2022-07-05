@@ -1,0 +1,112 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+<style>
+    #settings {
+        display: grid;
+    }
+    #settings label {
+        display: flex;
+        align-items: center;
+    }
+    #settings #informations {
+        display: grid;
+        grid-template-columns: 40px 1fr 40px 1fr
+    }
+    #settings div {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    #settings button {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .entry {
+        display: grid;
+        grid-template-columns: minmax(100px, 10%) minmax(200px, 15%) 1fr
+    }
+    #settings img {
+        height: 40px;
+    }
+</style>
+
+
+<div class="block" id="settings">
+    <h1>Settings</h1>
+    <hr />
+    <div id="informations">
+        <img src="play.png" alt="Status" id="status_img"></img><label id="status">Unknown</label>
+        <img src="id.png" alt="PID"/><label id="PID">Unknown</label>
+    </div>
+    <hr/>
+    <div class="entry">
+        <label>Priority</label>
+        <label id="currentPriority"></label>
+        <select id="select-priority">
+            <option value="undefined">None</option>
+            <option value="error">Error</option>
+            <option value="warning">Warning</option>
+            <option value="debug">Debug</option>
+        </select>
+    </div>
+    <div class="entry">
+        <label>ConfigPath</label>
+        <label id="currentPath"></label>
+        <input type="text" placeholder="Default value" id="input-configPath">
+    </div>
+    <hr/>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <hr/>
+</div>
+
+<script type="text/javascript">
+
+    async function getConfig(){
+        const options = {method:"GET", headers:{ "Content-Type": "application/json "}};
+        const result = await (await fetch('/settings/settings', options)).json();
+        return result;
+    }
+
+    async function showConfig(){
+        const config = await getConfig();
+        const is_running = config.pid !== undefined;
+        document.getElementById('status').innerText = config.pid ? 'Running' : "Stopped";
+        document.getElementById('status_img').src = config.pid ? 'play.png' : "stop.png";
+        document.getElementById('PID').innerText = config.pid ?? "UNKNOWN";
+        document.getElementById('currentPriority').innerText = config.priority !== undefined ? `current:${config.priority}` : '';
+        document.getElementById('input-configPath').placeholder = config.DEFAULT_PATH_CONFIG_FOLDER;
+        document.getElementById('currentPath').innerText = config.configPath !== undefined ? `current:${config.configPath}` : '';
+        document.getElementById('start').innerText = is_running ? 'Restart' : 'Start';
+        document.getElementById('start').onclick = is_running ? restartService : startService;
+        document.getElementById('stop').disabled = !is_running;
+        document.getElementById('stop').onclick = is_running ? stopService: undefined;
+    }
+
+    async function restartService(){
+        await stopService();
+        await startService();
+    }
+
+    async function startService(){
+        const json = {};
+        json.priority = document.getElementById('select-priority').value;
+        json.configPath = document.getElementById('input-configPath').value;
+        const options = {method:"POST", headers:{ "Content-Type": "application/json"}, body:JSON.stringify(json)};
+        await fetch('/settings/start-service', options);
+    }
+    
+    async function stopService(){
+        const options = {method:"POST", headers:{ "Content-Type": "application/json"}};
+        await fetch('/settings/stop-service', options);
+    }
+
+    document.addEventListener("DOMContentLoaded", async function(event){
+        await showConfig();
+        setInterval(function(){
+            showConfig();
+        }, 1000);
+    });
+
+</script>
+
+<%- include ("../foot") %>

@@ -1,0 +1,297 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block-devices" id="devices-div">
+    <h1>Devices</h1>
+    <ul class="device">
+
+    </ul>
+    <button onclick="unforceAllDevices()" >Unforce all devices</button>
+    <div id="message-box" class="success">
+
+    </div>
+</div>
+
+<%- include ("../control") %>
+
+<script type="text/javascript">
+    let currentDevice;
+    const showDMXS = [];
+
+
+    async function updateDevices(){
+        try {
+            const options = {method:"GET", headers:{ "Content-Type": "application/json "}};
+            const result = await (await fetch(`/devices/devices`, options)).json();
+            renderListDevices(result);
+        }
+        catch(err){
+            const message = {
+                code:-1,
+                message: JSON.stringify(err)
+            }
+            showMessage('message-box', message, DEFAULT_DELAY);
+        }
+    }
+    
+    function renderListDevices(response){
+        const id_error = 'message-box';
+        if (!response.ok){ 
+            const message = {
+                code:-1,
+                message: JSON.stringify(response.err)
+            }
+            showMessage(id_error, message, DEFAULT_DELAY);
+            return;
+        }
+        const devices = response.data.Devices.Device;
+        const device_DOM = document.getElementsByClassName('device')[0];
+        removeAllChild(device_DOM);
+        for (const device of devices) {
+            const forced = device.Forced;
+            const is_forced = forced === undefined ? false : forced[0];
+            const has_luts = device.LUTS !== undefined;
+            const luts = has_luts ? JSON.stringify(device.LUTS[0].LUT) : JSON.stringify([]);
+            const has_lut = device.LUT !== undefined;
+            const lut = has_lut ? device.LUT[0] : null;
+            const li = createDOM("li", { className:"device", activate:device.Active[0], type:device.Type[0], name:device.Name[0], forced:is_forced, luts:luts, lut:lut });
+            renderDevice(device, li);
+            device_DOM.appendChild(li);
+        }
+
+        for (const button of document.getElementsByClassName("collapsible")){
+            button.addEventListener('click', show_hide_DMX);
+        }
+        for (const li of document.getElementsByTagName("li")){
+            if (li.type !== "DATA_ENABLER_PRO"){
+                li.addEventListener('click', onclick_setCurrentDevice);
+                if (li.name === currentDevice){
+                    setCurrentDevice(li);
+                    showControlBlock(li);
+                }
+            }
+        }
+    }
+
+    function show_hide_DMX(event){
+        const button = event.target;
+        const name = button.parentNode.name;
+        content = button.nextElementSibling;
+        const index = showDMXS.indexOf(name)
+        if (index === -1){
+            showDMXS.push(name);
+            content.setAttribute('show', true);
+        } else {
+            showDMXS.splice(index, 1);
+            content.setAttribute('show', false);
+        }
+    }
+
+    function onclick_setCurrentDevice(event){
+        const li = event.target;
+        setCurrentDevice(li);
+        showControlBlock(li);
+        updateDevices();
+    }
+
+    function setCurrentDevice(li){
+        const old_li = document.getElementById('selected');
+        if (old_li !== null){
+            old_li.setAttribute('selected', false);
+            old_li.removeAttribute('id');
+        }
+        if (li.tagName === "LI"){
+            li.setAttribute('selected', true);
+            li.setAttribute('id', 'selected');
+            currentDevice = li.name;
+        }
+    }
+
+    function showControlBlock(li){
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const controlBlock = document.getElementById('controlDevice');
+        controlBlock.style.display = "grid";
+        document.getElementById("control-title").innerText = "Control " + currentDevice;
+        document.getElementById("currentLUT").innerText = li.lut;
+        const is_forced = li.forced === "true";
+        document.getElementById("unforce-button").disabled = !is_forced;
+        document.getElementById("unforce-button").onclick = unforce;
+        document.getElementById("change-button").onclick = changeLUT;
+
+        const lutSelect = document.getElementById("lut-select");
+        removeAllChild(lutSelect);
+        const noneOptions = createDOM('option', { style:'direction: rtl;', value:'NONE', innerText:'None' });
+        lutSelect.appendChild(noneOptions);
+
+        if (li.luts) {
+            const luts = JSON.parse(li.luts);
+            for (const lut of luts){
+                const lut_DOM = createDOM('option', { style: 'direction: rtl;', value:lut, innerText:lut});
+                lutSelect.appendChild(lut_DOM);
+            }
+            lutSelect.onchange = function(event){
+                if (lutSelect.value !== lutSelect.selectedValue){
+                    lutSelect.selectedValue = lutSelect.value;
+                }
+                lutSelect.selectedDevice = currentDevice;
+            }
+            if (lutSelect.selectedDevice === currentDevice && lutSelect.selectedValue){
+                lutSelect.value = lutSelect.selectedValue;
+            } else {
+                lutSelect.value = li.lut;
+            }
+        }
+
+        let show_par_control;
+        let show_mh_control;
+        switch(li.type){
+            case 'MOVING_HEAD':
+                show_par_control = "grid";
+                show_mh_control = "grid";
+                break;
+            case 'PAR':
+                show_par_control = "grid";
+                show_mh_control = "none";
+                break;
+            default:
+                show_par_control = "none";
+                show_mh_control = "none";
+                break;
+
+        }
+
+        const parControls = document.getElementsByClassName("par-control");
+        for (let p = 0; p < parControls.length; p++) {
+            parControls[p].style.display = show_par_control;
+        }
+        const mhControls = document.getElementsByClassName("mh-control");
+        for (let p = 0; p < mhControls.length; p++) {
+            mhControls[p].style.display = show_mh_control;
+        }
+    }
+
+    function renderDevice(device, DOM){
+        const toAdd = [];
+        const is_data_enabler = device.Type[0] === "DATA_ENABLER_PRO";
+        const src_img_type = is_data_enabler ? "data-enabler.png":"panel.png";
+        toAdd.push( createDOM("img", { className:"image-line", src:src_img_type, title:device.Type[0] }) );
+        toAdd.push( createDOM("div", { className:"param", innerText:device.Name[0] }) );
+        toAdd.push( createDOM("img", { className:"image-line", src:"ip.png", title:"Ip" }) );
+        toAdd.push( createDOM("div", { className:"param", innerText:device.Ip[0] }) );
+        toAdd.push( createDOM("img", { className:"image-line", src:"ports.png", title:"Nb ports" }) );
+        toAdd.push( createDOM("div", { className:"param", innerText:device.Ports[0] }) );
+        if (is_data_enabler){
+            toAdd.push( createDOM("button", { className:"collapsible", type:"button", innerText:"Details"}) );
+            const is_show = showDMXS.indexOf(device.Name[0]) === -1;
+            const ul = createDOM("ul", { className:"listDmxs", show:!is_show });
+
+            if (device.DMXS[0] != "") {
+                for (const DMX of device.DMXS[0].DMX){
+                    renderDMX(DMX, ul);
+                }
+            }
+            toAdd.push( ul );
+        }
+        for (const element of toAdd){
+            DOM.appendChild(element);
+        }
+    }
+
+    function renderDMX(dmx, DOM){
+        const li = createDOM("li", { className:"DMX", name:dmx.Name[0], forced:dmx.Forced[0], type:dmx.Type[0], luts:JSON.stringify(dmx.LUTS[0].LUT), lut:dmx.LUT[0] });
+        const toAdd = [];
+        let src_img_type;
+        switch (dmx.Type[0]){
+            case 'BACKLIGHT':
+                src_img_type = "backlight.png";
+                break;
+            case 'MOVING_HEAD':
+                src_img_type = "moving-head.png";
+                break;
+        }
+        if (dmx.Type[0]._) {
+            src_img_type = "par.png";
+        }
+        toAdd.push( createDOM("img", { className:"image-line", src:src_img_type, title:dmx.Type[0] }) );
+        toAdd.push( createDOM("div", { className:"param", innerText:dmx.Name[0] }) );
+        toAdd.push( createDOM("img", { className:"image-line", src:"address.png", title:"DMX Address" }) );
+        toAdd.push( createDOM("div", { className:"param", innerText:dmx.Offset[0] }) );
+        toAdd.push( createDOM("img", { className:"image-line", src:"format.png", title:"Format dmx buffer" }) );
+        toAdd.push( createDOM("div", { className:"param", innerText:dmx.Template[0] }) );
+        if (dmx.Type[0]._) {
+            toAdd.push( createDOM("div", { className:"param", innerText: dmx.Type[0].$.category}) );
+        }
+        for (const element of toAdd){
+            li.appendChild(element);
+        }
+        DOM.appendChild(li);
+    }
+
+    async function play(){
+        const li = document.getElementById('selected');
+        const hexcolor = document.getElementById('color-device').value;
+        const json = hexToRGB(hexcolor);
+        json.device = currentDevice;
+        json.force = document.getElementById('force').checked;
+        json.lutToApply = document.getElementById('lut-to-apply').checked;
+        if (li.type === "MOVING_HEAD" || li.type === "PAR"){
+            json.intensity = document.getElementById('intensity').value;
+            json.white = document.getElementById('white').value;
+            json.zoom = document.getElementById('zoom').value;
+        }
+        let result;
+        if (li.type === "MOVING_HEAD"){
+            json.x = document.getElementById("x").value;
+            json.y = document.getElementById("y").value;
+            const toSend = JSON.stringify(json);
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:toSend };
+            result = await (await fetch(`devices/pointer`, options)).json();
+            console.dir(response);
+        } else {
+            const toSend = JSON.stringify(json);
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:toSend };
+            result = await (await fetch(`/devices/color`, options)).json();
+        }
+        showMessage('message-box', result, DEFAULT_DELAY);
+        await updateDevices();
+    }
+
+    async function unforce(){
+        const toSend = { device:currentDevice };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(toSend) };
+        const result = await (await fetch(`/devices/unforce`, options)).json();
+        showMessage('message-box', result, DEFAULT_DELAY);
+        await updateDevices();
+    }
+
+    async function unforceAllDevices(){
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "} };
+        const result = await (await fetch(`/devices/unforceAllDevices`, options)).json();
+        showMessage('message-box', result, DEFAULT_DELAY);
+        await updateDevices();
+    }
+
+    async function changeLUT(){
+        const toSend = { 
+            device:currentDevice, 
+            lut:document.getElementById('lut-select').value
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(toSend) };
+        const result = await (await fetch(`/devices/lut`, options)).json();
+        showMessage('message-box', result, DEFAULT_DELAY);
+        await updateDevices();
+    }
+
+
+
+    document.addEventListener("DOMContentLoaded", async function(event){
+        await updateDevices();
+        setInterval(function(){
+            updateDevices();
+        }, 5000);
+    });
+
+</script>
+
+
+<%- include ("../foot") %>

@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no" ?>
+<configuration>
+    <lut name="PanelV1" filename="/data/ICE2/LUTS/panelV1.lut" />
+    <lut name="PanelV2" filename="/data/ICE2/LUTS/panelV2.lut" />
+	<calib name="ParV1" filename="/data/ICE2/LUTS/parV1.calib" />
+	<calib name="ParV2" filename="/data/ICE2/LUTS/parV2.calib" />
+	<calib name="MhV1" filename="/data/ICE2/LUTS/mhV1.calib" />
+	<calib name="MhV2" filename="/data/ICE2/LUTS/mhV2.calib" />
+	<calib name="BackV1" filename="/data/ICE2/LUTS/backV1.calib" />
+	<calib name="BackV2" filename="/data/ICE2/LUTS/backV2.calib" />
+</configuration>

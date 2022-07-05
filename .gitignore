@@ -1,0 +1,8 @@
+BUILD/*
+CMAKE/*
+EXTERN/CMAKE/*
+build/*
+EXE/UNITY/BIN/*
+EXE/UNITY/Library/*
+EXE/UNITY/Logs/*
+EXE/UNITY/Temp/*

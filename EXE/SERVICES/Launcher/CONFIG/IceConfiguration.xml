@@ -1,0 +1,22 @@
+<?xml version="1.0" standalone="no"?>
+<configuration>
+	<screen width="9000" height="4000" offsetX="180" offsetZ="1600"/>
+	<seat side="left" depth="front" offsetX="1100" offsetY="5200" offsetZ="850"/>
+	<seat side="right" depth="rear" offsetX="8250" offsetY="11300" offsetZ="1700"/>
+	
+	<panel name="L1" side="left" offsetX="0" offsetY="1930" offsetZ="1750" width="1200" height="3240"/>
+	<panel name="R1" side="right" offsetX="9360" offsetY="1930" offsetZ="1750" width="1200" height="3240"/>
+	<panel name="L2" side="left" offsetX="0" offsetY="4130" offsetZ="1750" width="1200" height="3240"/>
+	<panel name="R2" side="right" offsetX="9360" offsetY="4130" offsetZ="1750" width="1200" height="3240"/>
+	<panel name="L3" side="left" offsetX="0" offsetY="6330" offsetZ="2110" width="1200" height="2880"/>
+	<panel name="R3" side="right" offsetX="9360" offsetY="6330" offsetZ="2110" width="1200" height="2880"/>
+	<panel name="L4" side="left" offsetX="0" offsetY="8530" offsetZ="2470" width="1200" height="2520"/>
+	<panel name="R4" side="right" offsetX="9360" offsetY="8530" offsetZ="2470" width="1200" height="2520"/>
+	<panel name="L5" side="left" offsetX="0" offsetY="10730" offsetZ="2830" width="1200" height="2160"/>
+	<panel name="R5" side="right" offsetX="9360" offsetY="10730" offsetZ="2830" width="1200" height="2160"/>
+	
+	<movingHead name="MH_LF" side="left" depth="front" offsetX="200" offsetY="9650" offsetZ="4970" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
+	<movingHead name="MH_LR" side="left" depth="rear" offsetX="200" offsetY="11500" offsetZ="5000" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
+	<movingHead name="MH_RF" side="right" depth="front" offsetX="9360" offsetY="9700" offsetZ="4970" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
+	<movingHead name="MH_RR" side="right" depth="rear" offsetX="9360" offsetY="11500" offsetZ="5000" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
+</configuration>

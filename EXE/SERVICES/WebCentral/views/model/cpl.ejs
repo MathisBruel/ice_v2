@@ -1,0 +1,212 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="cpl">
+    <h1>CPL</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <input type="text" id="sha1_sync" hidden>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Name</div>
+            <input type="text" id="name" style="width:60%">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Uuid</div>
+            <input type="text" id="uuid" style="width:60%">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">CPL</div>
+            <input type="file" id="cpl_file" style="width:60%">
+            <input type="text" id="path_cpl" disabled style="width:60%">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">SYNC</div>
+            <input type="file" id="sync_file" style="width:60%">
+            <input type="text" id="path_sync" disabled style="width:60%">
+        </li>
+    </ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<div id="loading" class="modal">
+    <div class="modal-content">
+        <img class="img-loading" src="/loading.gif"/>
+        <progress id="progress" max="100" value="00"></progress>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    const modal = document.getElementById("loading");
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getCpls`, options)).json();
+
+            if (result.ok == true) {
+
+                const cpl = result.data.cpl;
+                document.getElementById("name").setAttribute("disabled", true);
+                document.getElementById("cpl_file").setAttribute("hidden", true);
+                document.getElementById("sync_file").setAttribute("hidden", true);
+
+                document.getElementById("name").value = cpl.$.name;
+                document.getElementById("uuid").value = cpl.$.uuid;
+                document.getElementById("path_cpl").value = cpl.$.pathCpl;
+                document.getElementById("path_sync").value = cpl.$.pathSync;
+                document.getElementById("sha1_sync").value = cpl.$.sha1Sync;
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+            document.getElementById("path_cpl").setAttribute("hidden", true);
+            document.getElementById("path_sync").setAttribute("hidden", true);
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const path = "/var/ICE2/CPLS/";
+        const uuid = document.getElementById("uuid").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+        else if (uuid == "") {
+            document.getElementById("uuid").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field uuid is empty !");
+        }
+        
+        else {
+
+            let fileCpl = document.getElementById("cpl_file").files[0];
+            let fileSync = document.getElementById("sync_file").files[0];
+            let formData = new FormData();
+            formData.append("fileCpl", fileCpl);
+            formData.append("fileSync", fileSync);
+            formData.append("name", name);
+            formData.append("uuid", uuid);
+            formData.append("path", path);
+            formData.append("cpl_name", fileCpl.name);
+            formData.append("sync_name", fileSync.name);
+
+            modal.style.display = "block";
+
+            var request = new XMLHttpRequest();
+            request.upload.addEventListener("progress", progressHandler, false);
+            request.addEventListener("load", completeHandler, false);
+            request.addEventListener("error", errorHandler, false);
+            request.open("POST", "/createCpl");
+            request.send(formData);
+        }
+    });
+
+    function progressHandler(event) {
+        var percent = (event.loaded / event.total) * 100;
+        document.getElementById("progress").value = Math.round(percent);;
+    }
+
+    function completeHandler(event) {
+        modal.style.display = "none";
+        window.location.assign("/cpls");
+    }
+
+    function errorHandler(event) {
+        modal.style.display = "none";
+        showErrorMessage("message-box", "Error while creating script");
+    }
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const uuid = document.getElementById("uuid").value;
+        const path_cpl = document.getElementById("path_cpl").value;
+        const path_sync = document.getElementById("path_sync").value;
+        const sha1_sync = document.getElementById("sha1_sync").value;
+
+        const json = {
+            id: id,
+            name: name,
+            uuid: uuid,
+            path_cpl: path_cpl,
+            path_sync: path_sync,
+            sha1_sync: sha1_sync
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/updateCpl`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.ok == true) {
+                window.location.assign("/cpls");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const path_cpl = document.getElementById("path_cpl").value;
+        const path_sync = document.getElementById("path_sync").value;
+
+        const json = {
+            id: id,
+            path_cpl: path_cpl,
+            path_sync: path_sync
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteCpl`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/cpls");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>

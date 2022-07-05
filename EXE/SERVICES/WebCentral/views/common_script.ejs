@@ -1,0 +1,75 @@
+<script>
+    const DEFAULT_DELAY = 5000;
+    const message_map = new Map();
+
+    function showErrorMessage(id_name, message, delay = undefined){
+        let json = {
+            code:-1,
+            message:message
+        }
+        showMessage(id_name, json, delay);
+    }
+
+    function showMessage(id_name, message, delay = undefined){
+        if (message_map.get(id_name)){ 
+            clearTimeout(message_map.get(id_name));
+        }
+        const element = document.getElementById(id_name);
+        element.style['visibility'] = "visible";
+        if (typeof message !== 'string'){
+            if (message.code !== undefined && message.message !== undefined){
+                if (message.code === 200 || message.code === "200"){
+                    element.className = "success";
+                } else {
+                    element.className = "error";
+                }
+                if (typeof message.message !== 'string'){ message.message = JSON.stringify(message.message); }
+                message = message.message;
+            } else {
+                message = JSON.stringify(message);
+            }
+        }
+        element.innerText = message;
+        if (delay !== undefined){
+            const timer = setTimeout(function(){
+                hideMessage(id_name);
+            }, delay);
+            message_map.set(id_name, timer);
+        }
+    }
+
+    function hideMessage(id_name){
+        const element = document.getElementById(id_name);
+        element.style['visibility'] = "hidden";
+    }
+
+    function createDOM(DOMElement, attributes){
+        const dom = document.createElement(DOMElement);
+        for (const attribute in attributes){
+            dom[attribute] = attributes[attribute];
+            dom.setAttribute(attribute, attributes[attribute]);         
+        }
+        return dom;
+    }
+    
+    function hexToRGB(hex){
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            red: parseInt(result[1], 16),
+            green: parseInt(result[2], 16),
+            blue: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function RGBToHex(r, g, b) {
+        return "#" + ((1 << 24) + (Number.parseInt(r) << 16) + (Number.parseInt(g) << 8) + Number.parseInt(b)).toString(16).slice(1);
+    }
+
+    function removeAllChild(DOM){
+        let child = DOM.lastChild;
+        while(child){
+            DOM.removeChild(child);
+            child = DOM.lastChild;
+        }
+    }
+</script>

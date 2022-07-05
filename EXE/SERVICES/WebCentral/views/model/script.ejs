@@ -1,0 +1,335 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="script">
+    <h1>SCRIPT</h1>
+
+    <ul class="list" id="controls">
+        <li>
+            <img class="image-line-add" id="create" src="/add.png"/>
+            <img class="image-line-add" id="update" src="/save.png"/>
+            <img class="image-line-add" id="delete" src="/remove.png"/>
+        </li>
+    </ul>
+
+    <h2>General</h2>
+
+    <ul class="list" id="list-general">
+        <input type="text" id="path" hidden>
+        <input type="text" id="sha1Lvi" hidden>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Name</div>
+            <input type="text" id="name" style="width:60%">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Type</div>
+            <select id="type" disabled>
+                <option value="1">FEATURE</option>
+                <option value="2">LOOP</option>
+                <option value="3">SAS</option>
+            </select>
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">Version</div>
+            <select id="version">
+                <option value="V001">V001</option>
+                <option value="V002">V002</option>
+            </select>
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">CIS</div>
+            <input type="file" id="cis_file" style="width:60%">
+            <input type="text" id="cis_path" disabled style="width:60%">
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
+            <div class="param">LVI</div>
+            <input type="file" id="lvi_file" style="width:60%">
+            <input type="text" id="lvi_path" disabled style="width:60%">
+        </li>
+    </ul>
+
+    <h2 id="title-cpls">Cpls</h2>
+    <ul class="list" id="list-cpls"></ul>
+
+    <div id="message-box" class="success"></div>
+</div>
+
+<div id="loading" class="modal">
+    <div class="modal-content">
+        <img class="img-loading" src="/loading.gif"/>
+        <progress id="progress" max="100" value="00"></progress>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    const modal = document.getElementById("loading");
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+    const type = urlParams.get('type');
+
+    const listCpls = document.getElementById("list-cpls");
+
+    // -- load cinemas at init of page
+    document.addEventListener('DOMContentLoaded', async function(){
+
+        if (id != -1) {
+            document.getElementById("create").style.display = "none";
+            
+            const json = {id: id};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const result = await (await fetch(`/getScripts`, options)).json();
+
+            const jsonAvailableCpls = {id: -1};
+            const optionsAvailableCpls = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonAvailableCpls) };
+            const resultAvailableCpls = await (await fetch(`/getCpls`, optionsAvailableCpls)).json();
+
+            const jsonCplsForScript = {id_script: id};
+            const optionsCplsForScript = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonCplsForScript) };
+            const resultCplsForScript = await (await fetch(`/getCpls`, optionsCplsForScript)).json();
+
+            if (result.ok == true) {
+
+                const script = result.data.script;
+                document.getElementById("name").setAttribute("disabled", true);
+                document.getElementById("cis_file").setAttribute("hidden", true);
+                document.getElementById("lvi_file").setAttribute("hidden", true);
+
+                document.getElementById("name").value = script.$.name;
+                document.getElementById("type").value = script.$.type;
+                document.getElementById("version").value = script.$.version;
+                document.getElementById("cis_path").value = script.$.cis_name;
+                document.getElementById("lvi_path").value = script.$.lvi_name;
+                document.getElementById("path").value = script.$.path;
+                document.getElementById("sha1Lvi").value = script.$.sha1Lvi;
+
+                if (resultAvailableCpls.data.cpls != "") {
+                    const li = createDOM("li", {className:"list-item-add"});
+                    listCpls.appendChild(li);
+                    const drop = createDOM("select", { className:"drop", id:"dropCpl"});
+                    li.appendChild(drop);
+                    resultAvailableCpls.data.cpls.cpl.forEach(cplToAdd=> {
+                        const select = createDOM("option", {value: cplToAdd.$.id, innerText: cplToAdd.$.name});
+                        drop.appendChild(select);
+                    });
+                    const imgAdd = createDOM("img", { id:"addCpl", className:"image-line-add", src:"/add.png" });
+                    imgAdd.addEventListener('click', async function(){
+
+                        const jsonLinkCplScript = {
+                            id_cpl: document.getElementById("dropCpl").value,
+                            id_script: id
+                        };
+                        const optionsLinkCplScript = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkCplScript) };
+                        const resultLinkCplScript = await fetch(`/linkCplToScript`, optionsLinkCplScript);
+                        if (resultLinkCplScript.ok == true) {
+                            const body = await resultLinkCplScript.json();
+                            if (body.code == 200) {
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", resultLinkCplScript.message);
+                        }
+                    });
+                    li.appendChild(imgAdd);
+                    li.appendChild(drop);
+                }
+
+                if (resultCplsForScript.data.cpls != "") {
+                    resultCplsForScript.data.cpls.cpl.forEach(cpl => {
+                        const li = createDOM("li", {className:"list-item"});
+                        listCpls.appendChild(li);
+                        const imgName = createDOM("img", { className:"image-line", src:"/cpl.png" });
+                        imgName.addEventListener('click', async function(){
+                            window.location.assign("/cpl?id=" + cpl.$.id);
+                        });
+                        const name = createDOM("div", { className:"param", innerText: cpl.$.name });
+                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:cpl.$.id });
+                        imgDelete.addEventListener('click', async function(){
+
+                            const jsonUnlinkCpl = {
+                                id_cpl: this.id,
+                                id_script: id
+                            };
+                            const optionsUnlinkCpl = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkCpl) };
+                            const resultUnlinkCpl = await fetch(`/unlinkCplToScript`, optionsUnlinkCpl);
+                            if (resultUnlinkCpl.ok == true) {
+                                const body = await resultUnlinkCpl.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", resultUnlinkCpl.message);
+                            }
+                        });
+                        li.appendChild(imgName);
+                        li.appendChild(name);
+                        if (cpl.$.path_sync != "") {
+                            const imageSynchro = document.createElement("img");
+                            imageSynchro.className = "image-line";
+                            imageSynchro.src = "synchro.png";
+                            li.appendChild(imageSynchro);
+                        }
+                        li.appendChild(imgDelete);
+                    });
+                }
+                else {
+                    const li = createDOM("li", {className:"list-item-none"});
+                    listCpls.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/cpl.png" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                }
+            }
+            else {
+                showErrorMessage("message-box", result.message);
+            }
+        }
+        else {
+
+            if (type == "LOOP") {
+                document.getElementById("type").value = 2;
+            }
+            else if (type == "SAS") {
+                document.getElementById("type").value = 3;
+            }
+            document.getElementById("update").style.display = "none";
+            document.getElementById("delete").style.display = "none";
+            document.getElementById("title-cpls").style.display = "none";
+            document.getElementById("list-cpls").style.display = "none";
+            document.getElementById("cis_path").setAttribute("hidden", true);
+            document.getElementById("lvi_path").setAttribute("hidden", true);
+        }
+    });
+
+    document.getElementById("create").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const path = "/var/ICE2/SCRIPTS/" + name + ".lcp";
+        const type = document.getElementById("type").value;
+        const version = document.getElementById("version").value;
+
+        if (name == "") {
+            document.getElementById("name").style.backgroundColor = "red";
+            showErrorMessage("message-box", "Field name is empty !");
+        }
+        
+        else {
+
+            let fileCis = document.getElementById("cis_file").files[0];
+            let fileLvi = document.getElementById("lvi_file").files[0];
+            let formData = new FormData();
+            formData.append("fileCis", fileCis);
+            formData.append("fileLvi", fileLvi);
+            formData.append("name", name);
+            formData.append("path", path);
+            formData.append("type", type);
+            formData.append("version", version);
+            formData.append("cis_name", fileCis.name);
+            formData.append("lvi_name", fileLvi.name);
+
+            modal.style.display = "block";
+
+            var request = new XMLHttpRequest();
+            request.upload.addEventListener("progress", progressHandler, false);
+            request.addEventListener("load", completeHandler, false);
+            request.addEventListener("error", errorHandler, false);
+            request.open("POST", "/createScript");
+            request.send(formData);
+        }
+    });
+
+    function progressHandler(event) {
+        var percent = (event.loaded / event.total) * 100;
+        document.getElementById("progress").value = Math.round(percent);;
+    }
+
+    function completeHandler(event) {
+        modal.style.display = "none";
+        window.location.assign("/scripts");
+    }
+
+    function errorHandler(event) {
+        modal.style.display = "none";
+        showErrorMessage("message-box", "Error while creating script");
+    }
+
+    document.getElementById("update").addEventListener('click', async function(){
+
+        const name = document.getElementById("name").value;
+        const path = document.getElementById("path").value;
+        const type = document.getElementById("type").value;
+        const version = document.getElementById("version").value;
+        const sha1Lvi = document.getElementById("sha1Lvi").value;
+        const cis_name = document.getElementById("cis_path").value;
+        const lvi_name = document.getElementById("lvi_path").value;
+
+        const json = {
+            id: id,
+            name: name,
+            path: path,
+            type: type,
+            version: version,
+            sha1Lvi: sha1Lvi,
+            cis_name: cis_name,
+            lvi_name: lvi_name
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/updateScript`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.ok == true) {
+                window.location.assign("/scripts");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+    document.getElementById("delete").addEventListener('click', async function(){
+
+        const path = document.getElementById("path").value;
+
+        const json = {
+            id: id,
+            path: path
+        };
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+        const result = await fetch(`/deleteScript`, options);
+        console.log(result);
+        if (result.ok == true) {
+            const body = await result.json();
+            if (body.code == 200) {
+                window.location.assign("/scripts");
+            }
+            else {
+                showErrorMessage("message-box", body.message);
+            }
+        }
+        else {
+            showErrorMessage("message-box", result.message);
+        }
+    });
+
+</script>
+
+<%- include ("../foot") %>
