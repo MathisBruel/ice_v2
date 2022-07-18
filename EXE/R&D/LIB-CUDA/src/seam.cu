@@ -282,7 +282,7 @@ __global__ void keepFirstSeamRight(int height, int* seamsTemporaries, float* ene
     memcpy(seam, &seamsTemporaries[idx*height], sizeof(int)*height);
 }
 
-void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsigned char* dataIn, unsigned char* dataOut)
+void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsigned char** dataIn, unsigned char** dataOut)
 {   
     int blockSize = 1024;
     int widthHalf = width/2;
@@ -300,8 +300,11 @@ void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsign
 
     // -- copy datas to GPU
     unsigned char* dataRGB;
+
     cudaMalloc(&dataRGB, width*height*3*sizeBuffer*sizeof(unsigned char));
-    cudaMemcpy(dataRGB, dataIn, width*height*3*sizeBuffer*sizeof(unsigned char), cudaMemcpyHostToDevice);
+    for (int i = 0; i < sizeBuffer; i++) {
+        cudaMemcpy(&dataRGB[i*width*height*3], dataIn[i], width*height*3*sizeof(unsigned char), cudaMemcpyHostToDevice);
+    }
 
     // -- separate left and right
     unsigned char* dataRGBLeft;
@@ -483,8 +486,9 @@ void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsign
     cudaDeviceSynchronize();
 
     // -- copy final image
-    cudaMemcpy(dataOut, dataOutDevice, widthDst*height*3*sizeBuffer*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-
+    for (int i = 0; i < sizeBuffer; i++) {
+        cudaMemcpy(dataOut[i], &dataOutDevice[i*widthDst*height*3], widthDst*height*3*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    }
     cudaFree(dataRGB);
     cudaFree(dataRGBLeft);
     cudaFree(dataRGBRight);

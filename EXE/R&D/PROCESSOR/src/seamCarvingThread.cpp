@@ -42,14 +42,15 @@ void SeamCarvingThread::run()
     int sizeBufferIn = in.at(0)->getHeight()*in.at(0)->getWidth()*3;
     int sizeBufferOut = in.at(0)->getHeight()*sizeImage*3;
 
-    unsigned char* datasIn = new unsigned char[in.at(0)->getHeight()*in.at(0)->getWidth()*3*sizeBuffer];
-    unsigned char* datasOut = new unsigned char[in.at(0)->getHeight()*sizeImage*3*sizeBuffer];
+    unsigned char** datasIn = new unsigned char*[sizeBuffer];
+    unsigned char** datasOut = new unsigned char*[sizeBuffer];
 
     Poco::Logger::get("SeamCarvingThread").debug("Copy " + std::to_string(sizeBuffer) + " images !", __FILE__, __LINE__);
     
     // -- copy all datas in one buffer
     for (int i = 0; i < sizeBuffer; i++) {
-        std::memcpy(&datasIn[i*sizeBufferIn], in.at(i)->getData(), sizeBufferIn*sizeof(unsigned char));
+        datasIn[i] = in.at(i)->getData();
+        datasOut[i] = new unsigned char[sizeBufferOut];
     }
 
     // -- carve seams
@@ -59,12 +60,15 @@ void SeamCarvingThread::run()
     Poco::Logger::get("SeamCarvingThread").debug("Copy back images calculated !", __FILE__, __LINE__);
     for (int i = 0; i < sizeBuffer; i++) {
         unsigned char* outBuffer = new unsigned char[sizeBufferOut];
-        std::memcpy(outBuffer, &datasOut[i*sizeBufferOut], sizeBufferOut*sizeof(unsigned char));
+        std::memcpy(outBuffer, datasOut[i], sizeBufferOut*sizeof(unsigned char));
         Image* outImg = new Image(sizeImage, in.at(0)->getHeight(), PNG_FORMAT_RGB, outBuffer);
         out.push_back(outImg);
     }
 
     Poco::Logger::get("SeamCarvingThread").debug("Copy done !", __FILE__, __LINE__);
+    for (int i = 0; i < sizeBuffer; i++) {
+        delete[] datasOut[i];
+    }
     delete[] datasIn;
     delete[] datasOut;
 

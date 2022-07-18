@@ -7,4 +7,4 @@
 
 #define SEAMLIBRARY_API __declspec(dllexport)
 
-extern "C" SEAMLIBRARY_API void seamResizeVideo(int widthSrc, int heightSrc, int widthDst, int nbImages, unsigned char* dataIn, unsigned char* dataOut);
+extern "C" SEAMLIBRARY_API void seamResizeVideo(int widthSrc, int heightSrc, int widthDst, int nbImages, unsigned char** dataIn, unsigned char** dataOut);
