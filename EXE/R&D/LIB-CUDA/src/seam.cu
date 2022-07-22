@@ -298,43 +298,6 @@ void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsign
     cudaStreamCreate(&streamLeft);
     cudaStreamCreate(&streamRight);
 
-    // -- copy datas to GPU
-    unsigned char* dataRGB;
-
-    cudaMalloc(&dataRGB, width*height*3*sizeBuffer*sizeof(unsigned char));
-    for (int i = 0; i < sizeBuffer; i++) {
-        cudaMemcpy(&dataRGB[i*width*height*3], dataIn[i], width*height*3*sizeof(unsigned char), cudaMemcpyHostToDevice);
-    }
-
-    // -- separate left and right
-    unsigned char* dataRGBLeft;
-    unsigned char* dataRGBRight;
-    int numBlocksSplit = ((width*height*3*sizeBuffer) + blockSize - 1) / blockSize;
-    cudaMalloc(&dataRGBLeft, widthHalf*height*3*sizeBuffer*sizeof(unsigned char));
-    cudaMalloc(&dataRGBRight, widthHalf*height*3*sizeBuffer*sizeof(unsigned char));
-    cutFrame<<<numBlocksSplit, blockSize>>>(width, height, sizeBuffer, dataRGB, dataRGBLeft, dataRGBRight);
-    cudaDeviceSynchronize();
-
-    // -- calculate grayscale image
-    float* grayImageLeft;
-    float* grayImageRight;
-    int numBlocksFilter = ((widthHalf*height*sizeBuffer) + blockSize - 1) / blockSize;
-    cudaMalloc((void **)&grayImageLeft, widthHalf*height*sizeBuffer*sizeof(float));
-    cudaMalloc((void **)&grayImageRight, widthHalf*height*sizeBuffer*sizeof(float));
-    grayscale<<<numBlocksFilter, blockSize, 0, streamLeft>>>(widthHalf, height, sizeBuffer, dataRGBLeft, grayImageLeft);
-    grayscale<<<numBlocksFilter, blockSize, 0, streamRight>>>(widthHalf, height, sizeBuffer, dataRGBRight, grayImageRight);
-    cudaDeviceSynchronize();
-
-    // -- calculate sobel
-    float* sobelImageLeft;
-    float* sobelImageRight;
-    cudaMalloc((void **)&sobelImageLeft, widthHalf*height*sizeBuffer*sizeof(float));
-    cudaMalloc((void **)&sobelImageRight, widthHalf*height*sizeBuffer*sizeof(float));
-    // -- energy definition
-    sobel<<<numBlocksFilter, blockSize, 0, streamLeft>>>(widthHalf, height, sizeBuffer, grayImageLeft, sobelImageLeft);
-    sobel<<<numBlocksFilter, blockSize, 0, streamRight>>>(widthHalf, height, sizeBuffer, grayImageRight, sobelImageRight);
-    cudaDeviceSynchronize();
-
     // -- mean sobel for all frames
     float* sobelAllLeft;
     float* sobelAllRight;
@@ -346,12 +309,70 @@ void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsign
     float* sobelAll2Right;
     cudaMalloc((void **)&sobelAll2Left, widthHalf*height*sizeof(float));
     cudaMalloc((void **)&sobelAll2Right, widthHalf*height*sizeof(float));
-    // -- global energy definition
-    int numBlocksMerge = ((widthHalf*height) + blockSize - 1) / blockSize;
-    for (int i = 0; i < sizeBuffer; i++) {
-        mergeSobel<<<numBlocksMerge, blockSize, 0, streamLeft>>>(widthHalf, height, i, sizeBuffer, sobelImageLeft, sobelAllLeft);
-        mergeSobel<<<numBlocksMerge, blockSize, 0, streamRight>>>(widthHalf, height, i, sizeBuffer, sobelImageRight, sobelAllRight);
+
+    // -- max 120 frames at the time
+    int nbFramesTreated = 0;
+    while (nbFramesTreated < sizeBuffer) {
+
+        int nbToTreat = 120;
+        if (sizeBuffer - nbFramesTreated < 120) {
+            nbToTreat = sizeBuffer - nbFramesTreated;
+        }
+
+        // -- copy datas to GPU
+        unsigned char* dataRGB;
+        cudaMalloc(&dataRGB, width*height*3*nbToTreat*sizeof(unsigned char));
+        for (int i = 0; i < nbToTreat; i++) {
+            cudaMemcpy(&dataRGB[i*width*height*3], dataIn[nbFramesTreated+i], width*height*3*sizeof(unsigned char), cudaMemcpyHostToDevice);
+        }
+
+        // -- separate left and right
+        unsigned char* dataRGBLeft;
+        unsigned char* dataRGBRight;
+        int numBlocksSplit = ((width*height*3*nbToTreat) + blockSize - 1) / blockSize;
+        cudaMalloc(&dataRGBLeft, widthHalf*height*3*nbToTreat*sizeof(unsigned char));
+        cudaMalloc(&dataRGBRight, widthHalf*height*3*nbToTreat*sizeof(unsigned char));
+        cutFrame<<<numBlocksSplit, blockSize>>>(width, height, nbToTreat, dataRGB, dataRGBLeft, dataRGBRight);
         cudaDeviceSynchronize();
+
+        // -- calculate grayscale image
+        float* grayImageLeft;
+        float* grayImageRight;
+        int numBlocksFilter = ((widthHalf*height*nbToTreat) + blockSize - 1) / blockSize;
+        cudaMalloc((void **)&grayImageLeft, widthHalf*height*nbToTreat*sizeof(float));
+        cudaMalloc((void **)&grayImageRight, widthHalf*height*nbToTreat*sizeof(float));
+        grayscale<<<numBlocksFilter, blockSize, 0, streamLeft>>>(widthHalf, height, nbToTreat, dataRGBLeft, grayImageLeft);
+        grayscale<<<numBlocksFilter, blockSize, 0, streamRight>>>(widthHalf, height, nbToTreat, dataRGBRight, grayImageRight);
+        cudaDeviceSynchronize();
+
+        // -- calculate sobel
+        float* sobelImageLeft;
+        float* sobelImageRight;
+        cudaMalloc((void **)&sobelImageLeft, widthHalf*height*nbToTreat*sizeof(float));
+        cudaMalloc((void **)&sobelImageRight, widthHalf*height*nbToTreat*sizeof(float));
+        // -- energy definition
+        sobel<<<numBlocksFilter, blockSize, 0, streamLeft>>>(widthHalf, height, nbToTreat, grayImageLeft, sobelImageLeft);
+        sobel<<<numBlocksFilter, blockSize, 0, streamRight>>>(widthHalf, height, nbToTreat, grayImageRight, sobelImageRight);
+        cudaDeviceSynchronize();
+
+        // -- global energy definition
+        int numBlocksMerge = ((widthHalf*height) + blockSize - 1) / blockSize;
+        for (int i = 0; i < nbToTreat; i++) {
+            mergeSobel<<<numBlocksMerge, blockSize, 0, streamLeft>>>(widthHalf, height, i, sizeBuffer, sobelImageLeft, sobelAllLeft);
+            mergeSobel<<<numBlocksMerge, blockSize, 0, streamRight>>>(widthHalf, height, i, sizeBuffer, sobelImageRight, sobelAllRight);
+            cudaDeviceSynchronize();
+        }
+
+        // Free temporary sobel memory
+        cudaFree(dataRGB);
+        cudaFree(dataRGBLeft);
+        cudaFree(dataRGBRight);
+        cudaFree(grayImageLeft);
+        cudaFree(grayImageRight);
+        cudaFree(sobelImageLeft);
+        cudaFree(sobelImageRight);
+
+        nbFramesTreated += nbToTreat;
     }
 
     // -- indexes map definition
@@ -433,17 +454,11 @@ void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsign
     repercuteSeam<<<numBlocksReper, blockSize, 0, streamRight>>>(nbAdd, seamsRight, height);
     cudaDeviceSynchronize();
 
-    // Free memory
-    cudaFree(grayImageLeft);
-    cudaFree(grayImageRight);
-
-    cudaFree(sobelImageLeft);
-    cudaFree(sobelImageRight);
+    // Free temporary seam memory
     cudaFree(sobelAllLeft);
     cudaFree(sobelAllRight);
     cudaFree(sobelAll2Left);
     cudaFree(sobelAll2Right);
-
     cudaFree(indexesLeft);
     cudaFree(indexesRight);
     cudaFree(seamsAllLeft);
@@ -451,52 +466,83 @@ void seamResizeVideo(int width, int height, int widthDst, int sizeBuffer, unsign
     cudaFree(energySeamsLeft);
     cudaFree(energySeamsRight);
 
-    // -- add new seams in order
-    unsigned char* dataOutDeviceLeft;
-    unsigned char* dataOutDevice2Left;
-    unsigned char* dataOutDeviceRight;
-    unsigned char* dataOutDevice2Right;
-    cudaMalloc(&dataOutDeviceLeft, widthDst/2*height*3*sizeBuffer*sizeof(unsigned char));
-    cudaMalloc(&dataOutDeviceRight, widthDst/2*height*3*sizeBuffer*sizeof(unsigned char));
-    cudaMalloc(&dataOutDevice2Left, widthDst/2*height*3*sizeBuffer*sizeof(unsigned char));
-    cudaMalloc(&dataOutDevice2Right, widthDst/2*height*3*sizeBuffer*sizeof(unsigned char));
-    cudaMemcpy(dataOutDeviceLeft, dataRGBLeft, widthHalf*height*3*sizeBuffer*sizeof(unsigned char), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(dataOutDeviceRight, dataRGBRight, widthHalf*height*3*sizeBuffer*sizeof(unsigned char), cudaMemcpyDeviceToDevice);
+    nbFramesTreated = 0;
+    while (nbFramesTreated < sizeBuffer) {
 
-    widthTemp = widthHalf+1;
-    for (int i = 0; i < nbAdd; i++) {
-        int numBlocksAdd = ((widthTemp*height*3*sizeBuffer) + blockSize - 1) / blockSize;
-        if (i%2 == 0) {
-            addSeamToImage<<<numBlocksAdd, blockSize, 0, streamLeft>>>(widthTemp, height, sizeBuffer, dataOutDeviceLeft, dataOutDevice2Left, &seamsLeft[i*height]);
-            addSeamToImage<<<numBlocksAdd, blockSize, 0, streamRight>>>(widthTemp, height, sizeBuffer, dataOutDeviceRight, dataOutDevice2Right, &seamsRight[i*height]);
+        int nbToTreat = 120;
+        if (sizeBuffer - nbFramesTreated < 120) {
+            nbToTreat = sizeBuffer - nbFramesTreated;
         }
-        else {
-            addSeamToImage<<<numBlocksAdd, blockSize, 0, streamLeft>>>(widthTemp, height,sizeBuffer,  dataOutDevice2Left, dataOutDeviceLeft, &seamsLeft[i*height]);
-            addSeamToImage<<<numBlocksAdd, blockSize, 0, streamRight>>>(widthTemp, height, sizeBuffer, dataOutDevice2Right, dataOutDeviceRight, &seamsRight[i*height]);
+
+        // -- copy datas to GPU
+        unsigned char* dataRGB;
+        cudaMalloc(&dataRGB, width*height*3*nbToTreat*sizeof(unsigned char));
+        for (int i = 0; i < nbToTreat; i++) {
+            cudaMemcpy(&dataRGB[i*width*height*3], dataIn[nbFramesTreated+i], width*height*3*sizeof(unsigned char), cudaMemcpyHostToDevice);
         }
+
+        // -- separate left and right
+        unsigned char* dataRGBLeft;
+        unsigned char* dataRGBRight;
+        int numBlocksSplit = ((width*height*3*nbToTreat) + blockSize - 1) / blockSize;
+        cudaMalloc(&dataRGBLeft, widthHalf*height*3*nbToTreat*sizeof(unsigned char));
+        cudaMalloc(&dataRGBRight, widthHalf*height*3*nbToTreat*sizeof(unsigned char));
+        cutFrame<<<numBlocksSplit, blockSize>>>(width, height, nbToTreat, dataRGB, dataRGBLeft, dataRGBRight);
         cudaDeviceSynchronize();
-        widthTemp++;
+
+        // -- add new seams in order
+        unsigned char* dataOutDeviceLeft;
+        unsigned char* dataOutDevice2Left;
+        unsigned char* dataOutDeviceRight;
+        unsigned char* dataOutDevice2Right;
+        cudaMalloc(&dataOutDeviceLeft, widthDst/2*height*3*nbToTreat*sizeof(unsigned char));
+        cudaMalloc(&dataOutDeviceRight, widthDst/2*height*3*nbToTreat*sizeof(unsigned char));
+        cudaMalloc(&dataOutDevice2Left, widthDst/2*height*3*nbToTreat*sizeof(unsigned char));
+        cudaMalloc(&dataOutDevice2Right, widthDst/2*height*3*nbToTreat*sizeof(unsigned char));
+        cudaMemcpy(dataOutDeviceLeft, dataRGBLeft, widthHalf*height*3*nbToTreat*sizeof(unsigned char), cudaMemcpyDeviceToDevice);
+        cudaMemcpy(dataOutDeviceRight, dataRGBRight, widthHalf*height*3*nbToTreat*sizeof(unsigned char), cudaMemcpyDeviceToDevice);
+
+        widthTemp = widthHalf+1;
+        for (int i = 0; i < nbAdd; i++) {
+            int numBlocksAdd = ((widthTemp*height*3*nbToTreat) + blockSize - 1) / blockSize;
+            if (i%2 == 0) {
+                addSeamToImage<<<numBlocksAdd, blockSize, 0, streamLeft>>>(widthTemp, height, nbToTreat, dataOutDeviceLeft, dataOutDevice2Left, &seamsLeft[i*height]);
+                addSeamToImage<<<numBlocksAdd, blockSize, 0, streamRight>>>(widthTemp, height, nbToTreat, dataOutDeviceRight, dataOutDevice2Right, &seamsRight[i*height]);
+            }
+            else {
+                addSeamToImage<<<numBlocksAdd, blockSize, 0, streamLeft>>>(widthTemp, height, nbToTreat, dataOutDevice2Left, dataOutDeviceLeft, &seamsLeft[i*height]);
+                addSeamToImage<<<numBlocksAdd, blockSize, 0, streamRight>>>(widthTemp, height, nbToTreat, dataOutDevice2Right, dataOutDeviceRight, &seamsRight[i*height]);
+            }
+            cudaDeviceSynchronize();
+            widthTemp++;
+        }
+
+        unsigned char* dataOutDevice;
+        cudaMalloc((void **)&dataOutDevice, widthDst*height*3*nbToTreat*sizeof(unsigned char));
+        int numBlocksCopy = ((widthDst*height*3*nbToTreat) + blockSize - 1) / blockSize;
+        if (nbAdd%2 == 0) {copyImage<<<numBlocksCopy,blockSize>>>(widthDst, height, nbToTreat, dataOutDeviceLeft, dataOutDeviceRight, dataOutDevice);}
+        else {copyImage<<<numBlocksCopy,blockSize>>>(widthDst, height, nbToTreat, dataOutDevice2Left, dataOutDevice2Right, dataOutDevice);}
+        cudaDeviceSynchronize();
+
+        // -- copy final image
+        for (int i = 0; i < nbToTreat; i++) {
+            cudaMemcpy(dataOut[nbFramesTreated+i], &dataOutDevice[i*widthDst*height*3], widthDst*height*3*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+        }
+
+        // Free final images
+        cudaFree(dataRGB);
+        cudaFree(dataRGBLeft);
+        cudaFree(dataRGBRight);
+        cudaFree(dataOutDevice);
+        cudaFree(dataOutDeviceLeft);
+        cudaFree(dataOutDeviceRight);
+        cudaFree(dataOutDevice2Left);
+        cudaFree(dataOutDevice2Right);
+
+        nbFramesTreated += nbToTreat;
     }
 
-    unsigned char* dataOutDevice;
-    cudaMalloc((void **)&dataOutDevice, widthDst*height*3*sizeBuffer*sizeof(unsigned char));
-    int numBlocksCopy = ((widthDst*height*3*sizeBuffer) + blockSize - 1) / blockSize;
-    if (nbAdd%2 == 0) {copyImage<<<numBlocksCopy,blockSize>>>(widthDst, height, sizeBuffer, dataOutDeviceLeft, dataOutDeviceRight, dataOutDevice);}
-    else {copyImage<<<numBlocksCopy,blockSize>>>(widthDst, height, sizeBuffer, dataOutDevice2Left, dataOutDevice2Right, dataOutDevice);}
-    cudaDeviceSynchronize();
-
-    // -- copy final image
-    for (int i = 0; i < sizeBuffer; i++) {
-        cudaMemcpy(dataOut[i], &dataOutDevice[i*widthDst*height*3], widthDst*height*3*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    }
-    cudaFree(dataRGB);
-    cudaFree(dataRGBLeft);
-    cudaFree(dataRGBRight);
-    cudaFree(dataOutDevice);
-    cudaFree(dataOutDeviceLeft);
-    cudaFree(dataOutDeviceRight);
-    cudaFree(dataOutDevice2Left);
-    cudaFree(dataOutDevice2Right);
+    // Free global memory
     cudaFree(seamsLeft);
     cudaFree(seamsRight);
     cudaStreamDestroy(streamLeft);

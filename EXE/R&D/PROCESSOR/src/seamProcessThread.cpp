@@ -38,56 +38,70 @@ void SeamProcessThread::startThread(std::string filename, std::map<int, int> sce
 
 void SeamProcessThread::run() 
 {
-    while (reader->getNbFrames() == -1) {Timer::crossUsleep(1000);}
-    nbFrames = reader->getNbFrames();
-    Poco::Logger::get("SeamProcessThread").debug(std::to_string(nbFrames) + " to transform !", __FILE__, __LINE__);
-    writer->writeVideo(nbFrames, reader->getCodecParams(), reader->getPixelFormat(), fileOut);
+    try {
+        
+        while (reader->getNbFrames() == -1) {Timer::crossUsleep(10000);}
+        nbFrames = reader->getNbFrames();
+        Poco::Logger::get("SeamProcessThread").debug(std::to_string(nbFrames) + " to transform !", __FILE__, __LINE__);
+        writer->writeVideo(nbFrames, reader->getCodecParams(), reader->getPixelFormat(), fileOut);
 
-    // -- stop only when all frames are written to output video file
-    int currentIdx = 0;
-    
-    bool stop = false;
-    while (!stop) {
+        // -- stop only when all frames are written to output video file
+        int currentIdx = 0;
+        
+        bool stop = false;
+        while (!stop) {
 
-        // -- determine nb images of the scene
-        std::map<int, int>::iterator it = sceneCuts.find(currentIdx);
+            /*MEMORYSTATUSEX memInfo;
+            memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+            GlobalMemoryStatusEx(&memInfo);
+            double physMemUsed = (memInfo.ullTotalPhys - memInfo.ullAvailPhys)/memInfo.ullTotalPhys;
+            if (physMemUsed > 90.0) {
+                Timer::crossUsleep(10000);
+                continue;
+            }*/
 
-        if (it == sceneCuts.end()) {
-            stop = true;
-            continue;
+            // -- determine nb images of the scene
+            std::map<int, int>::iterator it = sceneCuts.find(currentIdx);
+
+            if (it == sceneCuts.end()) {
+                stop = true;
+                continue;
+            }
+            int sizeBuffer = it->second - currentIdx;
+
+            Poco::Logger::get("SeamProcessThread").debug("Treat images " + std::to_string(currentIdx) + " to " + std::to_string(it->second), __FILE__, __LINE__);
+
+            // -- get all images
+            SeamCarvingThread* seamThread = new SeamCarvingThread(sizeBuffer);
+            for (int i = 0; i < sizeBuffer; i++) {
+                while (!reader->hasImageAtIndex(currentIdx+i)) {Timer::crossUsleep(1000);}
+                Image* in = reader->getImageAtIndex(currentIdx+i);
+                reader->deleteImageAtIndex(currentIdx+i);
+                seamThread->addImage(in);
+            }
+
+            // -- start and wait for completion
+            seamThread->startThread();
+            while (seamThread->getState() != SeamCarvingThread::FINISHED) {Timer::crossUsleep(100000);}
+
+            Poco::Logger::get("SeamProcessThread").debug("Seam carving terminated !", __FILE__, __LINE__);
+            for (int i = 0; i < sizeBuffer; i++) {
+                Image* out = seamThread->getOut(i);
+                writer->addImageAtIndex(currentIdx+i, out);
+            }
+            seamThread->releaseDatas();
+            Poco::Logger::get("SeamProcessThread").debug("Copy to writer done !", __FILE__, __LINE__);
+
+            currentIdx += sizeBuffer;
+            delete seamThread;
         }
-        int sizeBuffer = it->second - currentIdx;
 
-        Poco::Logger::get("SeamProcessThread").debug("Treat images " + std::to_string(currentIdx) + " to " + std::to_string(it->second), __FILE__, __LINE__);
+        while (!writer->isFinished()) {Timer::crossUsleep(100000);}
 
-        // -- get all images
-        SeamCarvingThread* seamThread = new SeamCarvingThread(sizeBuffer);
-        for (int i = 0; i < sizeBuffer; i++) {
-            while (!reader->hasImageAtIndex(currentIdx+i)) {Timer::crossUsleep(100);}
-            Image* in = reader->getImageAtIndex(currentIdx+i);
-            reader->deleteImageAtIndex(currentIdx+i);
-            seamThread->addImage(in);
-
-            Poco::Logger::get("SeamProcessThread").debug("Add image " + std::to_string(currentIdx+i), __FILE__, __LINE__);
-        }
-
-        // -- start and wait for completion 
-        seamThread->startThread();
-        while (seamThread->getState() != SeamCarvingThread::FINISHED) {Timer::crossUsleep(100);}
-
-        Poco::Logger::get("SeamProcessThread").debug("Seam carving terminated !", __FILE__, __LINE__);
-        for (int i = 0; i < sizeBuffer; i++) {
-            Image* out = seamThread->getOut(i);
-            writer->addImageAtIndex(currentIdx+i, out);
-        }
-        seamThread->releaseDatas();
-        Poco::Logger::get("SeamProcessThread").debug("Copy to writer done !", __FILE__, __LINE__);
-
-        currentIdx += sizeBuffer;
-        delete seamThread;
+        Poco::Logger::get("SeamProcessThread").debug("All conversion terminated !", __FILE__, __LINE__);
     }
-
-    while (!writer->isFinished()) {Timer::crossUsleep(100);}
-
-    Poco::Logger::get("SeamProcessThread").debug("All conversion terminated !", __FILE__, __LINE__);
+    catch (std::exception &e) {
+        Poco::Logger::get("SeamProcessThread").debug("Exception in seamProcessThread !", __FILE__, __LINE__);
+        Poco::Logger::get("SeamProcessThread").debug(e.what(), __FILE__, __LINE__);
+    }
 }

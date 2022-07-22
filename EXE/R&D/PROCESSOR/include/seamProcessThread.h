@@ -11,6 +11,7 @@
 #include "image.h"
 #include "seamCarvingThread.h"
 #include "videoHandler.h"
+#include "windows.h"
 
 class SeamProcessThread : public Poco::Runnable
 {

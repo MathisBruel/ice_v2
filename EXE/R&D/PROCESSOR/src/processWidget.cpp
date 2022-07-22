@@ -101,11 +101,18 @@ int ProcessWidget::main(const std::vector<std::string> &arguments)
         delete compute;
     }
     else {
-        parseScene();
-        SeamProcessThread videoThread;
-        videoThread.startThread(fileIn, sceneCuts);
-        while (!videoThread.isFinished()) {
-            Timer::crossUsleep(1000000);
+
+        try {
+            parseScene();
+            SeamProcessThread videoThread;
+            videoThread.startThread(fileIn, sceneCuts);
+            while (!videoThread.isFinished()) {
+                Timer::crossUsleep(1000000);
+            }
+        }
+        catch (std::exception &e) {
+            Poco::Logger::get("ProcessWidget").debug("Exception in ProcessWidget !", __FILE__, __LINE__);
+            Poco::Logger::get("ProcessWidget").debug(e.what(), __FILE__, __LINE__);
         }
     }
 }

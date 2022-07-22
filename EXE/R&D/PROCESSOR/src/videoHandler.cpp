@@ -308,36 +308,50 @@ void VideoHandler::run()
             return;
         }
 
-        while (currentIdx < nbFrames-1) {
-            if (currentImg != nullptr) {
+        try {
+            while (currentIdx < nbFrames-1) {
+                if (currentImg != nullptr) {
 
-                /*if (av_frame_make_writable(frame) < 0) {
-                    Poco::Logger::get("VideoHandler").error("Frame writable error", __FILE__, __LINE__);
-                    break;
-                }*/
+                    /*if (av_frame_make_writable(frame) < 0) {
+                        Poco::Logger::get("VideoHandler").error("Frame writable error", __FILE__, __LINE__);
+                        break;
+                    }*/
 
-                unsigned char* dest[3] = {currentImg->getData(), nullptr, nullptr};
-                int dest_linesize[3] = {width * 3, 0, 0};
-                sws_scale(colorContext, dest, dest_linesize, 0, height, frame->data, frame->linesize);
-                frame->pts = currentIdx;
-                writeFrame(formatContext, codecContext, stream, frame, packet);
-                deleteImageAtIndex(currentIdx);
-                currentIdx++;
-                delete currentImg;
+                    unsigned char* dest[3] = {currentImg->getData(), nullptr, nullptr};
+                    int dest_linesize[3] = {width * 3, 0, 0};
+                    sws_scale(colorContext, dest, dest_linesize, 0, height, frame->data, frame->linesize);
+                    frame->pts = currentIdx;
+                    writeFrame(formatContext, codecContext, stream, frame, packet);
+                    deleteImageAtIndex(currentIdx);
+                    currentIdx++;
+                    delete currentImg;
+                }
+                else {
+                    Timer::crossUsleep(10000);
+                }
+                currentImg = getImageAtIndex(currentIdx);
             }
-            else {
-                Timer::crossUsleep(10000);
-            }
-            currentImg = getImageAtIndex(currentIdx);
+
+            writeFrame(formatContext, codecContext, stream, nullptr, packet);
+            av_write_trailer(formatContext);
+            avio_closep(&formatContext->pb);
+            av_frame_free(&frame);
+            av_packet_free(&packet);
+            avcodec_free_context(&codecContext);
+            avformat_free_context(formatContext);
         }
-
-        writeFrame(formatContext, codecContext, stream, nullptr, packet);
-        av_write_trailer(formatContext);
-        avio_closep(&formatContext->pb);
-        av_frame_free(&frame);
-        av_packet_free(&packet);
-        avcodec_free_context(&codecContext);
-        avformat_free_context(formatContext);
+        catch (std::exception &e) {
+            Poco::Logger::get("VideoHandler").debug("Exception in videoHandler !", __FILE__, __LINE__);
+            Poco::Logger::get("VideoHandler").debug(e.what(), __FILE__, __LINE__);
+            writeFrame(formatContext, codecContext, stream, nullptr, packet);
+            av_write_trailer(formatContext);
+            avio_closep(&formatContext->pb);
+            av_frame_free(&frame);
+            av_packet_free(&packet);
+            avcodec_free_context(&codecContext);
+            avformat_free_context(formatContext);
+        }
+        
         finished = true;
     }
 }
