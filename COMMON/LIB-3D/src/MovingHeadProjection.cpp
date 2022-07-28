@@ -45,6 +45,7 @@ bool MovingHeadProjection::projectMovingHeads()
             return false;
         }
 
+        // -- position must be greater or equal to 0 and inferior or equal to 1
         if (mhOutput->ratioPositionX < -epsilon || mhOutput->ratioPositionY < -epsilon) {
             //Poco::Logger::get("MovingHeadProjection").debug( "Angles not correct : skipped!", __FILE__, __LINE__);
             std::shared_ptr<OutputMovingHeadAngle> output = std::make_shared<OutputMovingHeadAngle>(OutputMovingHeadAngle());

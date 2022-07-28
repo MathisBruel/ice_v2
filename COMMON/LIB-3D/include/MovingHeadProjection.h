@@ -18,6 +18,7 @@ class MovingHeadProjection
 
 public:
 
+    // -- structure to project Moving head
     struct OutputMovingHeadAngle {
         std::string name;
         Color color;
@@ -26,14 +27,18 @@ public:
     };
 
     MovingHeadProjection(IceConfiguration* ice);
+
+    // -- set template to get back all extracted sub-images
     void setTemplateExtractor(Template* templateExtract) {this->templateExtract = templateExtract;}
     ~MovingHeadProjection();
 
     void clean();
 
+    // -- used in real time when playing CIS
     bool projectMovingHeads();
+    // -- used when a command to set MH are executed
     static OutputMovingHeadAngle* projectPanTiltFromRatio(IceConfiguration* ice, std::string deviceId, double ratioX, double ratioY);
-
+    // -- get back all outputs datas from moving heads projections
     std::shared_ptr<OutputMovingHeadAngle> getOutput();
 
 private:

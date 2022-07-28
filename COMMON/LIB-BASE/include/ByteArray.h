@@ -11,6 +11,10 @@ class ByteArray
 
 public:
 
+    // -- object that handle a bytearray
+    // little endian or big endian 
+    // for 8 to 32 bits data sized
+
     ByteArray();
     ByteArray(uint32_t size);
     ByteArray(uint8_t* data, uint32_t size);
