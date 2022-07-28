@@ -10,6 +10,8 @@ class ContextResponse : public CommandResponse
 
 public:
 
+    // -- builder of XML responses to HTTP commands
+
     ContextResponse(std::string uuidFromCommand, Command::CommandType type);
     ~ContextResponse();
 

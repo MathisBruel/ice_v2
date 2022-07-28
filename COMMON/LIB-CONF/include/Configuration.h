@@ -18,6 +18,8 @@ class Configuration
 
 public:
 
+    // -- entry point of all configuration files
+
     Configuration(std::string path);
     ~Configuration();
 

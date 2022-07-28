@@ -60,6 +60,7 @@ public:
 
     static ApplicationContext* getCurrentContext();
 
+    // -- initialisation of all modules
     bool initConfiguration(std::string pathConfigFiles);
     bool initIms();
     bool initKinet();
@@ -106,6 +107,7 @@ public:
     void handleSynchronization();
     void setPlayerState(PlayerState state) {this->state = state;}
 
+    // -- SCRIPT
     void setCurrentScript(std::shared_ptr<LocalRepository::ScriptsInformations> currentScript);
     void setCurrentSync(std::shared_ptr<SyncFile> currentSync);
     void setScriptDatas(std::shared_ptr<Cis> scriptDatas);
@@ -129,7 +131,7 @@ public:
     LocalRepository* getRepoLocal() {return repoLocal;}
     CentralRepository* getRepoCentral() {return repoCentral;}
 
-    // -- MUTEXS
+    // -- MUTEXS CONTROLS
     bool tryLockStatusPlayerMutex() {return statusPlayerMutex.tryLock();}
     bool tryLockListDevicesMutex() {return listDevicesMutex.tryLock();}
     bool tryLockKinetSenderMutex() {return kinetSenderMutex.tryLock();}
@@ -141,7 +143,6 @@ public:
     bool tryLockModeMutex() {return modeMutex.tryLock();}
     bool tryLockScriptsMutex() {return scriptsMutex.tryLock();}
     bool tryLockCplsMutex() {return cplsMutex.tryLock();}
-
     void unlockStatusPlayerMutex() {statusPlayerMutex.unlock();}
     void unlockListDevicesMutex() {listDevicesMutex.unlock();}
     void unlockKinetSenderMutex() {kinetSenderMutex.unlock();}
@@ -154,16 +155,17 @@ public:
     void unlockScriptsMutex() {scriptsMutex.unlock();}
     void unlockCplsMutex() {cplsMutex.unlock();}
 
+    // -- control of datas fro a given frame (output of renderer, input of kinet)
     void insertPanelsOutput(int frameToCompute, std::shared_ptr<OutputPanelImage> output);
     void insertMovingHeadOutput(int frameToCompute, std::shared_ptr<MovingHeadProjection::OutputMovingHeadAngle> output);
     void insertParOutput(int frameToCompute, std::shared_ptr<Template::ParOutputs> output);
     void insertBacklightOutput(int frameToCompute, std::shared_ptr<Template::BacklightOutputs> output);
-
     void addNewOutput(int frameToCompute, std::shared_ptr<FrameOutputs> output);
     bool hasFrameOutput(int frameToCompute);
     std::shared_ptr<FrameOutputs> getOutputs(int currentFrame);
     void removeOldOutput();
 
+    // -- CPL HANDLE
     void addCPLInfo(std::shared_ptr<CplInfos> cplInfo);
     void removeCPLInfo(std::string cplId);
     bool hasCplId(std::string cplId);

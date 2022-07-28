@@ -19,6 +19,7 @@ class StreamReceiver : Poco::Runnable
 
 public:
 
+    // -- receives datas from PPro plugin
     StreamReceiver(std::string address, uint16_t port);
     ~StreamReceiver();
 

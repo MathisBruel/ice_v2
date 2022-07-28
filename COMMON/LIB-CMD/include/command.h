@@ -19,6 +19,7 @@ class Command
 
 public:
 
+    // -- list of all commands types
     enum CommandType {
 
         // -- CONTEXT
@@ -76,6 +77,7 @@ public:
         UNKNOW_COMMAND
     };
 
+    // -- define which thread must treat the command
     enum CommandDispatch {
         KINET,
         IMS,
@@ -89,10 +91,13 @@ public:
     Command(CommandType type);
     ~Command();
 
+    // -- parse XML command
     bool loadFromXmlContent(std::istream& content);
+    // -- set datas to understand command
     void addParameter(std::string key, std::string value);
     void setImage(std::shared_ptr<Image> img) {this->image = img;}
 
+    // -- get datas of command to different types
     int getIntParameter(std::string key, int defaultValue = -1);
     std::string getStringParameter(std::string key, std::string defaultValue = "");
     double getDoubleParameter(std::string key, double defaultValue = -1.0);
@@ -106,9 +111,11 @@ public:
     CommandDispatch getDispatch() {return dispatch;}
     std::string getUuid() {return uuid;}
 
+    // -- enum transformation from/to string
     static CommandType generateFromString(std::string typeStr);
     static std::string generateToString(CommandType type);
 
+    // -- dispatch command and validate it is well-formatted
     bool validateCommand();
     void setDispatch();
 

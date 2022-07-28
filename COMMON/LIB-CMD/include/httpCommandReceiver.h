@@ -39,8 +39,10 @@ public:
     static Poco::Mutex commandsMutex;
     static Poco::Mutex responsesMutex;
 
+    // -- entry point of reception of commands
     virtual void handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &resp);
 
+    // -- control on structure that owns all commands and responses
     std::shared_ptr<Command> getFirstCommand();
     std::shared_ptr<CommandResponse> getResponse(std::string uuid);
     void deleteCommand(std::string uuid);
@@ -48,6 +50,7 @@ public:
     void addResponse(std::shared_ptr<CommandResponse> response);
     void addCommand(std::shared_ptr<Command> command);
 
+    // -- clean already treated or outdated responses
     void removeOldResponses();
 
 private :

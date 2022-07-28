@@ -12,6 +12,8 @@ class FrameOutputs {
 
 public:
 
+    // -- object that contained all datas needed to be sended out to ICe devices for a specific frame
+
     FrameOutputs(int currentFrame);
     ~FrameOutputs();
 
