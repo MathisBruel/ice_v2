@@ -36,6 +36,7 @@ public:
     LocalRepository(std::string pathBase);
     ~LocalRepository();
 
+    // -- local scripts on filesystem
     bool setPriorityScript(bool keep, std::string scriptName);
     void updateScriptsInformations();
     void checkMemoryUsage();

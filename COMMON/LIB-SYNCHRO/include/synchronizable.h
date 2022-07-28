@@ -16,6 +16,8 @@ class Synchronizable
 
 public:
 
+    // -- generic object to handle synchronisation : LVI or CPL or SYNC
+
     // -- based only on picture asset
     struct Reel {
         std::string id;

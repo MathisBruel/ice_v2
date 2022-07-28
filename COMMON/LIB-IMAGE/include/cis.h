@@ -56,6 +56,7 @@ public:
 
 	bool open(std::string filename);
 	
+	// -- all header informations
 	uint32_t getFrameWidth() {return header->frameWidth;}
 	uint32_t getFrameHeight() {return header->frameHeight;}
 	uint32_t getBitsPerPixel() { return header->bpp;}

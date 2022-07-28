@@ -32,22 +32,27 @@ public:
 	Image(int width, int height, uint32_t format, uint8_t red, uint8_t green, uint8_t blue);
 	~Image();
 
+	// -- loader of image
 	bool openImageFromStream(std::string filename, std::istream* stream);
 	bool openImage(uint32_t format = PNG_FORMAT_RGBA);
 	bool openImageFromBuffer(unsigned char* buffer, int size);
 	bool openImage(std::string filename, uint32_t format = PNG_FORMAT_RGBA);
 
+	// -- resizing algorithm
 	bool resizeBilinear(int newWidth, int newHeight);
 	bool resizeHermite(int newWidth, int newHeight);
 	bool resizeBell(int newWidth, int newHeight);
 	bool resizeBicubic(int newWidth, int newHeight);
 
+	// -- saver image
 	bool saveImage();
 	bool saveImage(std::string filename);
 
+	// -- extracting of sub part of image
 	Image* extractData(int offsetX, int offsetY, int newWidth, int newHeight);
 	Image* extractDataWithFillBlack(int offsetSrcX, int offsetSrcY, int widthSrc, int heightSrc, int offsetDstX, int offsetDstY, int widthDst, int heightDst);
 
+	// -- pixel accessors
 	unsigned char getValueAt(int x, int y, int channel);
 	void setValueAt(int x, int y, int channel, unsigned char value);
 	Color* getValueAt(int x, int y);
@@ -55,6 +60,7 @@ public:
 	void setValueAt(int x, int y, int widthRect, int heightRect, Color color);
 	int getSizeBuffer() {return bufferSize;}
 
+	// -- RGBA to RGB buffer
 	Image* convertToRGB();
 
 	inline void setFilename(std::string filename) {this->filename = filename;}
@@ -66,6 +72,7 @@ public:
 	int getHeight() {return height;}
 	uint32_t getFormat() {return format;}
 
+	// -- merging images
 	Image* blendWithForeImage(Image* fore);
 	Image* mixWithForeImage(Image* fore);
 

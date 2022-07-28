@@ -14,6 +14,8 @@ class Synchro
 
 public:
 
+    // -- object that actually synchronize
+
     struct Match {
         int idxReelRef;
         int nbIdxReelRef;

@@ -23,6 +23,7 @@ public:
     StreamReceiver(std::string address, uint16_t port);
     ~StreamReceiver();
 
+    // -- work as a thread
     bool startThread();
     void stopThread();
 

@@ -28,6 +28,7 @@ public:
     ~CentralRepository();
     void setDownloadPath(std::string path) {this->downloadPath = path;}
 
+    // -- generic function (available for HTTP or FTP)
     virtual bool open() {return false;}
     virtual void close() {}
     virtual bool openDownload() {return false;}

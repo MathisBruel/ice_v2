@@ -11,6 +11,8 @@ class Template
 
 public :
 
+    // -- generic object that owns data resulting from extraction in templates
+
     struct SquareImageDefinition {
         std::string name;
         uint16_t offsetX;

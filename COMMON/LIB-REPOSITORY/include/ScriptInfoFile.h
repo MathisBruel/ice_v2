@@ -20,7 +20,7 @@ public:
     bool changeDatas(ScriptInfoFile newScript);
 
     bool load(std::string pathFile);
-    bool save(std::string pathFile); 
+    bool save(std::string pathFile);
 
     void setPriority(bool keep) {this->keep = keep;}
     void setAlreadyPlayed() {alreadyPlayed = true;}

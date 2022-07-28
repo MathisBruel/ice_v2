@@ -36,14 +36,16 @@ public:
     void setBroadcastAddress(std::string hostAddress);
 
     bool open();
+
+    // -- discovery messages
     void sendDiscoveryMessage();
     void sendDiscoveryPortMessage(std::string address);
     void sendDiscoveryFixtureMessage(std::string address);
     void sendDiscoveryChannelMessage(std::string address, uint32_t serial, uint16_t magic);
 
+    // -- update messages
     void sendPortOutMessage(std::string address, uint8_t port, uint8_t* payload, uint16_t length, KinetMessage::KiNetPortOutStartCode startCode);
     void sendPortOutSyncMessage(std::string address);
-
     void sendDmxOutMessage(std::string address, uint8_t* payload, uint32_t length);
 
     void stopThread() {stop = true;}

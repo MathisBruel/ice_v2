@@ -14,6 +14,7 @@ class UdpCommandReceiver : public Poco::Runnable
 public:
 
     // -- receives commands from projection server
+    // works as a thread
     UdpCommandReceiver(std::string address, uint16_t port);
     ~UdpCommandReceiver();
 
