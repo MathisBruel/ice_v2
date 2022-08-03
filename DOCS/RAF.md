@@ -6,6 +6,7 @@
 
 - BARCO : test performance
 - CHRISTIE : test performance
+- GPO/coaxial for IMS3000/BarcoICMP/ChristieIMB-S3 : LTC (delay between timecode received and reel timecode)
 
 ### FUNCTION
 
@@ -39,4 +40,3 @@
 # LONG TERM
 
 - MOVINGHEAD adaptation beam angle
-- GPO/coaxial for IMS3000/BarcoICMP/ChristieIMB-S3 : LTC (delay between timecode received and reel timecode)
