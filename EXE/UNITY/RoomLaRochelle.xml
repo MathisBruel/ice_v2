@@ -76,14 +76,6 @@
 		<Panel>
 			<PosX>0.01</PosX>
 			<PosY>2.76</PosY>
-			<PosZ>1.8</PosZ>
-			<ScaleX>1.0</ScaleX>
-			<ScaleY>3.6</ScaleY>
-			<ScaleZ>1.2</ScaleZ>
-		</Panel>
-		<Panel>
-			<PosX>0.01</PosX>
-			<PosY>2.76</PosY>
 			<PosZ>4.05</PosZ>
 			<ScaleX>1.0</ScaleX>
 			<ScaleY>3.6</ScaleY>
@@ -119,6 +111,14 @@
 			<PosZ>13.05</PosZ>
 			<ScaleX>1.0</ScaleX>
 			<ScaleY>2.52</ScaleY>
+			<ScaleZ>1.2</ScaleZ>
+		</Panel>
+		<Panel>
+			<PosX>0.01</PosX>
+			<PosY>4.2</PosY>
+			<PosZ>15.3</PosZ>
+			<ScaleX>1.0</ScaleX>
+			<ScaleY>2.16</ScaleY>
 			<ScaleZ>1.2</ScaleZ>
 		</Panel>
 	</LeftPanels>
@@ -126,14 +126,6 @@
 		<Panel>
 			<PosX>14.405</PosX>
 			<PosY>2.76</PosY>
-			<PosZ>1.8</PosZ>
-			<ScaleX>1.0</ScaleX>
-			<ScaleY>3.6</ScaleY>
-			<ScaleZ>1.2</ScaleZ>
-		</Panel>
-		<Panel>
-			<PosX>14.405</PosX>
-			<PosY>2.76</PosY>
 			<PosZ>4.05</PosZ>
 			<ScaleX>1.0</ScaleX>
 			<ScaleY>3.6</ScaleY>
@@ -169,6 +161,14 @@
 			<PosZ>13.05</PosZ>
 			<ScaleX>1.0</ScaleX>
 			<ScaleY>2.52</ScaleY>
+			<ScaleZ>1.2</ScaleZ>
+		</Panel>
+		<Panel>
+			<PosX>14.405</PosX>
+			<PosY>4.2</PosY>
+			<PosZ>15.3</PosZ>
+			<ScaleX>1.0</ScaleX>
+			<ScaleY>2.16</ScaleY>
 			<ScaleZ>1.2</ScaleZ>
 		</Panel>
 	</RightPanels>
