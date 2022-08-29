@@ -718,7 +718,7 @@ int ApplicationContext::getCurrentFrame()
                 }
 
                 int64_t diffTimeStamp = Poco::Timestamp().epochMicroseconds() - startLoop;
-                int frame = (uint64_t)((double)diffTimeStamp/1000000 * cis->getSpeedRate() + 3.5) % cis->getFrameCount();
+                int frame = (uint64_t)((double)diffTimeStamp/1000000 * cis->getSpeedRate() + 0.5) % cis->getFrameCount();
                 return frame;
             }
             else

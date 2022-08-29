@@ -43,8 +43,8 @@ void RendererThread::addCommand(std::shared_ptr<Command> cmd)
 
 void RendererThread::run() {
 
-    // -- work at 60ms (2 executions in a cycle of frame)
-    int waitTime = 60;
+    // -- work at 15ms (2 executions in a cycle of frame)
+    int waitTime = 15;
     Poco::Stopwatch watch;
     Poco::Stopwatch watchDetail;
     ApplicationContext* context = ApplicationContext::getCurrentContext();

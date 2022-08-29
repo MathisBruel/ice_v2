@@ -252,7 +252,7 @@ Image* PanelProjection::getBackImageLeftNoFit(IceConfiguration::PanelConf *panel
     // -- margin to take data from in template
     int marginLeftRight = 4;
     // -- ratio to transform size in mm to pixel (based on height of screen without margin pixels in template)
-    double ratioMmToPixelBack = (double)(backRef->getHeight()) / (double)(confPanels->getScreen()->height*3.0);
+    double ratioMmToPixelBack = (double)(backRef->getHeight()) / (double)(confPanels->getScreen()->height);
     //Poco::Logger::get("PanelProjection").debug(panel->name + " ratioMmToPixelBack : " + std::to_string(ratioMmToPixelBack), __FILE__, __LINE__);
 
     // -- we determine the size of the attended pixels square in image

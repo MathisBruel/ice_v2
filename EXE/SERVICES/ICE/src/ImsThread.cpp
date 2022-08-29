@@ -53,7 +53,7 @@ void ImsThread::startThread()
 void ImsThread::run() {
 
     ApplicationContext* context = ApplicationContext::getCurrentContext();
-    uint8_t waitTime = 80;
+    uint8_t waitTime = 10;
     Poco::Stopwatch watch;
 
     ImsCommunicator* ims = context->getIms();

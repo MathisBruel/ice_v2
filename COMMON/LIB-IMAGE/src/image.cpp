@@ -580,6 +580,11 @@ bool Image::resizeBell(int newWidth, int newHeight)
 			}
 		}
 
+		for (int i = 0; i < newWidth; i++) {
+			delete[] computation[i].pixelList;
+		}
+		delete[] computation;
+
 		// -- create final image by resizing by height basing of temporary image (only width)
 		Image* newImage = new Image();
 		newImage->width = newWidth;
@@ -694,6 +699,11 @@ bool Image::resizeBell(int newWidth, int newHeight)
 			}
 		}
 
+		for (int i = 0; i < newWidth; i++) {
+			delete[] computation[i].pixelList;
+		}
+		delete[] computation;
+
 		// attribute new values
 		width = newImage->width;
 		height = newImage->height;
@@ -703,6 +713,7 @@ bool Image::resizeBell(int newWidth, int newHeight)
 		std::memcpy(data, newImage->data, newImage->bufferSize*sizeof(unsigned char));
 		bufferSize = newImage->bufferSize;
 		delete newImage;
+		delete[] pp;
 		return true;
 	} 
 	else {
@@ -841,6 +852,11 @@ bool Image::resizeBicubic(int newWidth, int newHeight)
 			}
 		}
 
+		for (int i = 0; i < newWidth; i++) {
+			delete[] computation[i].pixelList;
+		}
+		delete[] computation;
+
 		// -- create final image by resizing by height basing of temporary image (only width)
 		Image* newImage = new Image();
 		newImage->width = newWidth;
@@ -955,6 +971,11 @@ bool Image::resizeBicubic(int newWidth, int newHeight)
 			}
 		}
 
+		for (int i = 0; i < newWidth; i++) {
+			delete[] computation[i].pixelList;
+		}
+		delete[] computation;
+
 		// attribute new values
 		width = newImage->width;
 		height = newImage->height;
@@ -964,6 +985,7 @@ bool Image::resizeBicubic(int newWidth, int newHeight)
 		std::memcpy(data, newImage->data, newImage->bufferSize*sizeof(unsigned char));
 		bufferSize = newImage->bufferSize;
 		delete newImage;
+		delete[] pp;
 		return true;
 	} 
 	else {
@@ -1101,6 +1123,11 @@ bool Image::resizeHermite(int newWidth, int newHeight)
 			}
 		}
 
+		for (int i = 0; i < newWidth; i++) {
+			delete[] computation[i].pixelList;
+		}
+		delete[] computation;
+
 		// -- create final image by resizing by height basing of temporary image (only width)
 		Image* newImage = new Image();
 		newImage->width = newWidth;
@@ -1215,6 +1242,11 @@ bool Image::resizeHermite(int newWidth, int newHeight)
 			}
 		}
 
+		for (int i = 0; i < newWidth; i++) {
+			delete[] computation[i].pixelList;
+		}
+		delete[] computation;
+
 		// attribute new values
 		width = newImage->width;
 		height = newImage->height;
@@ -1224,6 +1256,7 @@ bool Image::resizeHermite(int newWidth, int newHeight)
 		std::memcpy(data, newImage->data, newImage->bufferSize*sizeof(unsigned char));
 		bufferSize = newImage->bufferSize;
 		delete newImage;
+		delete[] pp;
 		return true;
 	} 
 	else {

@@ -140,7 +140,7 @@ void KinetMulticast::sendDiscoveryChannelMessage(std::string address, uint32_t s
 void KinetMulticast::sendPortOutMessage(std::string address, uint8_t port, uint8_t* payload, uint16_t length, KinetMessage::KiNetPortOutStartCode startCode)
 {
     KinetMessage::KiNetPortOutFlags flags = (KinetMessage::KiNetPortOutFlags)(
-        (uint16_t)KinetMessage::KiNetPortOutFlags::Payload8bit | (uint16_t)KinetMessage::KiNetPortOutFlags::SendImmediate);
+        (uint16_t)KinetMessage::KiNetPortOutFlags::Payload8bit | (uint16_t)KinetMessage::KiNetPortOutFlags::HoldForSync);
 
     KinetPortOutMessage msg(KinetMessage::KiNetVersion::Version2, (uint32_t)0, (uint32_t)0xFFFFFFFF, port, 
                flags, startCode, length, payload);

@@ -15,7 +15,7 @@ TemplateV1::TemplateV1()
     // -- marge of 4 pixels up, down, left
     panelDefinitionBackLeft.name = "Back-right";
     panelDefinitionBackRight.offsetX = 364; 
-    panelDefinitionBackRight.offsetY = 438; 
+    panelDefinitionBackRight.offsetY = 448; 
     panelDefinitionBackRight.width = 356;
     panelDefinitionBackRight.height = 128;
 
