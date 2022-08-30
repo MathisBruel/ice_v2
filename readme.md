@@ -2,34 +2,34 @@
 
 ## PREREQUISITE
 
-Installer Visual Studio 2017 (ou changer generator).
-Installer InnoSetup (ajout dans le PATH)
-Installer .NET Framework 3.0
-Installer BOOST version : 
-Installer TBB version : 
+- Visual Studio 15 2017 (ou plus récent).
+- Qt 5.0 ou supérieur
+- CUDA v11.6 minimum (pour le seam carving)
+- OpenSSL-Win64
 
 ## BUILD
 
-Se placer dans le répertoire CMAKE_OUT.
+Se placer à la racine du répertoire de développement.
+**Compilation des librairies externes** 
+Lancer `./tasks -f build_all_external -g "Visual Studio 15 2017" -a x64`
+Router le chemin de 'OpenSSL' dans le fichier CMakeLists.txt de la librairie LIB-IMS.
 
-Lancer `cmake -G "Visual Studio 15 2017" -A x64 ..`
-Une fois terminé, les projets Visual Studio sont générés
+**Compilation des Plugins** 
+Lancer `./tasks -f build_lib_exe -g "Visual Studio 15 2017" -a x64 t PLUGIN`
+**Compilation des outils de calibration**
+Router les chemins de 'QT' et 'OpenSSL' dans les fichiers CMakeLists.txt présents à la racine de chaque outil concerné.
+Router le chemin de la librairie 'iphlpapi.lib' avec ses includes dans les fichiers CMakeLists.txt présents à la racine de chaque outil concerné.
+Lancer `./tasks -f build_lib_exe -g "Visual Studio 15 2017" -a x64 t CALIB`
+**Compilation des outils de synchronisation**
+Router les chemins de QT et OpenSSL dans les fichiers CMakeLists.txt présents à la racine de chaque outil concerné.
+Router le chemin de la librairie 'iphlpapi.lib' avec ses includes dans les fichiers CMakeLists.txt présents à la racine de chaque outil concerné.
+Lancer `./tasks -f build_lib_exe -g "Visual Studio 15 2017" -a x64 t TOOLS`
+**Compilation du seam carving**
+Router les chemins de 'CUDA' dans la LIB-CUDA dans le fichier CMakeLists.txt.*
+Router le chemin de la librairie 'iphlpapi.lib' avec ses includes dans le fichier CMakeLists.txt de 'PROCESSOR'.
+Lancer `./tasks -f build_lib_exe -g "Visual Studio 15 2017" -a x64 t RaD`
 
-Lancer `cmake --build . --config Release`
-Une fois terminé, les exécutables contiennent toutes les librairies (en statique) nécessaires à l'exécution dans ../BUILD.
-
-Lancer `cmake --install . --config Release`
-Une fois terminé, les exécutables contiennent toutes les librairies (en statique) nécessaires à l'exécution dans ../BUILD.
-
-## SETUP (windows only)
-
-Lancer `iscc -OBUILD setup.iss`
-Puis lancer l'installation.
-
-## TESTS
-
-Se placer dans le répertoire de build de l'EXE.
-Lancer `ctest -C Release .`
+Attention : pour les plugins ADOBE, les librairies externes compilées avec l'étape "build_all_external" doivent être compilées sans les option MT de windows (voir le fichier CMakeLists.txt du dossier "EXTERN"). 
 
 # COMPILATION LINUX
 
@@ -37,55 +37,21 @@ Lancer `ctest -C Release .`
 
 Installer avec `apt-get`:
 
-- virtual-guest-additions.iso
-- virtual-guest-utils
-- libssl (version ?)
-- openssl (version ?)
-- cmake (version ?)
-- pthread (`libpthread-stubs0-dev`)
+- libssl
+- openssl
+- cmake
+- pthread
+- mysqlclient
+- crypto
 
 ## BUILD
 
-Se placer dans le répertoire CMAKE_OUT_UNIX.
+Se placer à la racine du répertoire de développement.
 
-Lancer `cmake ..`
-Une fois terminé, les projets Visual Studio sont générés
-
-Lancer `cmake --build . --config Release`
-Une fois terminé, les exécutables contiennent toutes les librairies (en statique) nécessaires à l'exécution dans ../BUILD.
-
-## INSTALL (for unix ? )
-
-## RUNNER
-
-### INSTALLATION
-
-Télécharger gitlab-runner : 
-`curl -LJO "https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_${arch}.deb"`
-
-Liste des ${arch} se trouve sur `https://gitlab-runner-downloads.s3.amazonaws.com/latest/index.html`
-L'installer : `dpkg -i gitlab-runner_${arch}.deb`
-
-### CONFIGURATION DU SERVICE
-
-Générer le certificat : 
-
-`mkdir /etc/gitlab-runner/certs`
-`echo "HEAD / HTTP/1.0\n Host: gitlab.cgrcinemas.fr:443\n\n EOT\n" | openssl s_client -prexit -connect gitlab.cgrcinemas.fr:443 > /etc/gitlab-runner/certs/cgrcinemas.crt`
-
-Enregister le runner : 
-
-`gitlab-runner register --tls-ca-file=/etc/gitlab-runner/certs/cgrcinemas.crt`
-
-Modifications avancées : 
-
-Via `systemctl` et le nom du service `gitlab-runner.service`
-Modification du fichier `/etc/gitlab-runner/config.toml`
-
-Creation du script d'automatisation
-Créer le fichier `.gitlab-ci.yaml`
-
-Créer le fichier tasks.sh qui effectue le build et le lancement des tests
-
-
+**Compilation des librairies externes** 
+Lancer `./tasks -f build_all_external`
+**Compilation des exécutables ICE CORE et gestion centralisée (non terminée)**
+Lancer `./tasks -f build_lib_exe -t CORE`
+**Package installer ICE CORE**
+Lancer `./tasks -f build_package`
 
