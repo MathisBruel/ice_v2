@@ -10,12 +10,6 @@ project(${project_name})
 ## -- target compilation : define what's going to be compiled
 option(STEP "STEP" "CORE")
 
-if (${STEP} STREQUAL "TESTIMG")
-	add_subdirectory("${CMAKE_SOURCE_DIR}/COMMON/LIB-BASE")
-	add_subdirectory("${CMAKE_SOURCE_DIR}/COMMON/LIB-IMAGE")
-	add_subdirectory("${CMAKE_SOURCE_DIR}/COMMON/LIB-IMAGE/test")
-endif()
-
 ## -- Build own libraries
 if (${STEP} STREQUAL "CORE")
 	if (UNIX)

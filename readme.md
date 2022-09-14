@@ -29,7 +29,11 @@ Router les chemins de 'CUDA' dans la LIB-CUDA dans le fichier CMakeLists.txt.*
 Router le chemin de la librairie 'iphlpapi.lib' avec ses includes dans le fichier CMakeLists.txt de 'PROCESSOR'.
 Lancer `./tasks -f build_lib_exe -g "Visual Studio 15 2017" -a x64 t RaD`
 
-Attention : pour les plugins ADOBE, les librairies externes compilées avec l'étape "build_all_external" doivent être compilées sans les option MT de windows (voir le fichier CMakeLists.txt du dossier "EXTERN"). 
+Attention : pour les plugins ADOBE, les librairies externes compilées avec l'étape "build_all_external" doivent être compilées sans les option MT de windows (voir le fichier CMakeLists.txt du dossier "EXTERN").
+
+## INSTALL
+
+Les outils sont des exécutables directement copiables dans un répertoire pour une exécution directe.
 
 # COMPILATION LINUX
 
@@ -43,6 +47,7 @@ Installer avec `apt-get`:
 - pthread
 - mysqlclient
 - crypto
+- nodejs
 
 ## BUILD
 
@@ -55,3 +60,12 @@ Lancer `./tasks -f build_lib_exe -t CORE`
 **Package installer ICE CORE**
 Lancer `./tasks -f build_package`
 
+## INSTALL
+
+Pour installer ICE-CORE, il faut lancer l'installation du package via le script install-core.sh contenu dans l'archive 'ICE-CORE-$VERSION.tar.gz'.
+L'interface s'installe en copiant tout le contenu du répertoire WebInterface et en lançant les commandes suivantes : 
+
+```
+cd WebInterface
+nodejs javascripts/Main_API.js javascripts/config.json
+```
