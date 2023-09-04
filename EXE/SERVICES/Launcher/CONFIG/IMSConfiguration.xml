@@ -2,8 +2,8 @@
 <configuration>
     <type>Doremi</type>
     <port>10000</port>
-    <ip></ip>
-    <interface>eno1</interface>
+    <ip>192.168.33.20</ip>
+    <interface>eth0</interface>
     <credentials></credentials>
     <syncRate>6</syncRate>
     <offsetPlayer2K>167</offsetPlayer2K>

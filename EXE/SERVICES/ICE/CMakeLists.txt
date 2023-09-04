@@ -25,7 +25,7 @@ file(GLOB SRC_FILES
 
 add_executable(${project_name} ${SRC_FILES})
 target_link_libraries(${project_name} PUBLIC "LIB-CONTEXT-ICE")
-
+set_property(TARGET ${project_name} PROPERTY CXX_STANDARD 17)
 if (UNIX)
 	target_link_libraries(${project_name} PUBLIC pthread)
 	target_link_libraries(${project_name} PUBLIC crypto)

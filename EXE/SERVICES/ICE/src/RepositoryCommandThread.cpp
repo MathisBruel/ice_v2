@@ -169,7 +169,7 @@ void RepositoryCommandThread::executeCommand(std::shared_ptr<Command> cmd)
             std::map<std::string, std::shared_ptr<LocalRepository::ScriptsInformations>> mapScripts = repoLocal->getPathToScripts();
             context->unlockLocalRepoMutex();
 
-            std::map<std::__cxx11::string, std::shared_ptr<LocalRepository::ScriptsInformations>>::iterator it;
+            std::map<std::string, std::shared_ptr<LocalRepository::ScriptsInformations>>::iterator it;
             for (it = mapScripts.begin(); it != mapScripts.end(); it++) {
                 
                 if (it->first.find(scriptName) != std::string::npos) {
