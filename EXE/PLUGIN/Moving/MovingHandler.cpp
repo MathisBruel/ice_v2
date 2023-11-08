@@ -1618,7 +1618,8 @@ void MovingHandler::loop()
     // -- calculate size of elements to be copied
     // -- max and min of pos
     int min = 0;
-    int max = std::max(pos.at(pos.size()-1)->frame, color.at(color.size()-1)->frame);
+    
+    int max = MAX(pos.at(pos.size()-1)->frame, color.at(color.size()-1)->frame);
 
     // -- check loop only if not in reversed
     if (!modeLoop) {
