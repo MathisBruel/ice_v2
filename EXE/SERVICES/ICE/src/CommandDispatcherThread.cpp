@@ -79,7 +79,7 @@ void CommandDispatcherThread::run() {
 
                 // -- we remove command from map
                 context->getCommandUdpReceiver()->deleteCommand(cmdUdp->getUuid());
-                cmdUdp = std::shared_ptr(context->getCommandUdpReceiver()->getFirstCommand());
+                cmdUdp = std::shared_ptr<Command>(context->getCommandUdpReceiver()->getFirstCommand());
             }
 
             if (cmd != nullptr) {
@@ -106,7 +106,7 @@ void CommandDispatcherThread::run() {
 
                 // -- we remove command from map
                 context->getCommandHandler()->deleteCommand(cmd->getUuid());
-                cmd = std::shared_ptr(context->getCommandHandler()->getFirstCommand());
+                cmd = std::shared_ptr<Command>(context->getCommandHandler()->getFirstCommand());
             }
 
             if (imgExternal != nullptr && state == ApplicationContext::EXTERNAL) {

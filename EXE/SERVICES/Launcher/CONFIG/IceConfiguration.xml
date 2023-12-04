@@ -15,8 +15,8 @@
 	<panel name="L5" side="left" offsetX="0" offsetY="10730" offsetZ="2830" width="1200" height="2160"/>
 	<panel name="R5" side="right" offsetX="9360" offsetY="10730" offsetZ="2830" width="1200" height="2160"/>
 	
-	<movingHead name="MH_LF" side="left" depth="front" offsetX="200" offsetY="9650" offsetZ="4970" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
-	<movingHead name="MH_LR" side="left" depth="rear" offsetX="200" offsetY="11500" offsetZ="5000" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
-	<movingHead name="MH_RF" side="right" depth="front" offsetX="9360" offsetY="9700" offsetZ="4970" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
-	<movingHead name="MH_RR" side="right" depth="rear" offsetX="9360" offsetY="11500" offsetZ="5000" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="" maxX="" minY="" maxY="" minZ="" maxZ=""/>
+	<movingHead name="MH_LF" side="left" depth="front" offsetX="200" offsetY="9650" offsetZ="4970" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="0" maxX="9999" minY="0" maxY="9999" minZ="0" maxZ="9999"/>
+	<movingHead name="MH_LR" side="left" depth="rear" offsetX="200" offsetY="11500" offsetZ="5000" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="0" maxX="9999" minY="0" maxY="9999" minZ="0" maxZ="9999"/>
+	<movingHead name="MH_RF" side="right" depth="front" offsetX="9360" offsetY="9700" offsetZ="4970" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="0" maxX="9999" minY="0" maxY="9999" minZ="0" maxZ="9999"/>
+	<movingHead name="MH_RR" side="right" depth="rear" offsetX="9360" offsetY="11500" offsetZ="5000" panFullAngle="540" tiltFullAngle="220" biasPan="6" biasTilt="11" minX="0" maxX="9999" minY="0" maxY="9999" minZ="0" maxZ="9999"/>
 </configuration>

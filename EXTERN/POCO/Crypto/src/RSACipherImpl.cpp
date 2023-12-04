@@ -50,6 +50,8 @@ namespace
 			return RSA_PKCS1_PADDING;
 		case RSA_PADDING_PKCS1_OAEP:
 			return RSA_PKCS1_OAEP_PADDING;
+		case RSA_PADDING_SSLV23:
+			return RSA_NO_PADDING;
 		case RSA_PADDING_NONE:
 			return RSA_NO_PADDING;
 		default:

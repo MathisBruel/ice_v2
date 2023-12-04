@@ -183,7 +183,7 @@ void KinetMulticast::handleResponse(uint8_t * buffer, uint32_t length)
 {
     // -- we parse the buffer received
     KinetMessage header((uint8_t*) buffer, length);
-    if (header.getType() == KinetMessage::KiNetPacketType::DiscoverReply) {
+    if (header.getType() == KinetMessage::KiNetPacketType::DiscoverReply || header.getType() == KinetMessage::KiNetPacketType::DiscoverModularPortsReply) {
         
         std::shared_ptr<KinetDiscoveryReplyMessage> discoveryReply = std::make_shared<KinetDiscoveryReplyMessage>(KinetDiscoveryReplyMessage((uint8_t*) buffer, length));
         kinetMessages.push_back(discoveryReply);

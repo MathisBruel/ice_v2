@@ -76,12 +76,7 @@ void KinetDiscoveryThread::run() {
 
                 std::shared_ptr<KinetMessage> discoveryReply(messages.at(i));
                 KinetDiscoveryReplyMessage* replyConverted = static_cast<KinetDiscoveryReplyMessage*>(discoveryReply.get());
-                if (replyConverted->getId().find(itDevices->first) != std::string::npos) {
-
-                    if (itDevices->second->getIp() != Converter::ipToString(replyConverted->getIpAddress())) {
-                        Poco::Logger::get("KinetDiscoveryThread").warning("Device " + itDevices->first + " : ip not corresponding ! Obtained : " + 
-                        Converter::ipToString(replyConverted->getIpAddress()) + ", expected : " + itDevices->second->getIp());
-                    }
+                if ( itDevices->second->getIp() ==  Converter::ipToString(replyConverted->getIpAddress())) {
                     found = true;
                 }
             }

@@ -21,7 +21,7 @@ file(GLOB SRC_FILES
 )
 
 add_library(${project_name} STATIC ${SRC_FILES})
-
+set_property(TARGET ${project_name} PROPERTY CXX_STANDARD 17)
 target_link_libraries(${project_name} PUBLIC "LIB-CMD")
 
 # -- force not include macro min and max from native windows
