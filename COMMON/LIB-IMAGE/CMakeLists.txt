@@ -32,7 +32,7 @@ endif()
 ICE_link_library("${CMAKE_SOURCE_DIR}/BUILD/LIBTIFF" LibTiff ${project_name})
 
 if (UNIX)
-	target_link_libraries(${project_name} PUBLIC "/usr/lib/x86_64-linux-gnu/liblzma.a")
+	target_link_libraries(${project_name} PUBLIC "/usr/lib/x86_64-linux-gnu/liblz.a")
 	target_link_libraries(${project_name} PUBLIC "/usr/lib/x86_64-linux-gnu/libjbig.a")
 endif()
 

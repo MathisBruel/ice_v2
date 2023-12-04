@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 message("Build LIB-IMS")
 set(project_name "LIB-IMS")
 project(${project_name})
+set (CMAKE_CXX_STANDARD 17)
 
 # -- force compilation as MT (windows only)
 if (MSVC)
@@ -25,6 +26,8 @@ file(GLOB SRC_FILES
 )
 
 add_library(${project_name} STATIC ${SRC_FILES})
+set_property(TARGET ${project_name} PROPERTY CXX_STANDARD 17)
+
 target_link_libraries(${project_name} PUBLIC "LIB-CMD")
 target_link_libraries(${project_name} PUBLIC "LIB-SYNCHRO")
 target_link_libraries(${project_name} PUBLIC "LIB-BASE")

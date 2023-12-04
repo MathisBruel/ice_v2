@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="no" ?>
-<configuration interface="eno2">
-    <!-- name is important to relate to the template, sizePixel (or pitch) in mm, nbPixels is width * height-->
+<configuration interface="eth0">
+    <!-- name is important to relate to the template, sizePixel (or pitch) in mm, nbPixels is width * height
     <panel name="L1" ip="10.0.0.141" serial="0xffffffff" sizePixel="60" nbPixels="1440">
         <lut>PanelV2</lut>
     </panel>
@@ -37,5 +37,5 @@
         <device name="PAR-L2" type="PAR" category="FEATURE" dmxOffset="20" formatBuffer="I.ZR.G.B.W....." zoom="128" lumens="3500">
             <calib>ParV1</calib>
         </device>
-    </DMX>
+    </DMX> -->
 </configuration>

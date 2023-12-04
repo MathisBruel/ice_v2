@@ -476,7 +476,7 @@ void KinetThread::executeCommand(std::shared_ptr<Command> cmd)
         if (state == ApplicationContext::PlayerState::MANUAL || 
             state == ApplicationContext::PlayerState::SYNC) {
 
-            std::map<std::__cxx11::string, Device *>::iterator itDevice;
+            std::map<std::string, Device *>::iterator itDevice;
             for (itDevice = listDevices.begin(); itDevice != listDevices.end(); itDevice++) {
                 if (itDevice->second->getType() == Device::DATA_ENABLER_PRO) {
                     DataEnabler* enabler = static_cast<DataEnabler*>(itDevice->second);
@@ -512,7 +512,7 @@ void KinetThread::executeCommand(std::shared_ptr<Command> cmd)
         if (state == ApplicationContext::PlayerState::MANUAL || 
             state == ApplicationContext::PlayerState::SYNC) {
 
-            std::map<std::__cxx11::string, Device *>::iterator itDevice;
+            std::map<std::string, Device *>::iterator itDevice;
             for (itDevice = listDevices.begin(); itDevice != listDevices.end(); itDevice++) {
                 if (itDevice->second->getType() == Device::DATA_ENABLER_PRO) {
                     DataEnabler* enabler = static_cast<DataEnabler*>(itDevice->second);
@@ -548,7 +548,7 @@ void KinetThread::executeCommand(std::shared_ptr<Command> cmd)
         if (state == ApplicationContext::PlayerState::MANUAL || 
             state == ApplicationContext::PlayerState::SYNC) {
 
-            std::map<std::__cxx11::string, Device *>::iterator itDevice;
+            std::map<std::string, Device *>::iterator itDevice;
             for (itDevice = listDevices.begin(); itDevice != listDevices.end(); itDevice++) {
                 if (itDevice->second->getType() == Device::DATA_ENABLER_PRO) {
                     DataEnabler* enabler = static_cast<DataEnabler*>(itDevice->second);
@@ -584,7 +584,7 @@ void KinetThread::executeCommand(std::shared_ptr<Command> cmd)
         if (state == ApplicationContext::PlayerState::MANUAL || 
             state == ApplicationContext::PlayerState::SYNC) {
 
-            std::map<std::__cxx11::string, Device *>::iterator itDevice;
+            std::map<std::string, Device *>::iterator itDevice;
             for (itDevice = listDevices.begin(); itDevice != listDevices.end(); itDevice++) {
                 if (itDevice->second->getType() == Device::DATA_ENABLER_PRO) {
                     DataEnabler* enabler = static_cast<DataEnabler*>(itDevice->second);
