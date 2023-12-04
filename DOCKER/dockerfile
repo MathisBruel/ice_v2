@@ -10,5 +10,7 @@ RUN /install-core.sh
 RUN cd /data/ICE2/LUTS/ && cp panelV2.lut panelV1.lut && cp PAR-V1.calib parV1.calib && cp PAR-V2.calib parV2.calib && cp MH-V1.calib mhV1.calib && cp MH-V2.calib mhV2.calib && cp BL-V1.calib backV1.calib && cp BL-V1.calib backV2.calib
 COPY KinetConfiguration.xml /data/ICE2/CONFIG/KinetConfiguration.xml
 COPY IceConfiguration.xml /data/ICE2/CONFIG/IceConfiguration.xml
-COPY IMSConfiguration.xml data/ICE2/CONFIG/IMSConfiguration.xml
-ENTRYPOINT [ "nodejs","WebInterface/javascripts/Main_API.js","WebInterface/javascripts/config.json" ]
+COPY IMSConfiguration.xml /data/ICE2/CONFIG/IMSConfiguration.xml
+COPY RepoConfiguration.xml /data/ICE2/CONFIG/RepoConfiguration.xml
+RUN apt-get install gdb -y
+ENTRYPOINT ["tail", "-f", "/dev/null"]
