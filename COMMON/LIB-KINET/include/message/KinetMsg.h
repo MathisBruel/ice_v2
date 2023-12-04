@@ -21,6 +21,7 @@ public:
         DiscoverReply = 0x0002,
         DiscoverPorts = 0x000A,
         DiscoverPortsReply = 0x000B,
+        DiscoverModularPortsReply = 0x000F,
         DMXOut = 0x0101,
         PortOut = 0x0108,
         PortOutSync = 0x0109,

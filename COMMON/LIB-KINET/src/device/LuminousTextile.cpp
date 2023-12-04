@@ -121,6 +121,17 @@ LuminousTextile::LuminousTextile(std::string id, std::string name, std::string m
         heightPort[1] = 4;
         payloadsSize[1] = 20*4*3;
         break;
+
+        case 100:
+        width = 10;
+        height = nbPixels/width;
+        nbPorts = 1;
+        heightPort = new int[nbPorts];
+        payloadsSize = new uint32_t[nbPorts];
+        payloads = new uint8_t*[nbPorts];
+        heightPort[0] = 10;
+        payloadsSize[0] = 10*10*3;
+        break;        
     }
 }
 
