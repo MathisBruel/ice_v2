@@ -54,6 +54,10 @@ build_lib_exe() {
 
     # Build and execute generation command
     cmdGen="cmake"
+
+    if [ -n "$buildtype" ] ; then
+        cmdGen="$cmdGen -DCMAKE_BUILD_TYPE=$buildtype"
+    fi
     if [ -n "$generator" ] ; then
         cmdGen="$cmdGen -G $generator"
     fi
@@ -96,7 +100,7 @@ build_package() {
 }
 
 # parse command line
-while getopts "f:s:g:a:c:t:" OPTION; do
+while getopts "f:s:g:a:c:t:b:" OPTION; do
     case "$OPTION" in
 
         f)
@@ -117,6 +121,11 @@ while getopts "f:s:g:a:c:t:" OPTION; do
         a)
             archi="\"${OPTARG}\""
             echo "Option archi : $archi"
+                ;;
+        
+        b)
+            buildtype="${OPTARG}"
+            echo "Option build type : $buildtype"
                 ;;
         
         c)

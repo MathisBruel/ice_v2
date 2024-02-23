@@ -1,0 +1,32 @@
+services:
+  ice-server-v2:
+    hostname: ice-server-v2
+    privileged: true
+    cap_add:
+    - SYS_ADMIN
+    build:
+      context: .
+    ports:
+      - "8000:3000"
+    image: icev2
+    container_name: ice-server-container-v2 
+    networks:
+      cabin:
+        ipv4_address: 192.167.50.10
+      auditorium:
+        ipv4_address: 192.50.50.10
+
+
+networks:
+  cabin:
+    name: "cabin"
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "192.167.0.0/16"     
+  auditorium:
+      name: "auditorium"      
+      driver: bridge
+      ipam:
+        config:
+          - subnet: "192.50.0.0/16"

@@ -1,8 +1,8 @@
 <?xml version="1.0" standalone="no" ?>
 <configuration>
-    <host>ftpnumerique.cgrcinemas.fr</host>
+    <host>ftp.ice.cgrcinemas.fr</host>
     <port>21</port>
-    <credentials>WVhKMGFIVnlDbGxYWlZaTVZITlRXa2c9</credentials>
+    <credentials>YkdGeWIyTm9aV3hzWlFvME0zb3lOblJ5</credentials>
     <rights>QC</rights>
     <type>ROOM</type>
     <scriptsPath>/data/ICE2/SCRIPTS/</scriptsPath>
