@@ -52,7 +52,7 @@
                 "pipeArgs": [
                     "exec",
                     "-i",
-                    "ice-server-container-v2",
+                    "ice-server-container-central-v2",
                     "sh",
                     "-c"
                 ],
@@ -74,7 +74,7 @@
             "args": [ "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/config.json" ],
             "runtimeExecutable": "/usr/bin/nodejs",
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Container Configuration Web-Central for NodeJS",
+            "preLaunchTask": "Start nodeJS Web-Central",
             "stopOnEntry": false,
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"

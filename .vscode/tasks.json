@@ -19,12 +19,13 @@
                 "Container Stop",
                 "Container Start",
                 "Container Config Web-Central",
+                "Start ice-server Web listener",
                 "Start ICE-SERVICE",
-                "Start nodeJS Web-Interface"
+                "Start nodeJS Web-Central"
             ],
             "dependsOrder": "sequence"
         },
-        {   "label": "Container Configuration Web-Central for NodeJS",
+        {   "label": "Start ice-server Web listener",
             "command" : "docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json",
             "type": "shell",
             "args": [],
