@@ -61,11 +61,11 @@ bool Configuration::loadConfiguration()
         return false;
     }
 
-    Poco::File directory(path);
-    if (!directory.exists()) {
-        Poco::Logger::get("Configuration").error("Path of configuration files : " + path + " does not exists ! ", __FILE__, __LINE__);
-        return false;
-    }
+    // Poco::File directory(path);
+    // if (!directory.exists()) {
+    //     Poco::Logger::get("Configuration").error("Path of configuration files : " + path + " does not exists ! ", __FILE__, __LINE__);
+    //     return false;
+    // }
 
     // -- determine file path kinet conf and load
     Poco::Path kinetPath(path);

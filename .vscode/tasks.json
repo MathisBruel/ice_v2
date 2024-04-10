@@ -91,3 +91,6 @@
 // "label": "Container Configuration Web-Central for NodeJS",
 // "command" : " docker exec -d ice-server-container-central-v2 /data/ICE2/ICE-CENTRAL ;",
 
+// docker cp BUILD/BIN/ICE-SERVICE ice-server-container-v2:/data/ICE2/
+
+// /IceDeviceEmulator 192.50.50.3 192.50.0.1

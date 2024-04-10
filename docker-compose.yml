@@ -26,7 +26,15 @@ services:
     networks:
       cabin:
         ipv4_address: 192.167.50.11
-      
+  
+  ice-panel-v2:
+    hostname: ice-panel-v2
+    image: gitlab.cgrcinemas.fr:5050/martin.lagrange/icedeviceemulator:latest
+    container_name: ice-container-panel-v2 
+    networks:
+      auditorium:
+        ipv4_address: 192.50.50.3
+
 networks:
   cabin:
     name: "cabin"
