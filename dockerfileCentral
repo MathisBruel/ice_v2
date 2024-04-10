@@ -1,0 +1,19 @@
+FROM ubuntu/mysql:8.0-22.04_edge
+SHELL ["/bin/bash", "-c"]
+ENV MYSQL_ROOT_PASSWORD=My:S3cr3t/
+COPY BUILD/PACKAGE/ICE-CORE-2.0.tar.gz /ICE-CORE-2.0.tar.gz
+COPY BUILD/PACKAGE/install-core.sh /install-core.sh
+COPY EXE/SERVICES/Launcher/central-database.sql /central-database.sql
+RUN apt-get update
+RUN apt-get install nodejs -y && apt-get install libssl3 -y && apt-get install wget -y && apt-get install libmysqlclient-dev -y
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb && dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+RUN mkdir /data && chmod 777 /data
+RUN chmod 777 /install-core.sh
+RUN /install-core.sh
+RUN cd /data/ICE2/LUTS/ && cp panelV2.lut panelV1.lut && cp PAR-V1.calib parV1.calib && cp PAR-V2.calib parV2.calib && cp MH-V1.calib mhV1.calib && cp MH-V2.calib mhV2.calib && cp BL-V1.calib backV1.calib && cp BL-V1.calib backV2.calib
+RUN apt-get install gdb -y
+RUN mkdir /data/ICE2/WebCentral
+COPY EXE/SERVICES/WebCentral /data/ICE2/WebCentral/
+COPY BUILD/BIN/ICE-CENTRAL /data/ICE2/
+CMD ["mysqld"]
+# mysql -u root -h 127.0.0.1 --password=My:S3cr3t/ < central-database.sql

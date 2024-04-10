@@ -7,8 +7,7 @@ services:
     build:
       context: .
     ports:
-      - "8000:3000"
-    image: icev2
+      - "8500:3000"
     container_name: ice-server-container-v2 
     networks:
       cabin:
@@ -16,7 +15,17 @@ services:
       auditorium:
         ipv4_address: 192.50.50.10
 
-
+  ice-server-central-v2:
+    hostname: ice-server-central-v2
+    build:
+      context: .
+    ports:
+      - "8000:3000"
+    container_name: ice-server-container-central-v2 
+    networks:
+      cabin:
+        ipv4_address: 192.167.50.11
+      
 networks:
   cabin:
     name: "cabin"
