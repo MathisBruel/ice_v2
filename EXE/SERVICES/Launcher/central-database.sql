@@ -216,12 +216,6 @@ CREATE TABLE `release` (
   `date_in` date NOT NULL,
   `date_out` date DEFAULT NULL,
   `name` varchar(45) NOT NULL,
-  -- `id_script_feature` int(11) DEFAULT NULL,
-  -- `id_script_loop` int(11) DEFAULT NULL,
-  -- `id_script_sas` int(11) DEFAULT NULL,
-  -- `id_release_synchro` int(11) DEFAULT NULL,
-  -- `name_cpl` varchar(45) NOT NULL,
-  -- `name_localization` varchar(45) DEFAULT NULL,
   `id_parent_release` int(11) DEFAULT NULL,  -- Ligne rajouté pour match
   `global_pattern` varchar(45) NOT NULL,  -- Ligne rajouté pour match
   `specific_pattern` varchar(45) NOT NULL,  -- Ligne rajouté pour match
