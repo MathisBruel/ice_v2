@@ -8,18 +8,18 @@ Script::Script()
     id = -1;
     name = "";
     path = "";
-    sha1Lvi = "";
+    cis_name = "";
+    lvi_name = "";
     type = ScriptType::UNKNOWN;
     version = "";
 }
 Script::~Script() {}
 
-void Script::setDatas(std::string name, std::string cis_name, std::string lvi_name, std::string sha1Lvi)
+void Script::setDatas(std::string name, std::string cis_name, std::string lvi_name)
 {
     this->name = name;
     this->cis_name = cis_name;
     this->lvi_name = lvi_name;
-    this->sha1Lvi = sha1Lvi;
 }
 void Script::setLink(ScriptType type, std::string path, std::string version)
 {
@@ -41,7 +41,6 @@ Query* Script::createQuery()
     createQuery->addParameter("path", &path, "string");
     createQuery->addParameter("type", &type, "int");
     createQuery->addParameter("version", &version, "string");
-    createQuery->addParameter("sha1Lvi", &sha1Lvi, "string");
     return createQuery;
 }
 Query* Script::updateQuery()
@@ -57,7 +56,6 @@ Query* Script::updateQuery()
     updateQuery->addParameter("path", &path, "string");
     updateQuery->addParameter("type", &type, "int");
     updateQuery->addParameter("version", &version, "string");
-    updateQuery->addParameter("sha1Lvi", &sha1Lvi, "string");
     updateQuery->addWhereParameter("id", &id, "int");
     return updateQuery;
 }
@@ -81,7 +79,6 @@ Query* Script::getQuery(int* id)
     getQuery->addParameter("path", nullptr, "string");
     getQuery->addParameter("type", nullptr, "int");
     getQuery->addParameter("version", nullptr, "string");
-    getQuery->addParameter("sha1Lvi", nullptr, "string");
     if (id != nullptr) {getQuery->addWhereParameter("id", id, "int");}
     return getQuery;
 }
@@ -98,7 +95,6 @@ std::map<int, std::shared_ptr<Script>> Script::loadListFromResult(ResultQuery* r
         script->path = *result->getStringValue(i, "path");
         script->type = (Script::ScriptType)(*result->getIntValue(i, "type"));
         script->version = *result->getStringValue(i, "version");
-        script->sha1Lvi = *result->getStringValue(i, "sha1Lvi");
         list.insert_or_assign(script->id, script);
     }
 
@@ -117,7 +113,6 @@ std::shared_ptr<Script> Script::loadFromResult(ResultQuery* result)
     script->path = *result->getStringValue(0, "path");
     script->type = (Script::ScriptType)(*result->getIntValue(0, "type"));
     script->version = *result->getStringValue(0, "version");
-    script->sha1Lvi = *result->getStringValue(0, "sha1Lvi");
     return script;
 }
 
@@ -133,7 +128,6 @@ std::string Script::toXmlString()
     xml += " path=\"" + path + "\"";
     xml += " type=\"" + std::to_string(type) + "\"";
     xml += " version=\"" + version + "\"";
-    xml += " sha1Lvi=\"" + sha1Lvi + "\"";
     xml += " />";
 
     return xml;

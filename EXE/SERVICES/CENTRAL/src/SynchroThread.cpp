@@ -132,8 +132,7 @@ void SynchroThread::run()
                         }
 
                         // -- update sync on cpl
-                        std::string sha1Sync = Converter::calculateSha1OfFile(finalPath.toString());
-                        featureCpl->setCplInfos(featureCpl->getCplPath(), finalPath.toString(), sha1Sync);
+                        featureCpl->setCplInfos(featureCpl->getCplPath(), finalPath.toString(), featureCpl->gettypeCpl());
                         Query* queryUpdate = featureCpl->updateQuery();
                         ResultQuery * result = context->executeQuery(queryUpdate);
 
@@ -232,8 +231,7 @@ void SynchroThread::run()
                             }
 
                             // -- update sync on cpl
-                            std::string sha1Sync = Converter::calculateSha1OfFile(finalPath.toString());
-                            featureCpl->setCplInfos(featureCpl->getCplPath(), finalPath.toString(), sha1Sync);
+                            featureCpl->setCplInfos(featureCpl->getCplPath(), finalPath.toString(), featureCpl->gettypeCpl());
                             Query* queryUpdate = featureCpl->updateQuery();
                             ResultQuery * result = context->executeQuery(queryUpdate);
 
@@ -310,8 +308,7 @@ void SynchroThread::run()
                             }
 
                             // -- update sync on cpl
-                            std::string sha1Sync = Converter::calculateSha1OfFile(finalPath.toString());
-                            featureCpl->setCplInfos(featureCpl->getCplPath(), finalPath.toString(), sha1Sync);
+                            featureCpl->setCplInfos(featureCpl->getCplPath(), finalPath.toString(), featureCpl->gettypeCpl());
                             Query* queryUpdate = featureCpl->updateQuery();
                             ResultQuery * result = context->executeQuery(queryUpdate);
 

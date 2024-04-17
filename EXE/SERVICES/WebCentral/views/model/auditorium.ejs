@@ -98,42 +98,50 @@
                 document.getElementById("pass_ims").value = auditorium.$.pass_ims;
 
                 // -- servers
-                let hasFeature = false;
-                auditorium.server.forEach(server => {
+                let serverFeature = false;
+                let serverSas = false;
 
-                    if (server.$.type_server == 1) {
-                        hasFeature = true;
-                        const li = createDOM("li", {className:"list-item"});
-                        listServers.appendChild(li);
-                        const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
-                        imgName.addEventListener('click', async function(){
-                            window.location.assign("/server?id=" + server.$.id + "&id_auditorium=" + id + "&id_cinema=" + id_cinema + "&type=FEATURE");
-                        });
-                        const name = createDOM("div", { className:"param", innerText: server.$.ip });
-                        const imgType = createDOM("img", { className:"image-line", src:"/feature-server.png" });
-                        const type = createDOM("div", { className:"param", innerText: "FEATURE" });
-                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:server.$.id });
-                        imgDelete.addEventListener('click', async function(){
+                if (auditorium.server != undefined) {
+                    auditorium.server.forEach(server => {
+                        if (server.$.type_server == 1) {serverFeature = true;}
+                        if (server.$.type_server == 2) {serverSas = true;}
+                    });
+                }
 
-                            const jsonDeleteServer = {id: this.id};
-                            const optionsDeleteServer = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteServer) };
-                            const resultDeleteServer = await fetch(`/deleteServer`, optionsDeleteServer);
-                            if (resultDeleteServer.ok == true) {
-                                const body = await resultDeleteServer.json();
-                                if (body.code == 200) {window.location.reload();}
-                                else {showErrorMessage("message-box", body.message);}
-                            }
-                            else {showErrorMessage("message-box", resultDeleteServer.message);}
-                        });
-                        li.appendChild(imgName);
-                        li.appendChild(name);
-                        li.appendChild(imgType);
-                        li.appendChild(type);
-                        li.appendChild(imgDelete);
-                    }
-                });
+                if (serverFeature) {
+                    auditorium.server.forEach(server => {
+                        if (server.$.type_server == 1) {
+                            const li = createDOM("li", {className:"list-item"});
+                            listServers.appendChild(li);
+                            const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                            imgName.addEventListener('click', async function(){
+                                window.location.assign("/server?id=" + server.$.id + "&id_auditorium=" + id + "&id_cinema=" + id_cinema + "&type=FEATURE");
+                            });
+                            const name = createDOM("div", { className:"param", innerText: server.$.ip });
+                            const imgType = createDOM("img", { className:"image-line", src:"/feature-server.png" });
+                            const type = createDOM("div", { className:"param", innerText: "FEATURE" });
+                            const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:server.$.id });
+                            imgDelete.addEventListener('click', async function(){
 
-                if (hasFeature == false) {
+                                const jsonDeleteServer = {id: this.id};
+                                const optionsDeleteServer = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteServer) };
+                                const resultDeleteServer = await fetch(`/deleteServer`, optionsDeleteServer);
+                                if (resultDeleteServer.ok == true) {
+                                    const body = await resultDeleteServer.json();
+                                    if (body.code == 200) {window.location.reload();}
+                                    else {showErrorMessage("message-box", body.message);}
+                                }
+                                else {showErrorMessage("message-box", resultDeleteServer.message);}
+                            });
+                            li.appendChild(imgName);
+                            li.appendChild(name);
+                            li.appendChild(imgType);
+                            li.appendChild(type);
+                            li.appendChild(imgDelete);
+                        }
+                    });
+                }
+                else {
                     const liFeature = createDOM("li", {className:"list-item-none"});
                     listServers.appendChild(liFeature);
                     const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
@@ -151,58 +159,56 @@
                     liFeature.appendChild(imgAdd);
                 }
 
-                let hasSas = false;
-                auditorium.server.forEach(server => {
+                if (serverSas) {
+                    auditorium.server.forEach(server => {
+                        if (server.$.type_server == 2) {
+                            const li = createDOM("li", {className:"list-item"});
+                            listServers.appendChild(li);
+                            const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                            imgName.addEventListener('click', async function(){
+                                window.location.assign("/server?id=" + server.$.id + "&id_auditorium=" + id + "&id_cinema=" + id_cinema + "&type=SAS");
+                            });
+                            const name = createDOM("div", { className:"param", innerText: server.$.ip });
+                            const imgType = createDOM("img", { className:"image-line", src:"/sas-server.png" });
+                            const type = createDOM("div", { className:"param", innerText: "SAS" });
+                            const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:server.$.id });
+                            imgDelete.addEventListener('click', async function(){
 
-                    if (server.$.type_server == 2) {
-                        hasSas = true;
-                        const li = createDOM("li", {className:"list-item"});
-                        listServers.appendChild(li);
-                        const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
-                        imgName.addEventListener('click', async function(){
-                            window.location.assign("/server?id=" + server.$.id + "&id_auditorium=" + id + "&id_cinema=" + id_cinema + "&type=SAS");
-                        });
-                        const name = createDOM("div", { className:"param", innerText: server.$.ip });
-                        const imgType = createDOM("img", { className:"image-line", src:"/sas-server.png" });
-                        const type = createDOM("div", { className:"param", innerText: "SAS" });
-                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:server.$.id });
-                        imgDelete.addEventListener('click', async function(){
-
-                            const jsonDeleteServer = {id: this.id};
-                            const optionsDeleteServer = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteServer) };
-                            const resultDeleteServer = await fetch(`/deleteServer`, optionsDeleteServer);
-                            if (resultDeleteServer.ok == true) {
-                                const body = await resultDeleteServer.json();
-                                if (body.code == 200) {window.location.reload();}
-                                else {showErrorMessage("message-box", body.message);}
-                            }
-                            else {showErrorMessage("message-box", resultDeleteServer.message);}
-                        });
-                        li.appendChild(imgName);
-                        li.appendChild(name);
-                        li.appendChild(imgType);
-                        li.appendChild(type);
-                        li.appendChild(imgDelete);
-                    }
-                });
-
-                if (hasSas == false) {
-                        const liSas = createDOM("li", {className:"list-item-none"});
-                        listServers.appendChild(liSas);
-                        const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
-                        const name = createDOM("div", { className:"param", innerText:"NONE" });
-                        const imgType = createDOM("img", { className:"image-line", src:"/sas-server.png" });
-                        const type = createDOM("div", { className:"param", innerText: "SAS" });
-                        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
-                        imgAdd.addEventListener('click', async function(){
-                            window.location.assign("/server?id=-1&id_cinema=" + id_cinema + "&id_auditorium=" + id + "&type=SAS");
-                        });
-                        liSas.appendChild(imgName);
-                        liSas.appendChild(name);
-                        liSas.appendChild(imgType);
-                        liSas.appendChild(type);
-                        liSas.appendChild(imgAdd);
-                    }
+                                const jsonDeleteServer = {id: this.id};
+                                const optionsDeleteServer = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonDeleteServer) };
+                                const resultDeleteServer = await fetch(`/deleteServer`, optionsDeleteServer);
+                                if (resultDeleteServer.ok == true) {
+                                    const body = await resultDeleteServer.json();
+                                    if (body.code == 200) {window.location.reload();}
+                                    else {showErrorMessage("message-box", body.message);}
+                                }
+                                else {showErrorMessage("message-box", resultDeleteServer.message);}
+                            });
+                            li.appendChild(imgName);
+                            li.appendChild(name);
+                            li.appendChild(imgType);
+                            li.appendChild(type);
+                            li.appendChild(imgDelete);
+                        }
+                    });
+                }
+                else {
+                    const liSas = createDOM("li", {className:"list-item-none"});
+                    listServers.appendChild(liSas);
+                    const imgName = createDOM("img", { className:"image-line", src:"/server.png" });
+                    const name = createDOM("div", { className:"param", innerText:"NONE" });
+                    const imgType = createDOM("img", { className:"image-line", src:"/sas-server.png" });
+                    const type = createDOM("div", { className:"param", innerText: "SAS" });
+                    const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+                    imgAdd.addEventListener('click', async function(){
+                        window.location.assign("/server?id=-1&id_cinema=" + id_cinema + "&id_auditorium=" + id + "&type=SAS");
+                    });
+                    liSas.appendChild(imgName);
+                    liSas.appendChild(name);
+                    liSas.appendChild(imgType);
+                    liSas.appendChild(type);
+                    liSas.appendChild(imgAdd);
+                }
             }
             else {
                 showErrorMessage("message-box", result.message);
@@ -264,7 +270,7 @@
             if (result.ok == true) {
                 const body = await result.json();
                 if (body.code == 200) {
-                    window.location.assign("/cinema?id_cinema=" + id_cinema);
+                    window.location.assign("/cinema?id=" + id_cinema);
                 }
                 else {
                     showErrorMessage("message-box", body.message);
@@ -327,7 +333,7 @@
             if (result.ok == true) {
                 const body = await result.json();
                 if (body.code == 200) {
-                    window.location.assign("/cinema?id_cinema=" + id_cinema);
+                    window.location.assign("/cinema?id=" + id_cinema);
                 }
                 else {
                     showErrorMessage("message-box", body.message);
@@ -350,7 +356,7 @@
         if (result.ok == true) {
             const body = await result.json();
             if (body.code == 200) {
-                window.location.assign("/cinema?id_cinema=" + id_cinema);
+                window.location.assign("/cinema?id=" + id_cinema);
             }
             else {
                 showErrorMessage("message-box", body.message);

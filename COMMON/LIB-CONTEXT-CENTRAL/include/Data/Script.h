@@ -26,7 +26,7 @@ public:
     ~Script();
 
     void setId(int id) {this->id = id;}
-    void setDatas(std::string name, std::string cis_name, std::string lvi_name, std::string sha1Lvi);
+    void setDatas(std::string name, std::string cis_name, std::string lvi_name);
     void setLink(ScriptType type, std::string path, std::string version);
 
     Query* createQuery();
@@ -53,7 +53,6 @@ private:
     int id;
     std::string name;
     std::string path;
-    std::string sha1Lvi;
     ScriptType type;
     std::string version;
     std::string cis_name;

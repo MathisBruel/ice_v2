@@ -142,14 +142,16 @@
                 // -- set general datas
                 document.getElementById("name").value = release.$.name;
                 const date_in = release.$.date_in.split('-');
-                let date_in_formated = date_in[2] + "-" + (date_in[1].lengh == 2 ? "" : "0") + date_in[1] + "-" + (date_in[0].lengh == 2 ? "" : "0") + date_in[0];
+                let date_in_formated = date_in[2] + "-" + (date_in[1].length == 2 ? "" : "0") + date_in[1] + "-" + (date_in[0].length == 2 ? "" : "0") + date_in[0];
                 document.getElementById("date_in").value = date_in_formated;
                 let date_out;
                 let date_out_formated;
-                if (release.$.date_out == "nullptr") {date_out_formated = date_in_formated;}
+                if (release.$.date_out == "nullptr") {
+                    date_out_formated = date_in_formated;
+                }
                 else {
-                    date_out = release.$.date_in.split('-');
-                    date_out_formated = date_out[2] + "-" + (date_out[1].lengh == 2 ? "" : "0") + date_out[1] + "-" + (date_out[0].lengh == 2 ? "" : "0") + date_out[0];
+                    date_out = release.$.date_out.split('-');
+                    date_out_formated = date_out[2] + "-" + (date_out[1].length == 2 ? "" : "0") + date_out[1] + "-" + (date_out[0].length == 2 ? "" : "0") + date_out[0];
                 }
                 
                 document.getElementById("date_out").value = date_out_formated;
@@ -212,13 +214,14 @@
                         li.appendChild(type);
                         li.appendChild(imgFeature);
                         li.appendChild(drop);
-
-                        resultScripts.data.scripts.script.forEach(script => {
-                            if (script.$.type == 1) {
-                                const select = createDOM("option", {value: script.$.id, innerText: script.$.name});
-                                drop.appendChild(select);
-                            }
-                        });
+                        if (resultScripts.data.scripts.script != undefined)  {
+                            resultScripts.data.scripts.script.forEach(script => {
+                                if (script.$.type == 1) {
+                                    const select = createDOM("option", {value: script.$.id, innerText: script.$.name});
+                                    drop.appendChild(select);
+                                }
+                            }); 
+                        }
                         const imgAdd = createDOM("img", { id:"addfeatureScript", className:"image-line-add", src:"/add.png" });
                         imgAdd.addEventListener('click', async function(){
 
@@ -290,13 +293,14 @@
                         li.appendChild(type);
                         li.appendChild(imgFeature);
                         li.appendChild(drop);
-
-                        resultScripts.data.scripts.script.forEach(script => {
-                            if (script.$.type == 2) {
-                                const select = createDOM("option", {value: script.$.id, innerText: script.$.name});
-                                drop.appendChild(select);
-                            }
-                        });
+                        if (resultScripts.data.scripts.script != undefined)  {
+                            resultScripts.data.scripts.script.forEach(script => {
+                                if (script.$.type == 2) {
+                                    const select = createDOM("option", {value: script.$.id, innerText: script.$.name});
+                                    drop.appendChild(select);
+                                }
+                            });
+                        }
                         const imgAdd = createDOM("img", { id:"addLoopScript", className:"image-line-add", src:"/add.png" });
                         imgAdd.addEventListener('click', async function(){
 
@@ -368,13 +372,14 @@
                         li.appendChild(type);
                         li.appendChild(imgFeature);
                         li.appendChild(drop);
-
-                        resultScripts.data.scripts.script.forEach(script => {
-                            if (script.$.type == 3) {
-                                const select = createDOM("option", {value: script.$.id, innerText: script.$.name});
-                                drop.appendChild(select);
-                            }
-                        });
+                        if (resultScripts.data.scripts.script != undefined)  {
+                            resultScripts.data.scripts.script.forEach(script => {
+                                if (script.$.type == 3) {
+                                    const select = createDOM("option", {value: script.$.id, innerText: script.$.name});
+                                    drop.appendChild(select);
+                                }
+                            });
+                        }
                         const imgAdd = createDOM("img", { id:"addLoopScript", className:"image-line-add", src:"/add.png" });
                         imgAdd.addEventListener('click', async function(){
 
@@ -667,6 +672,7 @@
         let dataInFirst = document.getElementById("date_in").value;
         let dataOutFirst = document.getElementById("date_out").value;
         let date_in_split = dataInFirst.split('-');
+        
         const date_in = date_in_split[0] + "/" + date_in_split[1] + "/" + date_in_split[2];
         let date_out = date_in;
         if (dataOutFirst != dataInFirst) {
