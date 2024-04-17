@@ -124,29 +124,3 @@
         }
     ]
 }
-
-// pour le build du container + le dump sql
-// "command" : "container stop $(docker ps -a -q) ; docker container rm $(docker ps -a -q) ; docker compose up -d; docker exec -d ice-server-container-v2 mysql -u root -h 127.0.0.1 --password=My:S3cr3t/ < central-database.sql ; docker cp BUILD/BIN/ICE-CENTRAL ice-server-container-v2:/data/ICE2/ICE-CENTRAL ; docker cp EXE/SERVICES/WebCentral ice-server-container-v2:/data/ICE2/ ; docker exec -d -w /data/ICE2/WebCentral ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json;",
-
-/*
-
-./tasks.sh -f build_lib_exe -t CORE -b "Debug"
-./tasks.sh -f build_package
-docker compose up
-
-        // ice-panel-container-v2 : //
-/IceDeviceEmulator 192.50.50.3 192.50.0.1
-
-        // ice-server-container-v2 : //
-/data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/
-cd /data/ICE2/WebInterface
-/usr/bin/nodejs javascripts/Main_API.js javascripts/config.json
-
-        // ice-server-container-central-v2 : //
-/bin/bash
-mysql -u root -h 127.0.0.1 --password=My:S3cr3t/ < central-database.sql
-mysql -u root -h 127.0.0.1 --password=My:S3cr3t/
-/data/ICE2/ICE-CENTRAL 
-cd /data/ICE2/WebCentral
-/usr/bin/nodejs javascripts/Main_API.js javascripts/config.json
-*/
