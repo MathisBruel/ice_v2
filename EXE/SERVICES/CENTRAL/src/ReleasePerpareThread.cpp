@@ -236,7 +236,7 @@ void ReleasePrepareThread::updateAssociatedCpl(std::shared_ptr<Release> release)
                 // -- modify cpl and add link it to release
                 Cpl cplSql;
                 cplSql.setDatas(cpl->getUuid(), cpl->getName());
-                cplSql.setCplInfos(pathCpl, "", "");
+                cplSql.setCplInfos(pathCpl, "", "", Cpl::CplType::UnknownType);
                 Query* query = cplSql.createQuery();
                 ResultQuery* result = context->executeQuery(query);
 

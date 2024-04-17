@@ -9,13 +9,14 @@ Script::Script()
     name = "";
     path = "";
     sha1Lvi = "";
+    cis_name = "";
+    lvi_name = "";
     type = ScriptType::UNKNOWN;
     version = "";
 }
 Script::~Script() {}
 
-void Script::setDatas(std::string name, std::string cis_name, std::string lvi_name, std::string sha1Lvi)
-{
+void Script::setDatas(std::string name, std::string cis_name, std::string lvi_name, std::string sha1Lvi){
     this->name = name;
     this->cis_name = cis_name;
     this->lvi_name = lvi_name;

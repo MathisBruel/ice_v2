@@ -1,8 +1,7 @@
 CREATE DATABASE  IF NOT EXISTS `ice` /*!40100 DEFAULT CHARACTER SET latin1 */;
 USE `ice`;
  
-CREATE USER IF NOT EXISTS "cinelight"@"localhost" IDENTIFIED BY "R@qazwsx2";
-GRANT ALL PRIVILEGES ON *.* TO `cinelight`@`localhost` WITH GRANT OPTION;
+
 -- MySQL dump 10.13  Distrib 8.0.28, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ice
@@ -70,7 +69,8 @@ CREATE TABLE `cpl` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uuid` varchar(45) NOT NULL,
   `name` varchar(200) NOT NULL,
-  `type` int(11) NOT NULL,
+  `type_cpl` int(11) NOT NULL,
+  `sha1_sync` varchar(50) NOT NULL,
   `path_cpl` varchar(200) NOT NULL,
   `path_sync` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -113,14 +113,14 @@ CREATE TABLE `group` (
 /*!40101 SET character_set_client = @saved_cs_client */;
  
 --
--- Table structure for table `link_cine_group`
+-- Table structure for table `link_cinema_group`
 --
  
-DROP TABLE IF EXISTS `link_cine_group`;
+DROP TABLE IF EXISTS `link_cinema_group`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `link_cine_group` (
-  `id` int(11) NOT NULL,
+CREATE TABLE `link_cinema_group` (
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- Rajout du auto increment
   `id_cinema` int(11) NOT NULL,
   `id_group` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -128,6 +128,21 @@ CREATE TABLE `link_cine_group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
  
+--
+-- Table structure for table `link_cinema_release`
+--
+ 
+DROP TABLE IF EXISTS `link_cinema_release`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `link_cinema_release` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_release` int(11) NOT NULL,
+  `id_cinema` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 --
 -- Table structure for table `link_cpl_release`
 --
@@ -145,35 +160,50 @@ CREATE TABLE `link_cpl_release` (
 /*!40101 SET character_set_client = @saved_cs_client */;
  
 --
--- Table structure for table `link_release_cinema`
+-- Table structure for table `link_group_release`
 --
  
-DROP TABLE IF EXISTS `link_release_cinema`;
+DROP TABLE IF EXISTS `link_group_release`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `link_release_cinema` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `id_release` int(11) NOT NULL,
-  `id_cinema` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
- 
---
--- Table structure for table `link_release_group`
---
- 
-DROP TABLE IF EXISTS `link_release_group`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `link_release_group` (
+CREATE TABLE `link_group_release` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `id_release` int(11) NOT NULL,
   `id_group` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+  
+--
+-- Table structure for table `link_script_release`
+--
  
+DROP TABLE IF EXISTS `link_script_release`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `link_script_release` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_script` int(11) NOT NULL,
+  `id_release` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+ 
+--
+-- Table structure for table `link_cpl_script`
+--
+ 
+DROP TABLE IF EXISTS `link_cpl_script`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `link_cpl_script` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_cpl` int(11) NOT NULL,
+  `id_script` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 --
 -- Table structure for table `release`
 --
@@ -187,12 +217,9 @@ CREATE TABLE `release` (
   `date_in` date NOT NULL,
   `date_out` date DEFAULT NULL,
   `name` varchar(45) NOT NULL,
-  `id_script_feature` int(11) DEFAULT NULL,
-  `id_script_loop` int(11) DEFAULT NULL,
-  `id_script_sas` int(11) DEFAULT NULL,
-  `id_release_synchro` int(11) DEFAULT NULL,
-  `name_cpl` varchar(45) NOT NULL,
-  `name_localization` varchar(45) DEFAULT NULL,
+  `id_parent_release` int(11) DEFAULT NULL,  -- Ligne rajouté pour match
+  `global_pattern` varchar(45) NOT NULL,  -- Ligne rajouté pour match
+  `specific_pattern` varchar(45) NOT NULL,  -- Ligne rajouté pour match
   `finalized` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
@@ -227,9 +254,11 @@ CREATE TABLE `script` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   `path` varchar(200) NOT NULL,
+  `cis_name` varchar(45) NOT NULL,
+  `lvi_name` varchar(45) NOT NULL,
   `type` int(11) NOT NULL,
   `version` varchar(45) NOT NULL,
-  `id_ref_cpl` int(11) DEFAULT NULL,
+  `sha1Lvi` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

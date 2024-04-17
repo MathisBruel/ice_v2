@@ -924,7 +924,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         delete resultGetAuditorium;
     }
     else if (cmd->getType() == CommandCentral::INSERT_SCRIPT) {
-        
+
         std::string sha1Lvi = Converter::calculateSha1OfFile(cmd->getStringParameter("path") + "/" + cmd->getStringParameter("lvi_name"));
         Script script;
         script.setDatas(cmd->getStringParameter("name"), cmd->getStringParameter("cis_name"), cmd->getStringParameter("lvi_name"), sha1Lvi);
@@ -955,7 +955,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
         Cpl cpl;
         cpl.setDatas(cmd->getStringParameter("uuid"), cmd->getStringParameter("name"));
-        cpl.setCplInfos(cmd->getStringParameter("path_cpl"), cmd->getStringParameter("path_sync"), sha1Sync);
+        cpl.setCplInfos(cmd->getStringParameter("path_cpl"), cmd->getStringParameter("path_sync"), sha1Sync, (Cpl::CplType)cmd->getIntParameter("type"));
         Query* query = cpl.createQuery();
         ResultQuery *result = context->executeQuery(query);
 
@@ -1252,7 +1252,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         
         Script script;
         script.setId(cmd->getIntParameter("id"));
-        script.setDatas(cmd->getStringParameter("name"), cmd->getStringParameter("cis_name"), cmd->getStringParameter("lvi_name"), cmd->getStringParameter("sha1Lvi"));
+        script.setDatas(cmd->getStringParameter("name"), cmd->getStringParameter("cis_name"), cmd->getStringParameter("lvi_name"),cmd->getStringParameter("sha1Lvi"));
         script.setLink((Script::ScriptType)cmd->getIntParameter("type"), cmd->getStringParameter("path"), cmd->getStringParameter("version"));
         Query* query = script.updateQuery();
         ResultQuery *result = context->executeQuery(query);
@@ -1276,7 +1276,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         Cpl cpl;
         cpl.setId(cmd->getIntParameter("id"));
         cpl.setDatas(cmd->getStringParameter("uuid"), cmd->getStringParameter("name"));
-        cpl.setCplInfos(cmd->getStringParameter("path_cpl"), cmd->getStringParameter("path_sync"), cmd->getStringParameter("sha1_sync"));
+        cpl.setCplInfos(cmd->getStringParameter("path_cpl"), cmd->getStringParameter("path_sync"), cmd->getStringParameter("sha1_sync"), (Cpl::CplType)cmd->getIntParameter("type"));
         Query* query = cpl.updateQuery();
         ResultQuery *result = context->executeQuery(query);
 
