@@ -84,17 +84,15 @@
             "type": "node",
             "request": "attach",
             "remoteRoot": "/data/ICE2/WebCentral",
-            "address": "localhost",
-            "port": 3000, // Port du serveur Node.js à l'intérieur du conteneur Docker
+            "sourceMaps": true,
             "localRoot": "${workspaceFolder}/EXE/SERVICES/WebCentral",
-            "protocol": "inspector",
-            "restart": true,
-            "skipFiles": ["<node_internals>/**"]
+            "port": 9229, // Port du serveur Node.js à l'intérieur du conteneur Docker
+            "restart": true
         }
     ],
     "compounds": [
         {  "name": "WebCentral",
-            "configurations": ["(Native) Web Central","(NodeJS) Web Central"],
+            "configurations": ["(Native) Web Central","Attach NodeJS"],
             "stopAll": true
         }
     ]

@@ -4,10 +4,9 @@ services:
     privileged: true
     cap_add:
     - SYS_ADMIN
-    build:
-      context: .
+    image: ice-server-v2
     ports:
-      - "8500:3000"
+      - "5000:3000"
     container_name: ice-server-container-v2 
     networks:
       cabin:
@@ -15,18 +14,6 @@ services:
       auditorium:
         ipv4_address: 192.50.50.10
 
-  ice-server-central-v2:
-    hostname: ice-server-central-v2
-    build:
-      context: .
-      dockerfile: dockerfileCentral
-    ports:
-      - "8000:3000"
-    container_name: ice-server-container-central-v2 
-    networks:
-      cabin:
-        ipv4_address: 192.167.50.11
-  
   ice-panel-v2:
     hostname: ice-panel-v2
     image: gitlab.cgrcinemas.fr:5050/martin.lagrange/icedeviceemulator:latest
@@ -34,6 +21,17 @@ services:
     networks:
       auditorium:
         ipv4_address: 192.50.50.3
+
+  ice-server-central-v2:
+    hostname: ice-server-central-v2
+    image: ice-server-central-v2
+    ports:
+      - "8000:3000"
+      - "9229:9229"
+    container_name: ice-server-container-central-v2 
+    networks:
+      cabin:
+        ipv4_address: 192.167.50.1
 
 networks:
   cabin:
