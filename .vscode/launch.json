@@ -1,31 +1,99 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations":  [{
-        "name": "(gdb) Pipe Launch",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "/data/ICE2/ICE-SERVICE",
-        "cwd": "/",
-        "args": ["configPath:/data/ICE2/CONFIG/"],
-        "stopAtEntry": true,
-        "environment": [],
-        "preLaunchTask": "Container Configuration",
-        "externalConsole": true,
-        "pipeTransport": {
-            "debuggerPath": "/usr/bin/gdb",
-            "pipeProgram": "docker.exe",
-            "pipeArgs": ["exec", "-i", "ice-server-container-v2", "sh", "-c"],
-            "pipeCwd": "${workspaceRoot}"
+    "configurations": [
+        {  "name": "(gdb) Pipe Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/data/ICE2/ICE-SERVICE",
+            "cwd": "/",
+            "args": [
+                "configPath:/data/ICE2/CONFIG/"
+            ],
+            "stopAtEntry": true,
+            "environment": [],
+            "preLaunchTask": "Container Configuration",
+            "externalConsole": true,
+            "pipeTransport": {
+                "debuggerPath": "/usr/bin/gdb",
+                "pipeProgram": "docker.exe",
+                "pipeArgs": [
+                    "exec",
+                    "-i",
+                    "ice-server-container-v2",
+                    "sh",
+                    "-c"
+                ],
+                "pipeCwd": "${workspaceRoot}"
+            },
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         },
-        "MIMode": "gdb",
-        "setupCommands": [{
-            "description": "Enable pretty-printing for gdb",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-        }]
-    } ]
+        {  "name": "(Native) Web Central",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/data/ICE2/ICE-CENTRAL",
+            "cwd": "/",
+            "args": [
+                "configPath:/data/ICE2/CONFIG/"
+            ],
+            "stopAtEntry": false,
+            "environment": [],
+            "preLaunchTask": "Container Configuration Web-Central",
+            "externalConsole": true,
+            "pipeTransport": {
+                "debuggerPath": "/usr/bin/gdb",
+                "pipeProgram": "docker",
+                "pipeArgs": [
+                    "exec",
+                    "-i",
+                    "ice-server-container-central-v2",
+                    "sh",
+                    "-c"
+                ],
+                "pipeCwd": "${workspaceRoot}"
+            },
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {   "name": "(NodeJS) Web Central",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/Main_API.js",
+            "args": [ "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/config.json" ],
+            "runtimeExecutable": "/usr/bin/nodejs",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Start nodeJS Web-Central",
+            "stopOnEntry": false,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "Attach NodeJS",
+            "type": "node",
+            "request": "attach",
+            "remoteRoot": "/data/ICE2/WebCentral",
+            "sourceMaps": true,
+            "localRoot": "${workspaceFolder}/EXE/SERVICES/WebCentral",
+            "port": 9229, // Port du serveur Node.js à l'intérieur du conteneur Docker
+            "restart": true
+        }
+    ],
+    "compounds": [
+        {  "name": "WebCentral",
+            "configurations": ["(Native) Web Central","Attach NodeJS"],
+            "stopAll": true
+        }
+    ]
 }
-  

@@ -1,9 +1,117 @@
 {
     "version": "2.0.0",
     "tasks": [
-        {
-            "label": "Container Configuration",
+        {   "label": "Container Configuration",
             "command": "docker container stop $(docker ps -a -q) ; docker container rm $(docker ps -a -q) ; docker compose up -d; docker cp BUILD/BIN/ICE-SERVICE ice-server-container-v2:/data/ICE2/ICE-SERVICE ; docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json ; IPS=$(docker exec -it ice-server-container-v2 cat \"/data/ICE2/CONFIG/KinetConfiguration.xml\" | xmlstarlet sel -t -v \"//configuration/panel/@ip\"); for ip in $IPS; do docker run --detach --label panel --label qsdf --net auditorium --ip \"$ip\" gitlab.cgrcinemas.fr:5050/martin.lagrange/iceauditoriumsimulator /IceDeviceEmulator \"$ip\" 192.50.0.1 ; done",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Container Configuration Web-Central",
+            "type": "shell",
+            "dependsOn": [
+                "Container Stop",
+                "Container Start",
+                // "Container-Image Remove",
+                // "Docker container build and run",
+                "Start ICE-SERVICE and ICE-Panel",
+                "Container Config Web-Central",
+                "Start nodeJS Web-Central"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {   "label": "Container Stop",
+            "command": "docker container stop $(docker ps -a -q)",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Container Start",
+            "command": "docker start $(docker ps -a -q)",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Container Config Web-Central",
+            "command": "docker cp BUILD/BIN/ICE-CENTRAL ice-server-container-central-v2:/data/ICE2/ICE-CENTRAL ; docker cp EXE/SERVICES/WebCentral ice-server-container-central-v2:/data/ICE2/ ;",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Start nodeJS Web-Central",
+            "command": "docker exec -d -w /data/ICE2/WebCentral ice-server-container-central-v2 /usr/bin/nodejs --inspect=0.0.0.0:9229 javascripts/Main_API.js javascripts/config.json",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Start ICE-SERVICE and ICE-Panel",
+            "command": "docker exec -d ice-panel-container-v2 /IceDeviceEmulator 192.50.50.3 192.50.0.1; docker exec -d ice-server-container-v2 /data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/ ; docker exec -d ice-server-container-v2-sas /data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/ ;docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Copy WebCentral NodeJS",
+            "type": "shell",
+            "command": "docker cp EXE/SERVICES/WebCentral ice-server-container-central-v2:/data/ICE2/ ; ",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Container-Image Remove",
+            "command": "docker container stop $(docker ps -a -q) ; docker container rm $(docker ps -a -q); docker rmi -f $(docker image ls -q) ;",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {   "label": "Docker container build and run",
+            "command": "docker build -t ice-server-v2 . ; docker build -t ice-server-central-v2 -f dockerfileCentral . ; docker compose up -d ;",
             "type": "shell",
             "args": [],
             "problemMatcher": [
