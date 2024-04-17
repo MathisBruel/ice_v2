@@ -19,6 +19,6 @@ INSERT INTO `auditorium` (`id_cinema`, `name`, `room`, `type_ims`, `ip_ims`, `po
   VALUES (4, 'Salle 1', 2, 1,'127.0.0.1', 8080, 'admin', 'admin');
 INSERT INTO `server` (`id_auditorium`, `type_server`, `ip`)
   VALUES (4,1,"192.167.50.10"),(4,2,"192.167.50.20");
-INSERT INTO `cpl` (`name`, `uuid`, `path_cpl`, `path_sync`, `type_cpl`)
-  VALUES ("CPL1", "2b79b259-384d-478c-adec-f19f01bbc574", "path1", "path2", 1), ("CPL2", "2b79b259-384d-478c-adec-f19f01bbc575", "path1", "path2", 2),
-("CPL3", "2b79b259-384d-478c-adec-f19f01bbc576", "path1", "", 3);
+INSERT INTO `cpl` (`name`, `uuid`, `path_cpl`, `path_sync`, `type_cpl`, `sha1_sync`)
+  VALUES ("CPL1", "2b79b259-384d-478c-adec-f19f01bbc574", "path1", "path2", 1, "sha1"), ("CPL2", "2b79b259-384d-478c-adec-f19f01bbc575", "path1", "path2", 2, "sha2"),
+("CPL3", "2b79b259-384d-478c-adec-f19f01bbc576", "path1", "", 3, "sha3");

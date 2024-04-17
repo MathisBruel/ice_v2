@@ -70,6 +70,7 @@ CREATE TABLE `cpl` (
   `uuid` varchar(45) NOT NULL,
   `name` varchar(200) NOT NULL,
   `type_cpl` int(11) NOT NULL,
+  `sha1_sync` varchar(50) NOT NULL,
   `path_cpl` varchar(200) NOT NULL,
   `path_sync` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -257,6 +258,7 @@ CREATE TABLE `script` (
   `lvi_name` varchar(45) NOT NULL,
   `type` int(11) NOT NULL,
   `version` varchar(45) NOT NULL,
+  `sha1Lvi` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

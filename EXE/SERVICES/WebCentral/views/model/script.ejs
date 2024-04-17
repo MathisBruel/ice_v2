@@ -16,6 +16,7 @@
 
     <ul class="list" id="list-general">
         <input type="text" id="path" hidden>
+        <input type="text" id="sha1Lvi" hidden>
         <li class="list-item-general">
             <img class="image-line-param" src="/control.png"/>
             <div class="param">Name</div>
@@ -106,6 +107,7 @@
                 document.getElementById("cis_path").value = script.$.cis_name;
                 document.getElementById("lvi_path").value = script.$.lvi_name;
                 document.getElementById("path").value = script.$.path;
+                document.getElementById("sha1Lvi").value = script.$.sha1Lvi;
 
                 if (resultAvailableCpls.data.cpls != "") {
                     const li = createDOM("li", {className:"list-item-add"});
@@ -272,6 +274,7 @@
         const path = document.getElementById("path").value;
         const type = document.getElementById("type").value;
         const version = document.getElementById("version").value;
+        const sha1Lvi = document.getElementById("sha1Lvi").value;
         const cis_name = document.getElementById("cis_path").value;
         const lvi_name = document.getElementById("lvi_path").value;
 
@@ -281,6 +284,7 @@
             path: path,
             type: type,
             version: version,
+            sha1Lvi: sha1Lvi,
             cis_name: cis_name,
             lvi_name: lvi_name
         };

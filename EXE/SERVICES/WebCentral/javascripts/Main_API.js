@@ -220,7 +220,6 @@ class Main_API {
         this.app.get('/cpls', this.restrictPage.bind(this), function(request, response){ response.render('model/cpls'); }.bind(this));
         this.app.get('/cpl', this.restrictPage.bind(this), function(request, response){ response.render('model/cpl'); }.bind(this));
         this.app.get('/cut', this.restrictPage.bind(this), function(request, response){ response.render('model/cut'); }.bind(this));
-        this.app.get('/monitoring', this.restrictPage.bind(this), function(request, response){ response.render('model/monitor'); }.bind(this));
         this.app.get('/delivery', this.restrictPage.bind(this), function(request, response){ response.render('model/delivery'); }.bind(this));
         this.app.get('/synchro', this.restrictPage.bind(this), function(request, response){ response.render('model/synchro'); }.bind(this));
 
