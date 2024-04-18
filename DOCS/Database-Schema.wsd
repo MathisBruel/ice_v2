@@ -1,0 +1,143 @@
+@startuml
+
+entity "auditorium" {
+    * **id: int(11) <<generated>>**
+    --
+    * name: varchar(45)
+    * room:  int(11)
+    * type_ims:  int(11)
+    * ip_ims: varchar(45)
+    * port_ims:  int(11)
+    * user_ims: varchar(45)
+    * pass_ims: varchar(45)
+    --
+    * id_cinema:  int(11) <<FK>>
+}
+entity "cinema" {
+    * **id: int(11) <<generated>>**
+    --
+    * name: varchar(45)
+}
+entity "cpl" {
+    * **id: int(11) <<generated>>**
+    --
+    * uuid: varchar(45)
+    * name: varchar(200)
+    * type_cpl: int(11)
+    * sha1_sync: varchar(50)
+    * path_cpl: varchar(200)
+    * path_sync: varchar(200)
+}
+entity "feature" {
+    * **id: int(11) <<generated>>**
+    --
+    * name: varchar(45)
+}
+entity "group" {
+    * **id: int(11) <<generated>>**
+    --
+    * name: varchar(45)
+    * description: varchar(500)
+}
+entity "release" {
+    * **id: int(11) <<generated>>**
+    --
+    * date_in: date
+    * date_out: date
+    * name: varchar(45)
+    * global_pattern: varchar(45)
+    * specific_pattern: varchar(45)
+    * finalized: int(11)
+    --
+    * id_feature: int(11) <<FK>>
+    * id_parent_release: int(11) <<FK>>
+}
+entity "release_cut" {
+    * **id: int(11) <<generated>>**
+    --
+    * description : varchar(200)
+    * position : int(11)
+    * size : int(11)
+    --
+    * id_release: int(11) <<FK>>
+}
+entity "script" {
+    * **id: int(11) <<generated>>**
+    --
+    * name: varchar(45)
+    * path: varchar(200)
+    * cis_name: varchar(45)
+    * lvi_name: varchar(45)
+    * type: int(11)
+    * version: varchar(45)
+    * sha1Lvi: varchar(50)
+}
+entity "server" {
+    * **id: int(11) <<generated>>**
+    --
+    * type_server: int(11)
+    * ip: varchar(45)
+    --
+    * id_auditorium: int(11) <<FK>>
+}
+entity "link_cinema_group" {
+    * **id: int(11) <<generated>>**
+    --
+    * id_cinema: int(11) <<FK>>
+    * id_group: int(11) <<FK>>
+}
+entity "link_cinema_release" {
+    * **id: int(11) <<generated>>**
+    --
+    * id_release: int(11) <<FK>>
+    * id_cinema: int(11) <<FK>>
+}
+entity "link_cpl_release" {
+    * **id: int(11) <<generated>>**
+    --
+    * id_cpl: int(11) <<FK>>
+    * id_release: int(11) <<FK>>
+}
+entity "link_group_release" {
+    * **id: int(11) <<generated>>**
+    --
+    * id_release: int(11) <<FK>>
+    * id_group: int(11) <<FK>>
+}
+entity "link_script_release" {
+    * **id: int(11) <<generated>>**
+    --
+    * id_script: int(11) <<FK>>
+    * id_release: int(11) <<FK>>
+}
+entity "link_cpl_script" {
+    * **id: int(11) <<generated>>**
+    --
+    * id_cpl: int(11) <<FK>>
+    * id_script: int(11) <<FK>>
+}
+
+group }|--|{ link_cinema_group
+link_cinema_group }|--|{ cinema
+cinema }|--|| auditorium
+auditorium }o--|| server
+
+cinema }|--|{ link_cinema_release
+link_cinema_release }|--|{ release
+
+cpl }|--|{ link_cpl_release
+link_cpl_release }|--|{ release
+
+group }|--|{ link_group_release
+link_group_release }|--|{ release
+release }o--|| release_cut
+release ||--|{ feature
+release |o--o| release
+
+release }|--|{ link_script_release
+link_script_release }|--|{ script
+
+cpl }|--|{ link_cpl_script 
+link_cpl_script }|--|{ script
+
+@enduml
