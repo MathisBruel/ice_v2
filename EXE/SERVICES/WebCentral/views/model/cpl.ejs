@@ -28,6 +28,24 @@
         </li>
         <li class="list-item-general">
             <img class="image-line-param" src="/control.png"/>
+            <div class="param">Type CPL</div>
+            <select id="type_cpl">
+                <option value="0" selected disabled>UnknownType</option>
+                <option value="1" >Feature</option>
+                <option value="2" >Trailer</option>
+                <option value="3" >Test</option>
+                <option value="4" >Teaser</option>
+                <option value="5" >Rating</option>
+                <option value="6" >Advertisement</option>
+                <option value="7" >Short</option>
+                <option value="8" >Transitional</option>
+                <option value="9" >PSA</option>
+                <option value="10" >Policy</option>
+                <option value="11" >Live_CPL</option>
+            </select>
+        </li>
+        <li class="list-item-general">
+            <img class="image-line-param" src="/control.png"/>
             <div class="param">CPL</div>
             <input type="file" id="cpl_file" style="width:60%">
             <input type="text" id="path_cpl" disabled style="width:60%">
@@ -46,7 +64,7 @@
 <div id="loading" class="modal">
     <div class="modal-content">
         <img class="img-loading" src="/loading.gif"/>
-        <progress id="progress" max="100" value="00"></progress>
+        <progress id="progress" max="100" value="00" style="display: none;"></progress>
     </div>
 </div>
 
@@ -79,6 +97,7 @@
                 document.getElementById("path_cpl").value = cpl.$.pathCpl;
                 document.getElementById("path_sync").value = cpl.$.pathSync;
                 document.getElementById("sha1_sync").value = cpl.$.sha1Sync;
+                document.getElementById("type_cpl").value = cpl.$.typeCpl;
             }
             else {
                 showErrorMessage("message-box", result.message);
@@ -107,6 +126,8 @@
             document.getElementById("uuid").style.backgroundColor = "red";
             showErrorMessage("message-box", "Field uuid is empty !");
         }
+
+        //verif de l'exetension
         
         else {
 
@@ -119,7 +140,7 @@
             formData.append("uuid", uuid);
             formData.append("path", path);
             formData.append("cpl_name", fileCpl.name);
-            formData.append("sync_name", fileSync.name);
+            if (fileSync != undefined) { formData.append("sync_name", fileSync.name); }
 
             modal.style.display = "block";
 
@@ -154,11 +175,13 @@
         const path_cpl = document.getElementById("path_cpl").value;
         const path_sync = document.getElementById("path_sync").value;
         const sha1_sync = document.getElementById("sha1_sync").value;
+        const type_cpl = document.getElementById("type_cpl").value;
 
         const json = {
             id: id,
             name: name,
             uuid: uuid,
+            type: type_cpl,
             path_cpl: path_cpl,
             path_sync: path_sync,
             sha1_sync: sha1_sync
