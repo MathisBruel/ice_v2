@@ -1,0 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `ice` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `ice`;
+
+CREATE USER IF NOT EXISTS "cinelight"@"localhost" IDENTIFIED BY "R@qazwsx2";
+GRANT ALL PRIVILEGES ON *.* TO `cinelight`@`localhost` WITH GRANT OPTION;

@@ -1,7 +1,11 @@
 #! /usr/bin/env sh
 
 build_all_external() {
-    for sts in 1 2 3 4 5; do
+    for sts in 1 2 3 4 5 8; do
+        if [ $sts -eq 8 ] ; then
+            EXTERN/VCPKG/bootstrap-vcpkg.sh
+            EXTERN/VCPKG/vcpkg install range-v3 tabulate
+        fi
         stage=$sts
         build_external
     done
@@ -79,24 +83,41 @@ build_lib_exe() {
 build_package() {
 
     VERSION="2.0"
+    if [ "$step" = "CENTRAL" ] ; then
+        if [ ! -d "BUILD/PACKAGE/CENTRAL" ] ; then
+            mkdir -p "BUILD/PACKAGE/CENTRAL"
+        fi
+        mkdir "BUILD/PACKAGE/CENTRAL/TEMP"
+        cp EXE/SERVICES/Launcher/install-central.sh BUILD/PACKAGE/CENTRAL
+        cp -r BUILD/BIN/ICE-CENTRAL BUILD/BIN/ICE-MIGRATION EXE/SERVICES/WebCentral BUILD/PACKAGE/CENTRAL/TEMP
+        cp -r EXE/SERVICES/Launcher/ICE-CENTRAL.service BUILD/PACKAGE/CENTRAL/TEMP
 
-    if [ ! -d "BUILD/PACKAGE" ] ; then
-        mkdir "BUILD/PACKAGE"
+        cd BUILD/PACKAGE/CENTRAL/TEMP
+        tar -czf ICE-CENTRAL-$VERSION.tar.gz *
+        mv ICE-CENTRAL-$VERSION.tar.gz ../
+        cd ../
+        rm -Rf "TEMP"
     fi
 
-    mkdir "BUILD/PACKAGE/TEMP"
-    cp EXE/SERVICES/Launcher/install-core.sh BUILD/PACKAGE
-    cp -r BUILD/BIN/ICE-SERVICE EXE/SERVICES/WebInterface BUILD/PACKAGE/TEMP
-    cp -r EXE/SERVICES/Launcher/CONFIG BUILD/PACKAGE/TEMP
-    cp -r EXE/SERVICES/Launcher/LUTS BUILD/PACKAGE/TEMP
-    cp -r EXE/SERVICES/Launcher/ICE-CORE.service BUILD/PACKAGE/TEMP
-    cp -r EXE/SERVICES/Launcher/ICE-WEB.service BUILD/PACKAGE/TEMP
+    if [ "$step" = "CORE" ] ; then
+        if [ ! -d "BUILD/PACKAGE/CORE" ] ; then
+            mkdir -p "BUILD/PACKAGE/CORE"
+        fi
+        mkdir "BUILD/PACKAGE/CORE/TEMP"
+        cp EXE/SERVICES/Launcher/install-core.sh BUILD/PACKAGE/CORE
+        cp -r BUILD/BIN/ICE-SERVICE EXE/SERVICES/WebInterface BUILD/PACKAGE/CORE/TEMP
+        cp -r EXE/SERVICES/Launcher/CONFIG BUILD/PACKAGE/CORE/TEMP
+        cp -r EXE/SERVICES/Launcher/LUTS BUILD/PACKAGE/CORE/TEMP
+        cp -r EXE/SERVICES/Launcher/ICE-CORE.service BUILD/PACKAGE/CORE/TEMP
+        cp -r EXE/SERVICES/Launcher/ICE-WEB.service BUILD/PACKAGE/CORE/TEMP
 
-    cd BUILD/PACKAGE/TEMP
-    tar -czf ICE-CORE-$VERSION.tar.gz *
-    mv ICE-CORE-$VERSION.tar.gz ../
-    cd ../
-    rm -Rf "TEMP"
+
+        cd BUILD/PACKAGE/CORE/TEMP
+        tar -czf ICE-CORE-$VERSION.tar.gz *
+        mv ICE-CORE-$VERSION.tar.gz ../
+        cd ../
+        rm -Rf "TEMP"
+    fi
 }
 
 # parse command line

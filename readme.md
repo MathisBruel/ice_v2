@@ -54,11 +54,15 @@ Installer avec `apt-get`:
 Se placer à la racine du répertoire de développement.
 
 **Compilation des librairies externes** 
-Lancer `./tasks -f build_all_external`
+Lancer `./tasks.sh -f build_all_external`
 **Compilation des exécutables ICE CORE et gestion centralisée (non terminée)**
-Lancer `./tasks -f build_lib_exe -t CORE`
+Lancer `./tasks.sh -f build_lib_exe -t CORE`
 **Package installer ICE CORE**
-Lancer `./tasks -f build_package`
+Lancer `./tasks.sh -f build_package -t CORE`
+**Compilation des exécutables ICE CENTRAL et ICE MIGRATION**
+Lancer `./tasks.sh -f build_lib_exe -t CENTRAL`
+**Package installer ICE CENTRAL**
+Lancer `./tasks.sh -f build_package -t CENTRAL`
 
 ## INSTALL
 

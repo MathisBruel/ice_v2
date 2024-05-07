@@ -147,3 +147,20 @@ if (${STAGE_COMPILATION} STREQUAL "7")
 	set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../BUILD/WEBP" CACHE PATH "" FORCE)
 	add_subdirectory("${CMAKE_SOURCE_DIR}/WEBP")
 endif()
+
+if (${STAGE_COMPILATION} STREQUAL "8")
+	### -------------------------------------------------------
+	### --------------------- LIB TINYORM ---------------------
+	### -------------------------------------------------------	
+
+	set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../BUILD/TINYORM" CACHE PATH "" FORCE)
+	set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/VCPKG/packages/tabulate_x64-linux/share/tabulate" CACHE PATH "" FORCE)
+	set(VERBOSE_CONFIGURE ON CACHE BOOL "" FORCE)
+	set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+	set(MYSQL_PING OFF CACHE BOOL "" FORCE)
+	set(TOM ON CACHE BOOL "" FORCE)
+	set(TOM_EXAMPLE OFF CACHE BOOL "" FORCE)
+	set(MATCH_EQUAL_EXPORTED_BUILDTREE ON CACHE BOOL "" FORCE)
+	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
+	add_subdirectory("${CMAKE_SOURCE_DIR}/TINYORM")
+endif()

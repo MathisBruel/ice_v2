@@ -16,37 +16,31 @@ function printTitle {
     echo -e "################################\n"
     tput setaf 7
 }
-
 function printInfo {
     tput setaf 5
     echo -e $1
     tput setaf 7
 }
-
 function printAction {
     tput setaf 4
     echo -e $1
     tput setaf 7
 }
-
 function printWarning {
     tput setaf 3
     echo -e $1
     tput setaf 7
 }
-
 function printError {
     tput setaf 1
     echo -e $1
     tput setaf 7
 }
-
 function printValid {
     tput setaf 2
     echo -e $1
     tput setaf 7
 }
-
 function checkPackage {
     name=$1
     HASPACKAGE=`apt list --installed | grep '$name' -c`
@@ -58,7 +52,6 @@ function checkPackage {
         printValid "$name is installed."
     fi
 }
-
 function createFolder {
     path=$1
     checkOverwrite=$2
@@ -86,7 +79,6 @@ function createFolder {
         chown -R root:sudo $path
     fi
 }
-
 function createFolderOrEmpty {
     pathEmpty=$1
 
@@ -100,7 +92,6 @@ function createFolderOrEmpty {
         rm $pathEmpty/*
     fi
 }
-
 function copyFilesToFolder {
     SRC=$1
     DST=$2
@@ -118,7 +109,6 @@ function copyFilesToFolder {
         cp $SRC/* $DST
     fi
 }
-
 function stopService {
 
     service=$1
@@ -135,9 +125,10 @@ function stopService {
 
 # -- check packages
 printTitle "Check needed packages"
-checkPackage "openssl"
-checkPackage "libcrypto"
 checkPackage "nodejs"
+checkPackage "libssl3"
+checkPackage "wget"
+checkPackage "libmysqlclient-dev"
 
 # -- master directory
 printTitle "Check global directory"
@@ -147,71 +138,59 @@ createFolder "$DIRECTORY" 0
 printTitle "Extraction"
 createFolder "$TMPDIR" 0
 printAction "Extract."
-tar xzf ICE-CORE-$VERSION.tar.gz -C $TMPDIR
+tar xzf ICE-CENTRAL-$VERSION.tar.gz -C $TMPDIR
 
 # -- configuration
 printTitle "Configuration"
-printInfo "Check directory containing scripts."
-createFolder "$DIRECTORY/SCRIPTS" 0
 printInfo "Check directory containing logs."
 createFolder "$DIRECTORY/LOG" 0
-printInfo "Check directory containing configuration files."
-createFolder "$DIRECTORY/CONFIG" 1
-printInfo "Apply changes on config files."
-copyFilesToFolder "$TMPDIR/CONFIG" "$DIRECTORY/CONFIG"
-printInfo "Check directory containing calibration files."
-createFolder "$DIRECTORY/LUTS" 1
-printInfo "Apply changes on calibration files."
-copyFilesToFolder "$TMPDIR/LUTS" "$DIRECTORY/LUTS"
 
-# -- ICE-CORE
-printTitle "ICE CORE"
-stopService "ICE-CORE"
+# -- ICE-CENTRAL
+printTitle "ICE CENTRAL"
+stopService "ICE-CENTRAL"
 
-# -- ICE-CORE exe
-printInfo "Check ICE-CORE executable."
-if [[ -f $DIRECTORY/ICE-SERVICE ]] ; then
-    printAction "Delete old ICE-CORE exe."
-    rm $DIRECTORY/ICE-SERVICE
+# -- ICE-CENTRAL exe
+printInfo "Check ICE-CENTRAL executable."
+if [[ -f $DIRECTORY/ICE-CENTRAL ]] ; then
+    printAction "Delete old ICE-CENTRAL exe."
+    rm $DIRECTORY/ICE-CENTRAL
 fi
-printAction "Copy new ICE-CORE exe."
-cp $TMPDIR/ICE-SERVICE $DIRECTORY/
+printAction "Copy new ICE-CENTRAL exe."
+cp $TMPDIR/ICE-CENTRAL $DIRECTORY/
 
-# -- ICE-CORE service
-printInfo "Check ICE-CORE service."
-if [[ -f $SERVICEDIR/ICE-CORE.service ]] ; then
-    printAction "Delete old ICE-CORE service."
-    rm $SERVICEDIR/ICE-CORE.service
+# -- ICE-MIGRATION
+printTitle "ICE MIGRATION"
+stopService "ICE-MIGRATION"
+
+# -- ICE-MIGRATION exe
+printInfo "Check ICE-MIGRATION executable."
+if [[ -f $DIRECTORY/ICE-MIGRATION ]] ; then
+    printAction "Delete old ICE-MIGRATION exe."
+    rm $DIRECTORY/ICE-MIGRATION
 fi
-printAction "Copy new ICE-CORE service."
-cp $TMPDIR/ICE-CORE.service $SERVICEDIR/
+printAction "Copy new ICE-MIGRATION exe."
+cp $TMPDIR/ICE-MIGRATION $DIRECTORY/
+
+# -- ICE-CENTRAL service
+printInfo "Check ICE-CENTRAL service."
+if [[ -f $SERVICEDIR/ICE-CENTRAL.service ]] ; then
+    printAction "Delete old ICE-CENTRAL service."
+    rm $SERVICEDIR/ICE-CENTRAL.service
+fi
+printAction "Copy new ICE-CENTRAL service."
+cp $TMPDIR/ICE-CENTRAL.service $SERVICEDIR/
 printAction "Reload daemons and force to start when reboot."
 systemctl daemon-reload
-systemctl enable ICE-CORE
-
-# -- ICE-WEB service
-printTitle "ICE WEB"
-stopService "ICE-WEB"
+systemctl enable ICE-CENTRAL
 
 # -- remove old webCentral
-printInfo "Check web interface directory."
-createFolderOrEmpty "$DIRECTORY/WebInterface"
-printAction "Copy web interface for ICE-CORE."
-cp -r $TMPDIR/WebInterface/* $DIRECTORY/WebInterface/
-
-printInfo "Check ICE-WEB service."
-if [[ -f $SERVICEDIR/ICE-WEB.service ]] ; then
-    printAction "Delete old ICE-WEB service."
-    rm $SERVICEDIR/ICE-WEB.service
-fi
-printAction "Copy new ICE-WEB service."
-cp $TMPDIR/ICE-WEB.service $SERVICEDIR/
-printAction "Reload daemons and force to start when always."
-systemctl daemon-reload
-systemctl enable ICE-WEB
+printInfo "Check web central directory."
+createFolderOrEmpty "$DIRECTORY/WebCentral"
+printAction "Copy web central for ICE-CORE."
+cp -r $TMPDIR/WebCentral/* $DIRECTORY/WebCentral/
 
 printTitle "Start Web interface"
-systemctl start ICE-WEB
+systemctl start ICE-CENTRAL
 
 printTitle "Delete temp files."
 rm -Rf $TMPDIR

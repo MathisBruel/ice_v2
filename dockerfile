@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 SHELL ["/bin/bash", "-c"]
-COPY BUILD/PACKAGE/ICE-CORE-2.0.tar.gz /ICE-CORE-2.0.tar.gz
-COPY BUILD/PACKAGE/install-core.sh /install-core.sh
+COPY BUILD/PACKAGE/CORE/ICE-CORE-2.0.tar.gz /ICE-CORE-2.0.tar.gz
+COPY BUILD/PACKAGE/CORE/install-core.sh /install-core.sh
 RUN apt-get update
 RUN apt-get install nodejs -y && apt-get install libssl3 -y
 RUN mkdir /data && chmod 777 /data
