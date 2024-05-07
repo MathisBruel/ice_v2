@@ -1,0 +1,62 @@
+---
+sidebar_position: 1
+sidebar_label: 🔧 Dependencies
+hide_table_of_contents: true
+description: Library dependencies are MySQL Connector/C 8, range-v3 >=0.11.0, tabulate and the Qt framework version used during development was 5.15.2 and >=6.2. The code was developed on MSVC 16.9-16.11, MSVC 17.2-17.9, GCC 10.2-13.2, and Clang 11-16.
+keywords: [c++ orm, dependencies, tinyorm]
+---
+
+# Dependencies
+
+The code was developed on MSVC 16.9-16.11, MSVC 17.2-17.9, GCC 10.2-13.2, and Clang 11-18, so may be assumed it will work on future releases of these compilers. Minimum required ISO C++ standard is C++20.
+The Qt framework version used during development was 5.15.2 and >=6.2.
+
+##### Required
+
+- minimum ISO C++ standard is C++20
+- &gt;= [Qt Framework 5.15.2](https://www.qt.io/download-qt-installer) - [`QtCore`](https://doc.qt.io/qt-5/qtcore-module.html) and [`QtSql`](https://doc.qt.io/qt-5/qtsql-index.html) modules
+- &gt;= [Qt Framework 6.2](https://www.qt.io/download-qt-installer) - [`QtCore`](https://doc.qt.io/qt-6/qtcore-module.html) and [`QtSql`](https://doc.qt.io/qt-6/qtsql-index.html) modules
+- &gt;= [range-v3 0.11.0](https://github.com/ericniebler/range-v3)
+- [tabulate](https://github.com/p-ranav/tabulate)
+
+:::caution
+Be aware that the standard support for the last release of the __Qt 5__ series ended on __26. May 2023__. [[1](https://endoflife.date/qt)][[2](https://www.qt.io/blog/qt-5.15-support-ends)]
+:::
+
+##### Optional
+
+- &gt;= [MySQL Connector/C 8](https://dev.mysql.com/downloads/c-api/) - used only for the [`mysql_ping`](https://dev.mysql.com/doc/c-api/8.3/en/mysql-ping.html) function and provided by [MySQL 8 Server](https://dev.mysql.com/downloads/mysql/)
+
+:::info
+The `TinyORM` will support `Qt` versions that aren't [end-of-life](https://endoflife.date/qt).
+:::
+
+:::note
+You can view the supported database servers in the [Database - Getting Started](database/getting-started.mdx#introduction) section.
+:::
+
+### Install dependencies
+
+On `Linux`, you can install dependencies with the package manager.
+
+<small>
+
+```text title='MySQL C library'
+Arch   - pacman -S mariadb-libs
+Gentoo - emerge dev-db/mysql (package.use: -server -perl)
+Ubuntu - apt install libmysqlclient-dev
+```
+
+```text title='range-v3 library (header only)'
+Arch   - pacman -S range-v3
+Gentoo - emerge dev-cpp/range-v3
+Ubuntu - apt install librange-v3-dev
+```
+
+```text title='ccache'
+Arch   - pacman -S ccache
+Gentoo - emerge dev-util/ccache
+Ubuntu - apt install ccache
+```
+
+</small>

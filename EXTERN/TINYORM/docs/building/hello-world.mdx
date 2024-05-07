@@ -1,0 +1,661 @@
+---
+sidebar_position: 2
+sidebar_label: Hello world
+description: Hello world example created in the terminal and QtCreator IDE.
+keywords: [c++ orm, building, hello world, tinyorm]
+---
+
+import CodeBlock from '@theme/CodeBlock'
+import TabItem from '@theme/TabItem'
+import Tabs from '@theme/Tabs'
+
+import {
+    shell,
+    application, bash, pwsh,
+    bash_label, pwsh_label
+} from '@theme/constants'
+import {
+    applicationFolder,
+    applicationFolderPath,
+    convertToCmakeEnvVariable,
+    rootFolderPath
+} from '@theme/utils/rootFolderUtils'
+
+# Building: Hello world
+
+- [Introduction](#introduction)
+- [Prepare SQLite 3 database](#prepare-sqlite-3-database)
+- [Install dependencies](#install-dependencies)
+    - [Using vcpkg.json](#using-vcpkg-json-manifest-mode)
+    - [Using vcpkg install](#using-vcpkg-install-manually)
+- [Source code](#source-code)
+- [Hello world with CMake](#hello-world-with-cmake)
+    - [CMake project](#cmake-project)
+    - [FetchContent](#fetchcontent)
+    - [Build Hello world](#build-hello-world-cmake)
+    - [Execute Hello world](#execute-hello-world-cmake)
+- [Hello world with qmake](#hello-world-with-qmake)
+    - [qmake project](#qmake-project)
+    - [Build Hello world](#build-hello-world-qmake)
+    - [Execute Hello world](#execute-hello-world-qmake)
+
+## Introduction
+
+We will try to create the simplest working console application, in the terminal with the `CMake` and in the `QtCreator IDE` with the `qmake` build systems.
+
+The `HelloWorld` example also expects the following [folders structure](building/tinyorm.mdx#folders-structure), let's create them.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-powershell'>
+{`cd ${applicationFolderPath(pwsh)}
+mkdir HelloWorld/HelloWorld
+cd HelloWorld`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-bash'>
+{`cd ${applicationFolderPath(bash)}
+mkdir -p HelloWorld/HelloWorld
+cd HelloWorld`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+## Prepare SQLite 3 database
+
+The easiest way to demonstrate the `HelloWorld` example will be with a `SQLite 3` database.
+
+Execute the following command in the terminal to create and insert two rows into the `SQLite 3` database.
+
+```bash
+sqlite3 HelloWorld.sqlite3 "
+create table posts(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name VARCHAR NOT NULL);
+insert into posts values(1, 'First Post');
+insert into posts values(2, 'Second Post');
+select * from posts;"
+```
+
+## Install dependencies
+
+First, install the `vcpkg` package manager as is described [here](building/tinyorm.mdx#vcpkg).
+
+The `range-v3` and `tabulate` libraries are required dependencies because `TinyORM` uses them in header files, you have to install them before you can use `TinyORM`. The `tabulate` library is only needed in the `tom` migrations it's used by the `migrate:status` command.
+
+There are two ways how to install the `range-v3` and `tabulate` libraries using `vcpkg`.
+
+#### Using vcpkg.json <small>(manifest mode)</small> {#using-vcpkg-json-manifest-mode}
+
+Create a `vcpkg.json` file with the following content. `CMake` example below uses this method.
+
+```bash
+cd HelloWorld
+vim vcpkg.json
+```
+
+```json title='vcpkg.json'
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "tinyorm-helloworld",
+  "version-semver": "0.1.0",
+  "description": "Hello world console application for TinyORM C++ library",
+  "homepage": "https://github.com/silverqx/TinyORM",
+  "documentation": "https://www.tinyorm.org/building/hello-world",
+  "maintainers": "Silver Zachara <silver.zachara@gmail.com>",
+  "supports": "!(uwp | arm | android | emscripten | osx | ios | xbox | freebsd | openbsd | wasm32)",
+  "dependencies": [
+    "range-v3",
+    "tabulate"
+  ]
+}
+```
+
+:::note
+Only `CMake` via the `toolchain file` supports this method.
+:::
+
+#### Using vcpkg install <small>(manually)</small> {#using-vcpkg-install-manually}
+
+This method can be used with both `CMake` and `qmake`.
+
+```bash
+cd ../../vcpkg
+
+vcpkg search range-v3
+vcpkg search tabulate
+vcpkg install range-v3 tabulate
+vcpkg list
+```
+
+## Source code
+
+Let's start in the `HelloWorld` project folder.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-powershell'>
+{`cd ${applicationFolderPath(pwsh)}/HelloWorld/HelloWorld`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-bash'>
+{`cd ${applicationFolderPath(bash)}/HelloWorld/HelloWorld`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+Create `main.cpp` source file.
+
+```bash
+vim main.cpp
+```
+
+:::tip
+To paste a source code correctly in `vim`, press <kbd>Shift</kbd> + <kbd>p</kbd>.
+:::
+
+And paste the following code.
+
+```cpp title='main.cpp'
+#include <QCoreApplication>
+#include <QDebug>
+
+#ifdef _WIN32
+#  include <qt_windows.h>
+#endif
+
+#include <orm/db.hpp>
+
+using Orm::DB;
+
+int main(int argc, char *argv[])
+{
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+//    SetConsoleOutputCP(1250);
+#endif
+
+    /* Needed from Qt v6.5.3 to avoid:
+       qt.core.qobject.connect: QObject::connect(QObject, Unknown): invalid nullptr parameter */
+    QCoreApplication app(argc, argv);
+
+    // Ownership of a shared_ptr()
+    auto manager = DB::create({
+        {"driver",   "QSQLITE"},
+        {"database", qEnvironmentVariable("TINYORM_HELLOWORLD_DB_SQLITE_DATABASE",
+                                          "../../HelloWorld.sqlite3")},
+        {"check_database_exists", true},
+    });
+
+    auto posts = DB::select("select * from posts");
+
+    while(posts.next())
+        qDebug() << posts.value("id").toULongLong()
+                 << posts.value("name").toString();
+}
+```
+
+:::caution
+The `QSqlDatabase` depends on `QCoreApplication` from `Qt v6.5.3` so you must create the `QCoreApplication` instance before you will call anything from the `TinyORM` library. 🫤 The change was made [here](https://github.com/qt/qtbase/commit/8d2bdc9cd5482eace12ba7e45304857bd24db0e6#diff-1d355c25c0b0eddec2be48253407780c4dc510d986739aec61e1ec892ccaf86e).
+:::
+
+## Hello world with CMake
+
+Create a folder for the `CMake` build.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-powershell'>
+{`cd ..
+mkdir HelloWorld-builds-cmake/build-debug\n
+cd HelloWorld`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-bash'>
+{`cd ..
+mkdir -p HelloWorld-builds-cmake/build-debug\n
+cd HelloWorld`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+### CMake project
+
+Create `CMakeLists.txt` file with the following content.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-cmake'>
+{`cmake_minimum_required(VERSION VERSION 3.22...3.29 FATAL_ERROR)\n
+project(HelloWorld LANGUAGES CXX)\n
+# build tree
+list(APPEND CMAKE_PREFIX_PATH "${convertToCmakeEnvVariable(pwsh, applicationFolderPath(pwsh))}/TinyORM/TinyORM-builds-cmake/build-debug")\n
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)\n
+add_executable(HelloWorld
+  main.cpp
+)\n
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt\${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(TinyOrm 0.37.1 CONFIG REQUIRED)\n
+target_link_libraries(HelloWorld
+    PRIVATE
+        Qt\${QT_VERSION_MAJOR}::Core
+        TinyOrm::TinyOrm
+)`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-cmake'>
+{`cmake_minimum_required(VERSION VERSION 3.22...3.29 FATAL_ERROR)\n
+project(HelloWorld LANGUAGES CXX)\n
+# build tree
+list(APPEND CMAKE_PREFIX_PATH "${convertToCmakeEnvVariable(bash, applicationFolderPath(bash))}/TinyORM/TinyORM-builds-cmake/build-debug")\n
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)\n
+add_executable(HelloWorld
+  main.cpp
+)\n
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt\${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(TinyOrm 0.37.1 CONFIG REQUIRED)\n
+target_link_libraries(HelloWorld
+    PRIVATE
+        Qt\${QT_VERSION_MAJOR}::Core
+        TinyOrm::TinyOrm
+)`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+### FetchContent
+
+If you don't have cloned and built the `TinyORM` library, or you want to quickly try TinyORM without wasting time with cloning and building the TinyORM library, then you can use CMake's [`FetchContent`](https://cmake.org/cmake/help/latest/module/FetchContent.html) module that will do all of this for you.
+
+Instead of providing a path by the `CMAKE_PREFIX_PATH` (or using the `User Package Registry`) like in the example below:
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-cmake'>
+{`# build tree
+list(APPEND CMAKE_PREFIX_PATH "${convertToCmakeEnvVariable(pwsh, applicationFolderPath(pwsh))}/TinyORM/TinyORM-builds-cmake/build-debug")`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-cmake'>
+{`# build tree
+list(APPEND CMAKE_PREFIX_PATH "${convertToCmakeEnvVariable(bash, applicationFolderPath(bash))}/TinyORM/TinyORM-builds-cmake/build-debug")`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+You can use the [`FetchContent`](https://cmake.org/cmake/help/latest/module/FetchContent.html) module like in the following example.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-cmake'>
+{`cmake_minimum_required(VERSION VERSION 3.22...3.29 FATAL_ERROR)\n
+project(HelloWorld LANGUAGES CXX)\n
+# FetchContent method
+include(FetchContent)
+FetchContent_Declare(TinyOrm
+    GIT_REPOSITORY https://github.com/silverqx/TinyORM.git
+    GIT_TAG        origin/main
+    OVERRIDE_FIND_PACKAGE
+)
+# Here you can configure TinyORM CMake options
+set(MYSQL_PING OFF)
+set(TOM_EXAMPLE ON)\n
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)\n
+add_executable(HelloWorld
+  main.cpp
+)\n
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt\${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(TinyOrm 0.37.1 CONFIG REQUIRED)\n
+target_link_libraries(HelloWorld
+    PRIVATE
+        Qt\${QT_VERSION_MAJOR}::Core
+        TinyOrm::TinyOrm
+)`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-cmake'>
+{`cmake_minimum_required(VERSION VERSION 3.22...3.29 FATAL_ERROR)\n
+project(HelloWorld LANGUAGES CXX)\n
+# FetchContent method
+include(FetchContent)
+FetchContent_Declare(TinyORM
+    GIT_REPOSITORY https://github.com/silverqx/TinyORM.git
+    GIT_TAG        origin/main
+    OVERRIDE_FIND_PACKAGE
+)
+# Here you can configure TinyORM CMake options
+set(MYSQL_PING OFF)
+set(TOM_EXAMPLE ON)\n
+TinyORM-builds-cmake/build-debug")\n
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)\n
+add_executable(HelloWorld
+  main.cpp
+)\n
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt\${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(TinyOrm 0.37.1 CONFIG REQUIRED)\n
+target_link_libraries(HelloWorld
+    PRIVATE
+        Qt\${QT_VERSION_MAJOR}::Core
+        TinyOrm::TinyOrm
+)`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+#### How FetchContent module works
+
+The `FetchContent_Declare` command is like calling the git clone inside the build folder and then adding a cloned folder in a similar way as the `add_subdirectory(<cloned_folder>)` command does.
+
+The `FetchContent_MakeAvailable(<package>)` internally calls the `find_package(<package>)` command or if you pass the `OVERRIDE_FIND_PACKAGE` argument, then you don't have to call the the `FetchContent_MakeAvailable`, but you must call the `find_package(<package> x.y.z CONFIG REQUIRED)` command manually.
+
+:::info
+An advantage of the `OVERRIDE_FIND_PACKAGE` argument is that you can call the `find_package` command much later, and you can insert additional configurations between.
+:::
+
+### Build Hello world {#build-hello-world-cmake}
+
+Now you are ready to configure `HelloWorld` `CMake` application.
+
+```bash
+cd ../HelloWorld-builds-cmake/build-debug
+```
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-powershell'>
+{`cmake.exe \`
+-S "${applicationFolderPath(pwsh)}/HelloWorld/HelloWorld" \`
+-B "${applicationFolderPath(pwsh)}/HelloWorld/HelloWorld-builds-cmake/build-debug" \`
+-G 'Ninja' \`
+-D CMAKE_BUILD_TYPE:STRING='Debug' \`
+-D CMAKE_TOOLCHAIN_FILE:FILEPATH="${rootFolderPath(pwsh)}/vcpkg/scripts/buildsystems/vcpkg.cmake" \`
+-D CMAKE_INSTALL_PREFIX:PATH="${rootFolderPath(pwsh)}/tmp/HelloWorld"`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-bash'>
+{`cmake \\
+-S "${applicationFolderPath(bash)}/HelloWorld/HelloWorld" \\
+-B "${applicationFolderPath(bash)}/HelloWorld/HelloWorld-builds-cmake/build-debug" \\
+-G 'Ninja' \\
+-D CMAKE_BUILD_TYPE:STRING='Debug' \\
+-D CMAKE_TOOLCHAIN_FILE:FILEPATH="${rootFolderPath(bash)}/vcpkg/scripts/buildsystems/vcpkg.cmake" \\
+-D CMAKE_INSTALL_PREFIX:PATH="${rootFolderPath(bash)}/tmp/TinyORM"`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+And build.
+
+```bash
+cmake --build . --target all
+```
+
+:::tip
+Enable the [`TINYORM_STRICT_MODE`](tinyorm.mdx#cmake-strict_mode-option) environment variable to produce better code and to follow good code practices.
+:::
+
+### Execute Hello world {#execute-hello-world-cmake}
+
+Do not forget to add `TinyOrm0d.dll` on the path on Windows and on the `LD_LIBRARY_PATH` on Linux, so `HelloWorld` application can find it during execution, as is described [here](building/tinyorm.mdx#tinyorm-on-path-cmake).
+
+<Tabs groupId={shell} name='tinyorm-on-path'>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-powershell'>
+{`$env:Path = "${applicationFolderPath(pwsh, false)}\\TinyORM\\TinyORM-builds-cmake\\build-debug;" + $env:Path`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-bash'>
+{`export LD_LIBRARY_PATH=${applicationFolderPath(bash)}/TinyORM/TinyORM-builds-cmake/build-debug\${PATH:+:}$PATH`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+Execute `HelloWorld` example.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+
+```powershell
+.\HelloWorld.exe
+```
+
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+
+```bash
+./HelloWorld
+```
+
+</TabItem>
+</Tabs>
+
+The output will look like this.
+
+```less
+Executed prepared query (6ms, -1 results, 0 affected, tinyorm_default) : select * from posts
+1 "First Post"
+2 "Second Post"
+```
+
+## Hello world with qmake
+
+Create a folder for the `qmake` build.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label={pwsh_label}>
+<CodeBlock className='language-powershell'>
+{`cd ${applicationFolderPath(pwsh)}/HelloWorld\n
+mkdir HelloWorld-builds-qmake`}
+</CodeBlock>
+</TabItem>
+<TabItem value={bash} label={bash_label}>
+<CodeBlock className='language-bash'>
+{`cd ${applicationFolderPath(bash)}/HelloWorld\n
+mkdir HelloWorld-builds-qmake`}
+</CodeBlock>
+</TabItem>
+</Tabs>
+
+The [`source code`](#source-code) is the same as for the `HelloWorld CMake` example.
+
+### qmake project
+
+Create `HelloWorld.pro` qmake file with the following content.
+
+```bash
+cd HelloWorld
+vim HelloWorld.pro
+```
+
+:::tip
+To paste a source code correctly in `vim`, press <kbd>Shift</kbd> + <kbd>p</kbd>.
+:::
+
+```qmake title='HelloWorld.pro'
+QT -= gui
+
+TEMPLATE = app
+
+CONFIG *= cmdline
+
+DEFINES *= PROJECT_TINYORM_HELLOWORLD
+
+SOURCES += $$PWD/main.cpp
+
+# Auto-configure TinyORM library 🔥
+include($$TINY_MAIN_DIR/TinyORM/qmake/TinyOrm.pri)
+```
+
+:::caution
+The exact [folders structure](building/tinyorm.mdx#folders-structure) is crucial in this example because the paths to the `TinyORM` source and build folders are relative.
+:::
+
+:::caution
+Please pay special attention to letter casing in paths, especially TinyOrm vs TinyORM!
+:::
+
+#### `Auto-configure` using `.qmake.conf` and `.env` {#auto-configure-using-qmake_conf-and-env}
+
+If you want to have properly configured `DEFINES` (C preprocessor macros) or have Qt headers marked as system headers, then you need to specify a path to the `TinyORM` qmake features (`.prf` files) which handle this correctly; this path is provided by the `QMAKEFEATURES` variable and can only be set in the `.qmake.conf` file.
+
+:::tip
+Read the [Consume TinyOrm library (qmake)](tinyorm.mdx#consume-tinyorm-library-qmake) section, as everything that is described in that section applies here as well.
+:::
+
+Create the `.qmake.conf` file in the `HelloWorld` project root folder with the following content.
+
+```qmake title='.qmake.conf'
+# Path to the PARENT folder of the TinyORM source folder
+TINY_MAIN_DIR    = $$clean_path($$PWD/../../TinyORM/)
+# To find .env and .env.$$QMAKE_PLATFORM files
+TINY_DOTENV_ROOT = $$PWD
+# Path to the current build tree (used to guess the TinyORM build tree)
+#TINY_BUILD_TREE  = $$shadowed($$PWD)
+
+# To find .prf files, needed by eg. CONFIG += tiny_system_headers inline/extern_constants
+QMAKEFEATURES *= $$quote($$TINY_MAIN_DIR/TinyORM/qmake/features)
+```
+
+Then, create a <code>.env.(win32&vert;unix&vert;mingw)</code> file in the `HelloWorld` project root folder with the following content.
+
+<Tabs groupId={shell}>
+<TabItem value={pwsh} label='.env.win32'>
+
+```qmake
+# Names and values of these qmake variables are crucial, they are used in HelloWorld.pro
+# Please pay special attention to letter casing in paths, especially TinyOrm vs TinyORM!
+
+# Path to the TinyORM build folder
+TINYORM_BUILD_TREE = $$quote($$TINY_MAIN_DIR/TinyORM-builds-qmake/build-TinyORM-Desktop_Qt_6_7_0_MSVC2022_64bit-Debug/)
+
+# Path to the vcpkg - range-v3
+# Will use the TINY_VCPKG_ROOT or VCPKG_ROOT environment variable if is empty
+TINY_VCPKG_ROOT = $$clean_path($$PWD/../../../vcpkg/)
+TINY_VCPKG_TRIPLET = x64-windows
+
+# Enable ccache wrapper
+#CONFIG *= tiny_ccache_win32
+```
+
+</TabItem>
+<TabItem value={bash} label='.env.unix'>
+
+```qmake
+# Names and values of these qmake variables are crucial, they are used in HelloWorld.pro
+# Please pay special attention to letter casing in paths, especially TinyOrm vs TinyORM!
+
+# Path to the TinyORM build folder
+TINYORM_BUILD_TREE = $$quote($$TINY_MAIN_DIR/TinyORM-builds-qmake/build-TinyORM-Desktop_Qt_6_7_0_clang16_64bit_ccache-Debug/)
+
+# Path to the vcpkg - range-v3
+# Will use the TINY_VCPKG_ROOT or VCPKG_ROOT environment variable if is empty
+TINY_VCPKG_ROOT = $$clean_path($$PWD/../../../vcpkg/)
+TINY_VCPKG_TRIPLET = x64-linux
+
+# Use faster linker
+clang: CONFIG *= use_lld_linker
+else: CONFIG *= use_gold_linker
+
+# Or use the mold linker
+#QMAKE_LFLAGS *= -fuse-ld=mold
+```
+
+</TabItem>
+<TabItem value='mingw' label='.env.mingw'>
+
+```qmake
+# Names and values of these qmake variables are crucial, they are used in HelloWorld.pro
+# Please pay special attention to letter casing in paths, especially TinyOrm vs TinyORM!
+
+# Path to the TinyORM build folder
+TINYORM_BUILD_TREE = $$quote($$TINY_MAIN_DIR/TinyORM-builds-qmake/build-TinyORM-Desktop_Qt_6_7_0_MSYS2_UCRT64_clang_64bit-Debug/)
+
+# Path to the vcpkg - range-v3
+# Will use the TINY_VCPKG_ROOT or VCPKG_ROOT environment variable if is empty
+TINY_VCPKG_ROOT = $$clean_path($$PWD/../../../vcpkg/)
+TINY_VCPKG_TRIPLET = x64-mingw-dynamic
+
+# Enable ccache wrapper
+#CONFIG *= tiny_ccache_win32
+
+# Use faster linker (for both GCC and Clang)
+# CONFIG *= use_lld_linker does not work on MinGW
+QMAKE_LFLAGS *= -fuse-ld=lld
+```
+
+</TabItem>
+</Tabs>
+
+Don't forget to update the `TINYORM_BUILD_TREE` and `TINY_VCPKG_ROOT` folder paths to your needs if you are not using the recommended [`Folders structure`](tinyorm.mdx#folders-structure).
+
+You can use the [Partial guessing of the `TINYORM_BUILD_TREE`](tinyorm.mdx#partial-guessing-of-the-tinyorm_build_tree) if you don't like to specify it manually. Just comment out the `TINYORM_BUILD_TREE` and uncomment the `TINY_BUILD_TREE = $$shadowed($$PWD)` in the `.qmake.conf` file.
+
+:::tip
+You can entirely avoid the `.env` files, just move the `TINYORM_BUILD_TREE` to the `.qmake.conf` or remove it by help of [Partial guessing of the `TINYORM_BUILD_TREE`](tinyorm.mdx#partial-guessing-of-the-tinyorm_build_tree) and set the `VCPKG_ROOT` environment variable at system level as is described in [`Set up vcpkg environment`](tinyorm.mdx#set-up-vcpkg-environment).
+:::
+
+:::info
+Configuring by the `.qmake.conf` and `.env` files has one big advantage, which is that you don't have to modify the project files.
+:::
+
+### Build Hello world {#build-hello-world-qmake}
+
+:::tip
+I recommend creating a new `Session` in the `QtCreator IDE` as is described [here](building/tinyorm.mdx#open-qtcreator-ide).
+:::
+
+Now you can open the `HelloWorld.pro` project in the `QtCreator IDE`.
+
+This will open the `Configure Project` tab, select some kit and update build folder paths to meet our [folders structure](building/tinyorm.mdx#folders-structure) or like you want.
+
+<img src={require('./assets/img/hello-world/qmake-configure_project.png').default}
+    alt='HelloWorld - QtCreator - Configure Project' width='760' />
+
+:::tip
+You can force the `QtCreator` to generate a build folders structure as is described [here](tinyorm.mdx#qtcreator-default-build-directory).
+:::
+
+You are ready to configure build options, hit <kbd>Ctrl</kbd>+<kbd>5</kbd> to open `Project Settings` tab and select `Build` in the left sidebar to open the `Build Settings`, it should look similar to the following picture.
+
+<img src={require('./assets/img/hello-world/qmake-build_settings.png').default}
+    className='no-blurry' alt='HelloWorld - QtCreator - Build Settings' width='760' />
+
+Disable `QML debugging and profiling` and `Qt Quick Compiler`, they are not used.
+
+In the left sidebar open `Dependencies` and check `TinyORM` project and `Synchronize configuration`, this setting ensures that the current project will be rebuilt correctly when the `TinyORM` library source code changes.
+
+Everything is ready to build, you can press <kbd>Ctrl</kbd>+<kbd>b</kbd> to build the project.
+
+### Execute Hello world {#execute-hello-world-qmake}
+
+The `QtCreator` takes care of all the necessary configurations, sets up the build environment correctly, and also prepends dependency libraries on the system path on Windows and on the `LD_LIBRARY_PATH` on Linux.
+
+The only thing you might want to change is to run the `HelloWorld` example in the new terminal window. To do so, hit <kbd>Ctrl</kbd>+<kbd>5</kbd> to open the `Project Settings` tab and select `Run` in the left sidebar to open the `Run Settings`, then in the `Run` section select the `Run in terminal` checkbox.
+
+To execute the `HelloWorld` example press <kbd>Ctrl</kbd> + <kbd>r</kbd>.
+
+The output will look like this.
+
+```less
+Executed prepared query (6ms, -1 results, 0 affected, tinyorm_default) : select * from posts
+1 "First Post"
+2 "Second Post"
+```

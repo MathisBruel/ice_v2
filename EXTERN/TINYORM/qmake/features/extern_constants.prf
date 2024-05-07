@@ -1,0 +1,23 @@
+!build_pass: \
+if(CONFIG(static, dll|shared|static|staticlib) | \
+CONFIG(staticlib, dll|shared|static|staticlib)): \
+    error( "extern constants (extern_constants CONFIG option) cause crashes with\
+            an archive library, please use \"CONFIG += inline_constants\" instead." )
+
+!build_pass:win32-clang-msvc: \
+    error( "extern constants (extern_constants CONFIG option) cause crashes with\
+            the shared library on clang-cl MSVC, please use\
+            \"CONFIG += inline_constants\" instead or leave it undefined." )
+
+CONFIG -= inline_constants
+CONFIG *= extern_constants
+
+# The TinyDrivers sub-project has its own DEFINES for global constants
+equals(TARGET, TinyDrivers) {
+    DEFINES -= TINYDRIVERS_INLINE_CONSTANTS
+    DEFINES *= TINYDRIVERS_EXTERN_CONSTANTS
+}
+else {
+    DEFINES -= TINYORM_INLINE_CONSTANTS
+    DEFINES *= TINYORM_EXTERN_CONSTANTS
+}
