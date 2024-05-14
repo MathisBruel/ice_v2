@@ -5,7 +5,7 @@
 namespace Migrations
 {
 
-    struct CreatePostsTable : Migration
+    struct CreateTables : Migration
     {
         /*! Filename of the migration file. */
         T_MIGRATION
@@ -53,7 +53,6 @@ namespace Migrations
 
                 table.unique("name");
             });
-
             Schema::create("group", [](Blueprint &table)
             {
                 table.id().from(4); /* AUTO_INCREMENT */

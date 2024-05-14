@@ -3,6 +3,7 @@
 #include <tom/application.hpp>
 
 #include "migrations/2024_05_03_902300_create_tables.hpp"
+#include "migrations/2024_05_13_111300_database_structure_recreate.hpp"
 
 using Orm::DatabaseManager;
 using Orm::DB;
@@ -22,7 +23,7 @@ int main(int argc, char *argv[])
         auto db = setupDatabaseManager();
 
         return TomApplication(argc, argv, std::move(db), "ICE_MIGRATION")
-                .migrations<CreatePostsTable>()   /*Pour rajouter une migration il faut l'ajouter entre les <> avec une virgule ex: .migrations<CreatePostsTable,CreatePostsTable>() */
+                .migrations<CreateTables,RecreateDatabaseStructure>()   /*Pour rajouter une migration il faut l'ajouter entre les <> avec une virgule ex: .migrations<CreatePostsTable,CreatePostsTable>() */
                 .seeders<>()
                 .run();
 
