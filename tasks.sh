@@ -2,10 +2,6 @@
 
 build_all_external() {
     for sts in 1 2 3 4 5 8; do
-        if [ $sts -eq 8 ] ; then
-            EXTERN/VCPKG/bootstrap-vcpkg.sh
-            EXTERN/VCPKG/vcpkg install range-v3 tabulate
-        fi
         stage=$sts
         build_external
     done

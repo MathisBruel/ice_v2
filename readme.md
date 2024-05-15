@@ -48,6 +48,14 @@ Installer avec `apt-get`:
 - mysqlclient
 - crypto
 - nodejs
+- qtbase5-dev qtbase5-dev-tools libqt5sql5 libqt5sql5-sqlite
+- libqt5sql5-mysql
+
+Installer avec VCPKG :
+
+- `./tasks.sh -f build_external -s 8  -g "Unix Makefiles"`
+- `EXTERN/VCPKG/bootstrap-vcpkg.sh`
+- `EXTERN/VCPKG/vcpkg install range-v3 tabulate`
 
 ## BUILD
 
