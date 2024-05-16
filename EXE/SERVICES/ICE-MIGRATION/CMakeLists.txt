@@ -19,7 +19,7 @@ set(ICE_MIGRATION_target ICE-MIGRATION)
 
 set(TinyOrmSourceDir "EXTERN/TINYORM")
 set(TinyOrmBuildDir "BUILD/TINYORM")
-set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/EXTERN/VCPKG/packages/tabulate_x64-linux/share/tabulate" CACHE PATH "" FORCE)
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/EXTERN/VCPKG/installed/x64-linux/share/")
 set(TINYORM_CMAKE_COMMON_MODULES_DIR "${CMAKE_SOURCE_DIR}/${TinyOrmSourceDir}/cmake/CommonModules")
 
 # TinyORM CMake modules (needed to set the executable version and RC file on Windows)
