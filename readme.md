@@ -48,14 +48,21 @@ Installer avec `apt-get`:
 - mysqlclient
 - crypto
 - nodejs
-- qtbase5-dev qtbase5-dev-tools libqt5sql5 libqt5sql5-sqlite
-- libqt5sql5-mysql
+- qtbase5-dev qtbase5-dev-tools libqt5sql5 libqt5sql5-sqlite libqt5sql5-mysql
 - curl zip unzip tar
+- librange-v3-dev
 
-Installer avec VCPKG :
-
-- `EXTERN/VCPKG/bootstrap-vcpkg.sh`
-- `EXTERN/VCPKG/vcpkg install range-v3 tabulate`
+Intaller la lib `tabulate` :
+```
+cd
+sudo git clone https://github.com/p-ranav/tabulate.git
+cd tabulate
+sudo mkdir BUILD
+cd BUILD
+sudo cmake -G "Unix Makefiles" ..
+sudo make install
+rm -r ../../tabulate
+```
 
 ## BUILD
 
