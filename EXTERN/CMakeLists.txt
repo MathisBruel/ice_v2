@@ -154,7 +154,6 @@ if (${STAGE_COMPILATION} STREQUAL "8")
 	### -------------------------------------------------------	
 
 	set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../BUILD/TINYORM" CACHE PATH "" FORCE)
-	set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/VCPKG/packages/tabulate_x64-linux/share/tabulate" CACHE PATH "" FORCE)
 	set(VERBOSE_CONFIGURE ON CACHE BOOL "" FORCE)
 	set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 	set(MYSQL_PING OFF CACHE BOOL "" FORCE)
