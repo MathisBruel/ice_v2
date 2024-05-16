@@ -138,16 +138,19 @@ printTitle "Check needed packages"
 checkPackage "openssl"
 checkPackage "libcrypto"
 checkPackage "nodejs"
+# --end check packages
 
 # -- master directory
 printTitle "Check global directory"
 createFolder "$DIRECTORY" 0
+# --end master directory
 
 # -- extraction
 printTitle "Extraction"
 createFolder "$TMPDIR" 0
 printAction "Extract."
 tar xzf ICE-CORE-$VERSION.tar.gz -C $TMPDIR
+# --end extraction
 
 # -- configuration
 printTitle "Configuration"
@@ -163,10 +166,12 @@ printInfo "Check directory containing calibration files."
 createFolder "$DIRECTORY/LUTS" 1
 printInfo "Apply changes on calibration files."
 copyFilesToFolder "$TMPDIR/LUTS" "$DIRECTORY/LUTS"
+# --end configuration
 
 # -- ICE-CORE
 printTitle "ICE CORE"
 stopService "ICE-CORE"
+# --end ICE-CORE
 
 # -- ICE-CORE exe
 printInfo "Check ICE-CORE executable."
@@ -176,6 +181,7 @@ if [[ -f $DIRECTORY/ICE-SERVICE ]] ; then
 fi
 printAction "Copy new ICE-CORE exe."
 cp $TMPDIR/ICE-SERVICE $DIRECTORY/
+# --end ICE-CORE exe
 
 # -- ICE-CORE service
 printInfo "Check ICE-CORE service."
@@ -188,16 +194,19 @@ cp $TMPDIR/ICE-CORE.service $SERVICEDIR/
 printAction "Reload daemons and force to start when reboot."
 systemctl daemon-reload
 systemctl enable ICE-CORE
+# --end ICE-CORE service
 
 # -- ICE-WEB service
 printTitle "ICE WEB"
 stopService "ICE-WEB"
+# --end ICE-WEB service
 
-# -- remove old webCentral
+# -- remove old WebInterface
 printInfo "Check web interface directory."
 createFolderOrEmpty "$DIRECTORY/WebInterface"
 printAction "Copy web interface for ICE-CORE."
 cp -r $TMPDIR/WebInterface/* $DIRECTORY/WebInterface/
+# --end remove old WebInterface
 
 printInfo "Check ICE-WEB service."
 if [[ -f $SERVICEDIR/ICE-WEB.service ]] ; then

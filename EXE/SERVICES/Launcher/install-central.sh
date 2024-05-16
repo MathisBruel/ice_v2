@@ -129,25 +129,30 @@ checkPackage "nodejs"
 checkPackage "libssl3"
 checkPackage "wget"
 checkPackage "libmysqlclient-dev"
+# --end check packages
 
 # -- master directory
 printTitle "Check global directory"
 createFolder "$DIRECTORY" 0
+# --end master directory
 
 # -- extraction
 printTitle "Extraction"
 createFolder "$TMPDIR" 0
 printAction "Extract."
 tar xzf ICE-CENTRAL-$VERSION.tar.gz -C $TMPDIR
+# --end extraction
 
 # -- configuration
 printTitle "Configuration"
 printInfo "Check directory containing logs."
 createFolder "$DIRECTORY/LOG" 0
+# --end configuration
 
 # -- ICE-CENTRAL
 printTitle "ICE CENTRAL"
 stopService "ICE-CENTRAL"
+# --end ICE-CENTRAL
 
 # -- ICE-CENTRAL exe
 printInfo "Check ICE-CENTRAL executable."
@@ -157,10 +162,12 @@ if [[ -f $DIRECTORY/ICE-CENTRAL ]] ; then
 fi
 printAction "Copy new ICE-CENTRAL exe."
 cp $TMPDIR/ICE-CENTRAL $DIRECTORY/
+# --end ICE-CENTRAL exe
 
 # -- ICE-MIGRATION
 printTitle "ICE MIGRATION"
 stopService "ICE-MIGRATION"
+# --end ICE-MIGRATION
 
 # -- ICE-MIGRATION exe
 printInfo "Check ICE-MIGRATION executable."
@@ -170,6 +177,7 @@ if [[ -f $DIRECTORY/ICE-MIGRATION ]] ; then
 fi
 printAction "Copy new ICE-MIGRATION exe."
 cp $TMPDIR/ICE-MIGRATION $DIRECTORY/
+# --end ICE-MIGRATION exe
 
 # -- ICE-CENTRAL service
 printInfo "Check ICE-CENTRAL service."
@@ -182,12 +190,14 @@ cp $TMPDIR/ICE-CENTRAL.service $SERVICEDIR/
 printAction "Reload daemons and force to start when reboot."
 systemctl daemon-reload
 systemctl enable ICE-CENTRAL
+# --end ICE-CENTRAL service
 
 # -- remove old webCentral
 printInfo "Check web central directory."
 createFolderOrEmpty "$DIRECTORY/WebCentral"
 printAction "Copy web central for ICE-CORE."
 cp -r $TMPDIR/WebCentral/* $DIRECTORY/WebCentral/
+# --end remove old webCentral
 
 printTitle "Start Web interface"
 systemctl start ICE-CENTRAL

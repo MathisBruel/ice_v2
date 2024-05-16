@@ -1,10 +1,3 @@
-# Policies <= CMP0128 default to NEW
-# 3.20 - because is used NEWLINE_STYLE in the file(GENERATE) command
-# 3.22 - because is used CMP0127: cmake_dependent_option() supports full Condition Syntax
-# Maximum version allowed for the minimum version is 3.22 because of Ubuntu 22.04 LTS so
-# currently can't use the target_sources(FILE_SET) 😔
-# Minimum version must always correspond to the version that is in the latest Ubuntu LTS
-# TODO use LINKER_TYPE target property when min. version will be CMake v3.29 silverqx
 cmake_minimum_required(VERSION 3.22...3.29 FATAL_ERROR)
 
 list(APPEND CMAKE_MODULE_PATH
@@ -12,13 +5,9 @@ list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules"
 )
 
-# Initialize Project Version
-# ---
-
 include(TinyHelpers)
 include(TinyInitDefaultVariables)
 
-# Initialize Tiny variables, early init.
 tiny_init_tiny_variables_pre()
 
 tiny_read_version(TINY_VERSION
@@ -28,10 +17,6 @@ tiny_read_version(TINY_VERSION
     HEADER_FOR "${TinyOrm_ns}"
 )
 
-# Basic project and CMake build setup
-# ---
-
-# TODO add support for POSITION_INDEPENDENT_CODE silverqx
 project(${TinyOrm_ns}
     DESCRIPTION "Modern C++ ORM library for Qt framework"
     HOMEPAGE_URL "https://www.tinyorm.org"
@@ -39,35 +24,17 @@ project(${TinyOrm_ns}
     VERSION ${TINY_VERSION}
 )
 
-# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
-# Set the AUTOMOC property explicitly only when needed (eg. unit tests need AUTOMOC)
 set(CMAKE_AUTOMOC OFF)
 
-# Version requirements
-# ---
-# Older versions may work, but you are on your own
-# Req - requirement, throws error
-# Rec - recommended, shows info message
-
-# Compilers
-# 16.10/16.11 (1929) to support pragma system_header
 set(minReqMsvcVersion    19.29)
 set(minRecGCCVersion     10.2)
 set(minRecClangVersion   12)
 set(minReqClangClVersion 14.0.3)
-# Packages
 set(minQtVersion       5.15.2)
-# As the range-v3 uses exact version policy in the package config file so passing version
-# makes real problems on CI pipelines where different OS images can have installed
-# different versions of range-v3 (doesn't matter if it's vcpkg or some package manager)
-#set(minRangeV3Version  0.12.0)
-# tabulate doesn't provide Package Version File
-#set(minTabulateVersion 1.5.0)
 
-# Make minimum toolchain version a requirement
 tiny_toolchain_requirement(
     MSVC     ${minReqMsvcVersion}
     CLANG_CL ${minReqClangClVersion}
@@ -75,13 +42,9 @@ tiny_toolchain_requirement(
     CLANG    ${minRecClangVersion}
 )
 
-# TinyORM build options
-# ---
-
 include(FeatureSummary)
 include(TinyFeatureOptions)
 
-# Initialize default CMake variables on which CMake options depend
 tiny_init_cmake_variables_pre()
 
 feature_option(BUILD_SHARED_LIBS
@@ -94,7 +57,6 @@ feature_option(BUILD_TREE_DEPLOY
     "Copy TinyDrivers and TinyMySql libraries to the root of the build tree" ON
 )
 
-# TinyDrivers options
 feature_option(BUILD_DRIVERS
     "Build TinyDrivers SQL database drivers (core/common code; replaces QtSql module)" OFF
 )
@@ -109,15 +71,12 @@ feature_option_dependent(BUILD_MYSQL_DRIVER
     "BUILD_DRIVERS" OFF
 )
 
-# Depends on tiny_init_cmake_variables_pre() call
 feature_option_dependent(MATCH_EQUAL_EXPORTED_BUILDTREE
     "Exported package configuration from the build tree is considered to match only \
 when the build type is equal" OFF
     "CMAKE_EXPORT_PACKAGE_REGISTRY AND NOT TINY_IS_MULTI_CONFIG" OFF
 )
 
-# Don't depend on the TINY_VCPKG, the CMAKE_MSVC_RUNTIME_LIBRARY check is sufficient
-# because vcpkg defines it
 feature_option_dependent(MSVC_RUNTIME_DYNAMIC
     "Use MSVC dynamic runtime library (-MD) instead of static (-MT), also considers \
 a Debug configuration (-MTd, -MDd)" ON
@@ -136,11 +95,6 @@ feature_option(VERBOSE_CONFIGURE
 output" OFF
 )
 
-# MinGW clang shared build crashes with inline constants
-# clang-cl shared build crashes with extern constants so force to inline constants 😕🤔
-# only one option with the clang-cl is inline constants for both shared/static builds
-# Look at NOTES.txt[inline constants] how this funckin machinery works 😎
-# Related issue: https://github.com/llvm/llvm-project/issues/55938
 if(NOT (MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND BUILD_SHARED_LIBS))
     feature_option_dependent(INLINE_CONSTANTS
         "Use inline constants instead of extern constants in the shared build. \
@@ -151,7 +105,6 @@ endif()
 
 mark_as_advanced(MATCH_EQUAL_EXPORTED_BUILDTREE)
 
-# MSVC_PARALLEL option
 include(TinyMsvcParallel)
 tiny_msvc_parallel("\
 Enables /MP flag for parallel builds using MSVC. Specify an \
@@ -160,21 +113,13 @@ works on some older versions of Visual Studio). Setting to \
 ON lets the toolchain decide how many threads to use. Set to \
 OFF to disable /MP completely.")
 
-# Initialize Tiny and default CMake variables
 tiny_init_cmake_variables()
 tiny_init_tiny_variables()
 
-# Throw a fatal error for unsupported environments
 tiny_check_unsupported_build()
-
-# TinyORM library
-# ---
 
 add_library(${TinyOrm_target})
 add_library(${TinyOrm_ns}::${TinyOrm_target} ALIAS ${TinyOrm_target})
-
-# TinyORM build options - target is needed
-# ---
 
 target_optional_compile_definitions(${TinyOrm_target}
     PUBLIC
@@ -211,17 +156,12 @@ target_optional_compile_definitions(${TinyOrm_target}
         DISABLED TINYORM_DISABLE_TOM
 )
 
-# Depends on the TOM build option
 feature_option_dependent(TOM_EXAMPLE
     "Build the Tom command-line application example" OFF
     "TOM" TOM_EXAMPLE-NOTFOUND
 )
 
-# Depends on the TOM_EXAMPLE build option
 tiny_init_tom_database_dirs()
-
-# TinyORM library header and source files
-# ---
 
 include(TinySources)
 tinyorm_sources(${TinyOrm_target}_headers ${TinyOrm_target}_sources)
@@ -231,17 +171,11 @@ target_sources(${TinyOrm_target} PRIVATE
     ${${TinyOrm_target}_sources}
 )
 
-# Use Precompiled headers (PCH)
-# ---
-
 target_precompile_headers(${TinyOrm_target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"pch.h">)
 
 if(NOT CMAKE_DISABLE_PRECOMPILE_HEADERS)
     target_compile_definitions(${TinyOrm_target} PRIVATE TINYORM_USING_PCH)
 endif()
-
-# TinyORM library specific configuration
-# ---
 
 set_target_properties(${TinyOrm_target}
     PROPERTIES
@@ -253,9 +187,7 @@ set_target_properties(${TinyOrm_target}
         EXPORT_NAME ${TinyOrm_ns}
 )
 
-# Append a major version number for shared or static library (Windows/MinGW only)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    # TODO use a new CMAKE_DLL_NAME_WITH_SOVERSION in CMake v3.27 silverqx
     set_property(
         TARGET ${TinyOrm_target}
         PROPERTY OUTPUT_NAME "${TinyOrm_target}${PROJECT_VERSION_MAJOR}"
@@ -266,54 +198,39 @@ target_include_directories(${TinyOrm_target}
     PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
-# TinyORM defines
-# ---
-
 target_compile_definitions(${TinyOrm_target}
     PUBLIC
         PROJECT_TINYORM
-        # Release build
         $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG>
-        # Do not log queries
         $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG_SQL>
-        # Debug build
         $<$<CONFIG:Debug>:TINYORM_DEBUG>
-        # Log queries with time measurements
         $<$<CONFIG:Debug>:TINYORM_DEBUG_SQL>
 )
 
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${TinyOrm_target}
         PRIVATE
-            # TODO cmake uses target_EXPORTS, use cmake convention instead silverqx
             TINYORM_BUILDING_SHARED
         INTERFACE
             TINYORM_LINKING_SHARED
     )
 endif()
 
-# Specifies which global constant types will be used
 if(TINY_EXTERN_CONSTANTS)
     target_compile_definitions(${TinyOrm_target} PUBLIC TINYORM_EXTERN_CONSTANTS)
 else()
     target_compile_definitions(${TinyOrm_target} PUBLIC TINYORM_INLINE_CONSTANTS)
 endif()
 
-# Using the TinyDrivers instead of QtSql drivers
 if(BUILD_DRIVERS)
     target_compile_definitions(${TinyOrm_target} PUBLIC TINYORM_USING_TINYDRIVERS)
 else()
     target_compile_definitions(${TinyOrm_target} PUBLIC TINYORM_USING_QTSQLDRIVERS)
 endif()
 
-# Enable code needed by tests, eg. connection overriding in the Model or
-# MySqlConnection::setConfigVersion()
 if(BUILD_TESTS)
     target_compile_definitions(${TinyOrm_target} PUBLIC TINYORM_TESTS_CODE)
 endif()
-
-# Tom related header and source files
-# ---
 
 if(TOM)
     tinytom_sources(${TomExample_target}_headers ${TomExample_target}_sources)
@@ -324,35 +241,23 @@ if(TOM)
     )
 endif()
 
-# Tom related specific configuration
-# ---
-
 if(TOM)
     target_include_directories(${TinyOrm_target}
         PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tom/include>"
     )
 endif()
 
-# Tom related defines
-# ---
-
 if(TOM)
     target_compile_definitions(${TinyOrm_target}
         PUBLIC
-            # Release build
             $<$<NOT:$<CONFIG:Debug>>:TINYTOM_NO_DEBUG>
-            # Debug build
             $<$<CONFIG:Debug>:TINYTOM_DEBUG>
         PRIVATE
-            # For the tom about command
-            # TINYORM_ is correct, it can be potentially used somewhere else
             TINYORM_MSVC_RUNTIME_DYNAMIC=${MSVC_RUNTIME_DYNAMIC}
-            # TINYTOM_ is corrent, it's strictly for the tom about command only
             TINYTOM_CMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
             TINYORM_STRICT_MODE=${STRICT_MODE}
     )
 
-    # Enable code needed by tests (modify the migrate:status command for tests need)
     if(BUILD_TESTS)
         target_compile_definitions(${TinyOrm_target} PUBLIC TINYTOM_TESTS_CODE)
     endif()
@@ -361,22 +266,14 @@ endif()
 if(TOM_EXAMPLE)
     target_compile_definitions(${TinyOrm_target}
         PUBLIC
-            # Will be stringified in the tom/application.cpp
             TINYTOM_MIGRATIONS_DIR=${TOM_MIGRATIONS_DIR}
-            # Will be stringified in the tom/application.cpp
             TINYTOM_MODELS_DIR=${TOM_MODELS_DIR}
-            # Will be stringified in the tom/application.cpp
             TINYTOM_SEEDERS_DIR=${TOM_SEEDERS_DIR}
         PRIVATE
-            # For the tom about command
             TINYORM_TOM_EXAMPLE
     )
 endif()
 
-# Windows resource and manifest files
-# ---
-
-# Find icons, orm/version.hpp, and Windows manifest file for MinGW
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     tiny_set_rc_flags("-I \"${PROJECT_SOURCE_DIR}/resources\"")
 endif()
@@ -386,34 +283,24 @@ tiny_resource_and_manifest(${TinyOrm_target}
     OUTPUT_DIR "${TINY_BUILD_GENDIR}/tmp/"
 )
 
-# Resolve and link dependencies
-# ---
-
-# Must be before the TinyCommon, to exclude WINVER for the MSYS2 Qt6 builds to avoid:
-# 'WINVER' macro redefined [-Wmacro-redefined]
-# Look also to the TinyCommon for conditional WINVER definition
-# TinyQtComponentsRequired: Core and Sql (if NOT BUILD_DRIVERS)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS ${TinyQtComponentsRequired})
 tiny_find_package(Qt${QT_VERSION_MAJOR} ${minQtVersion} CONFIG
     REQUIRED COMPONENTS ${TinyQtComponentsRequired}
 )
 tiny_find_package(range-v3 CONFIG REQUIRED)
 
-# Common configuration as interface library
 include(TinyCommon)
 tiny_common(${CommonConfig_target}
     NAMESPACE ${TinyOrm_ns}
     EXPORT NAME ${CommonConfig_target}
 )
 
-# Unconditional dependencies
 target_link_libraries(${TinyOrm_target}
     PUBLIC
         Qt${QT_VERSION_MAJOR}::Core
         range-v3::range-v3
 )
 
-# Conditional dependencies
 if(NOT BUILD_DRIVERS)
     target_link_libraries(${TinyOrm_target} PUBLIC Qt${QT_VERSION_MAJOR}::Sql)
 endif()
@@ -433,13 +320,9 @@ if(MYSQL_PING)
 endif()
 
 if(TOM)
-    # tabulate doesn't provide Package Version File
     tiny_find_package(tabulate CONFIG REQUIRED)
     target_link_libraries(${TinyOrm_target} PUBLIC tabulate::tabulate)
 endif()
-
-# Build TinyDrivers
-# ---
 
 if(BUILD_DRIVERS)
     add_subdirectory(drivers)
@@ -449,9 +332,6 @@ if(BUILD_DRIVERS)
     )
 endif()
 
-# Build auto tests
-# ---
-
 if(BUILD_TESTS)
     enable_testing()
     find_package(Qt${QT_VERSION_MAJOR} ${minQtVersion} REQUIRED COMPONENTS Test)
@@ -459,41 +339,22 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-# Build examples
-# ---
-
 if(TOM_EXAMPLE)
     add_subdirectory(examples)
 endif()
 
-# Deployment
-# ---
-
 include(TinyDeployment)
 
-# Generate find_dependency calls for the TinyORM package config file
 tiny_generate_find_dependency_calls(tiny_find_dependency_calls)
 
-# Create Package Config and Config Package Version files and install the TinyORM Project
 tiny_install_tinyorm()
 
-# Create Package Config and Package Config Version files for the Build Tree and export it
 tiny_export_build_tree()
 
-# Copy TinyDrivers and TinyMySql libraries to the root of the build tree
 if(BUILD_TREE_DEPLOY)
     tiny_build_tree_deployment()
 endif()
 
-# Generate pkg-config file
-#if(NOT MSVC)
-#	generate_and_install_pkg_config_file(torrent-rasterbar libtorrent-rasterbar)
-#endif()
-
-# Some info output
-# ---
-
-# Set up package properties using the set_package_properties()
 set_packages_properties()
 
 if(VERBOSE_CONFIGURE)
