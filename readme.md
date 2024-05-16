@@ -54,14 +54,11 @@ Installer avec `apt-get`:
 
 Intaller la lib `tabulate` :
 ```
-cd
-sudo git clone https://github.com/p-ranav/tabulate.git
-cd tabulate
-sudo mkdir BUILD
-cd BUILD
+cd && sudo git clone https://github.com/p-ranav/tabulate.git
+cd tabulate && sudo mkdir BUILD && cd BUILD 
 sudo cmake -G "Unix Makefiles" ..
 sudo make install
-rm -r ../../tabulate
+cd && sudo rm -r tabulate
 ```
 
 ## BUILD
