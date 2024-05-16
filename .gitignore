@@ -43,4 +43,3 @@ EXE/UNITY/*.unitypackage
 EXE/UNITY/*.app
 
 EXTERN/Zlib/*
-EXTERN/VCPKG/*
