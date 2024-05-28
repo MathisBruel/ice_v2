@@ -12,23 +12,23 @@ Cette entité contient des groupes de cinémas. Dans notre utilisation, les occu
 
 ### Site
 
-Cette entité correspond à la liste des cinémas. Un site ne peut être relier qu'a un seul groupe.
+Un site est un cinéma ayant une ou plusieurs salles ICEs. Un site ne peut être relier qu'a un seul groupe.
 
 ### Connection
 
-Cette entité agit comme un tag pour l'entité Site.
+Cette entité définie la méthode de connexion sur un site (proxy, ssh, ftp ).
 
 ### Server Pair Configuration
 
-Cette entité contient les informations nécessaires à la configuration du Serveur ICE de l'auditorium, l'ip du serveur de projection, l'ip du serveur ICE de l'auditorium.
+Cette entité décrit les informations unique pour chaque server auditorium, elle peut également décrire les information pour un couple de serveur (auditorium + hallway) dans les cas d'héritage avec Hallway server configuration.
 
 ### Auditorium Par, Auditorium Panel, Auditorium BackLight & Auditorium MovingHead
 
-Ces 4 entités constituent la liste du matériel présent dans le Server Pair Configuration.
+Liste du matériel présent dans l'auditorium, hors éclairage ménage.
 
 ### Hallway Server Configuration
 
-Cette entité contient les configurations du serveur ICE du couloir (Hallway), l'ID du Server Pair Configuration est le même que celui de la configuration.
+Cette entité contient les informations unique du serveur couloir.
 
 ### Hallway Par & Hallway Panel
 
@@ -36,23 +36,24 @@ Ces 2 entités constituent la liste du matériel présent dans le Hallway Server
 
 ### Default Server Configuration Hallway & Default Server Configuration Auditorium
 
-Ces 2 entités contiennent des configurations génériques/communes pour les serveurs ICE, couloir (Hallway) & auditorium.
+Default Server Configuration Hallway contient la liste des informations communes entre les serveurs couloirs.
+Default Server Configuration Auditorium contient la liste des informations communes entre les serveurs auditoriums.
 
 ### Type, Localisation & Movie
 
-Ces 3 entités contiennent des informations relatives à une relieuse. Elles forment une clé primaire composée pour l'entité Releases. L'entité Localisation représente la cible première de la langue audio, des textes contenues dans le film (sans les sous-titres) et de la censure.
+Ces 3 entités contiennent des informations relatives à une release. Elles forment une clé primaire composée pour l'entité Releases.
 
 ### Releases
 
-Cette entité rassemble toutes les informations sur une release.
+La release représente un ensemble de CPL partageant des propriétés communes (même film, même Localisation, même type). Pour un même film cible, il peut exister plusieurs type.
 
 ### CPL
 
-Cette association résulte sur la création d'une table dans le modèle logique de données. Elle contient les données essentielles pour la liaison entre les Hallway Server Configuration et les releases.
+Cette association résulte sur la création d'une table d'association. L'association CPL représente un fichier installé sur le serveur auditorium.
 
 ### Sync
 
-Cette association résulte aussi sur la création d'une table dans le modèle logique de données. Elle contient les informations sur le fichier sync. Elle a une contrainte d'inclusion sur l'association CPL, car un fichier sync est toujours en lien avec un CPL.
+Cette association résulte sur la création d'une table d'association. Elle contient les informations sur le fichier sync. Elle a une contrainte d'inclusion sur l'association CPL, car un fichier sync est toujours en lien avec un CPL.
 Cette contrainte d'inclusion est représentée par un trigger dans le modèle phisyque de données.
 
 ```

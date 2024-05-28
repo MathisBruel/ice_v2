@@ -6,13 +6,8 @@ using Orm::DB;
 
 namespace Migrations
 {
-
     struct RecreateDatabaseStructure : Migration
     {
-        /*! Filename of the migration file. */
-        T_MIGRATION
-
-        /*! Run the migrations. */
         void up() const override
         {
 			Schema::create("groups", [](Blueprint &table)
@@ -164,7 +159,6 @@ namespace Migrations
                 END IF; \
             END;");
         }
-        /*! Reverse the migrations. */
         void down() const override
         {
             DB::statement("DROP TRIGGER `cpl_exists`");
