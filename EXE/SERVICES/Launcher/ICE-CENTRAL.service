@@ -1,0 +1,14 @@
+[Unit]
+Description=ICE-CENTRAL
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=sudo
+WorkingDirectory=/data/ICE2/WebCentral/
+ExecStart=/usr/bin/nodejs javascripts/Main_API.js javascripts/config.json
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

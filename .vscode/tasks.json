@@ -75,7 +75,7 @@
             "group": "build"
         },
         {   "label": "Start ICE-SERVICE and ICE-Panel",
-            "command": "docker exec -d ice-panel-container-v2 /IceDeviceEmulator 192.50.50.3 192.50.0.1; docker exec -d ice-server-container-v2 /data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/ ; docker exec -d ice-server-container-v2-sas /data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/ ;docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json",
+            "command": "docker exec -d ice-panel-container-v2 /IceDeviceEmulator 192.50.50.3 192.50.0.1; docker exec -d ice-server-container-v2 /data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/; docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json",
             "type": "shell",
             "args": [],
             "problemMatcher": [

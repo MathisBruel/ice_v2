@@ -1,0 +1,242 @@
+# Determine whether the shared, loadable, or static TinyDrivers are built.
+# The variable name can be given as the first argument and the result will be set into
+# this output variable, it helps to avoid calling this function multiple times.
+defineTest(tiny_is_building_drivers) {
+    # The out argument checks
+    defined(1, var): \
+    isEmpty(1): \
+        error( "The first string 'out' parameter can't be empty when defined\
+                in tiny_is_building_drivers()." )
+
+    # Prepare variable names
+    defined(1, var): definedOut = true
+    else: definedOut = false
+    out = $$1
+
+    # Main section
+    build_shared_drivers | \
+    build_loadable_drivers | \
+    build_static_drivers {
+        $$definedOut {
+            $$out = true
+            export($$out)
+        }
+        return(true)
+    }
+
+    $$definedOut {
+        $$out = false
+        export($$out)
+    }
+    return(false)
+}
+
+# Determine whether the given Tiny driver is built.
+# The first argument is the name of the Tiny driver to check.
+# The variable name can be given as the second argument and the result will be set into
+# this output variable, it helps to avoid calling this function multiple times.
+defineTest(tiny_is_building_driver) {
+    # The driverType argument checks
+    !defined(1, var) | \
+    isEmpty(1): \
+        error( "The first string 'driverType' parameter can't be empty\
+                in tiny_is_building_driver()." )
+
+    # The out argument checks
+    defined(2, var): definedOut = true
+    else: definedOut = false
+
+    $$definedOut: \
+    isEmpty(2): \
+        error( "The first string 'out' parameter can't be empty when defined\
+                in tiny_is_building_driver()." )
+
+    # Prepare variable names
+    driverType = $$1
+    out = $$2
+
+    equals(driverType, mysql): isMySql = true
+    else: isMySql = false
+    equals(driverType, psql): isPostgres = true
+    else: isPostgres = false
+    equals(driverType, sqlite): isSQLite = true
+    else: isSQLite = false
+
+    # Verify whether the driverType has the correct value
+    !$$isMySql: \
+    #!$$isPostgres: \
+    #!$$isSQLite: \
+        error( "Unsupported value for the first 'driverType' parameter, supported values\
+                are mysql in tiny_is_building_driver()." )
+
+    # Main section
+    # Nothing to check, no drivers are built
+    !tiny_is_building_drivers() {
+        $$definedOut {
+            $$out = false
+            export($$out)
+        }
+        return(false)
+    }
+
+    # The build_mysql/psql/sqlite_driver CONFIG option was given explicitly
+    $$isMySql:build_mysql_driver {
+        $$definedOut {
+            $$out = true
+            export($$out)
+        }
+        return(true)
+    }
+    #$$isPostgres:build_psql_driver: return(true)
+    #    $$definedOut {
+    #        $$out = true
+    #        export($$out)
+    #    }
+    #    return(true)
+    #}
+    #$$isSQLite:build_sqlite_driver {
+    #    $$definedOut {
+    #        $$out = true
+    #        export($$out)
+    #    }
+    #    return(true)
+    #}
+
+    # By default, all drivers are enabled if no CONFIG option was given
+    !build_mysql_driver {
+    #!build_psql_driver: \
+    #!build_sqlite_driver: \
+        $$definedOut {
+            $$out = true
+            export($$out)
+        }
+        return(true)
+    }
+
+    $$definedOut {
+        $$out = false
+        export($$out)
+    }
+    return(false)
+}
+
+# Check TinyDrivers build type CONFIG options.
+defineTest(tiny_drivers_check_build_types) {
+    !build_pass: \
+    if(build_shared_drivers:if(build_loadable_drivers|build_static_drivers)) | \
+    if(build_loadable_drivers:if(build_shared_drivers|build_static_drivers)) | \
+    if(build_static_drivers:if(build_shared_drivers|build_loadable_drivers)): \
+        error( "More TinyDrivers build types defined in the CONFIG options, only one of\
+                these 'build_shared/loadable/static_drivers' CONFIG options can be\
+                defined at a time." )
+
+    !build_pass: \
+    CONFIG(static, dll|shared|static|staticlib): \
+    if(build_shared_drivers|build_loadable_drivers): \
+        error( "The 'build_shared/loadable_drivers' TinyDrivers build types can't be used\
+                with the 'static' CONFIG option, please use the 'build_static_drivers'\
+                CONFIG option." )
+}
+
+# Determine whether the current TARGET is TinyDrivers-related.
+defineTest(tiny_is_drivers_target) {
+    tiny_is_building_drivers(): \
+    if(equals(TARGET, TinyDrivers) | \
+       equals(TARGET, TinyMySql)): \
+       # equals(TARGET, TinyPostgres) | \
+       # equals(TARGET, TinySQLite)): \
+        return(true)
+
+    return(false)
+}
+
+# Add the given path on the system or non-system INCLUDEPATH.
+# It's configurable using the global TINY_DRIVERS_INCLUDE_NONSYSTEM qmake variable.
+defineTest(tiny_add_drivers_includepath) {
+    # Argument checks
+    !defined(1, var) | \
+    isEmpty(1): \
+        error( "The first string 'driversIncludePath' parameter can't be empty\
+                in tiny_add_drivers_includepath()." )
+
+    # Prepare variable names
+    driversIncludePath = $$1
+
+    # This is the best way how to do it, another solution would be to use qmake's CONFIG
+    # variable to configure it (not a good idea) or call the tiny_link_drivers() qmake
+    # function for each project separately and pass eg. true/false flag to it (not a good
+    # idea as we have ~45 project files that would need be updated).
+    # Also, we need this non-system include only in a few projects, such as auto tests
+    # (currently sqlquery_normal.pro and sqlquery_prepared.pro), and all other projects
+    # must include it the same way as the QtSql module is included.
+    # The reason why only automated tests use this non-system include is to not suppress
+    # compiler warnings.
+    # Add the TinyDrivers include path as non-system include path
+    defined(TINY_DRIVERS_INCLUDE_NONSYSTEM, var): \
+    !isEmpty(TINY_DRIVERS_INCLUDE_NONSYSTEM): \
+    $$TINY_DRIVERS_INCLUDE_NONSYSTEM {
+        INCLUDEPATH += $$driversIncludePath
+        export(INCLUDEPATH)
+    }
+    # Add as the SYSTEM include path
+    else {
+        load(tiny_system_includepath)
+        tiny_add_system_includepath($$driversIncludePath)
+    }
+}
+
+# Link against the TinyDrivers (if enabled) or QtSql module and define the qmake DEFINES.
+defineTest(tiny_link_drivers) {
+    # Use the TinyDrivers instead of QtSql drivers
+    tiny_is_building_drivers() {
+        # Defines
+        DEFINES *= PROJECT_TINYDRIVERS
+        DEFINES *= TINYORM_USING_TINYDRIVERS
+
+        build_shared_drivers | \
+        build_loadable_drivers: \
+            DEFINES *= TINYDRIVERS_LINKING_SHARED
+
+        # Cache the result to the isBuildingMySqlDriver variable
+        tiny_is_building_driver(mysql, isBuildingMySqlDriver)
+
+        $$isBuildingMySqlDriver: \
+            DEFINES *= TINYDRIVERS_MYSQL_DRIVER
+
+        build_loadable_drivers: \
+        $$isBuildingMySqlDriver: \
+            DEFINES *= TINYDRIVERS_MYSQL_LOADABLE_LIBRARY
+
+        # Includes and Libraries
+        tiny_add_drivers_includepath(\
+            $$quote($$TINYORM_SOURCE_TREE/drivers/common/include/))
+
+        # To be able to find the version.hpp and mysqllibraryinfo.hpp
+        $$isBuildingMySqlDriver: \
+            tiny_add_drivers_includepath(\
+                $$quote($$TINYORM_SOURCE_TREE/drivers/mysql/include/))
+
+        # Don't check if exists() because QtCreator depends on these LIBS paths it adds
+        # them on the PATH or LD_LIBRARY_PATH during Run Project
+        !isEmpty(TINYORM_BUILD_TREE) {
+            include($$TINYORM_SOURCE_TREE/qmake/support/variables.pri)
+            LIBS += $$quote(-L$$clean_path($$TINYORM_BUILD_TREE)/drivers/common$${TINY_BUILD_SUBFOLDER}/)
+            LIBS += -lTinyDrivers
+
+            build_loadable_drivers: \
+            $$isBuildingMySqlDriver: \
+                LIBS += $$quote(-L$$clean_path($$TINYORM_BUILD_TREE)/drivers/mysql$${TINY_BUILD_SUBFOLDER}/)
+
+            export(LIBS)
+        }
+        export(INCLUDEPATH)
+    }
+    # Use the QtSql module
+    else {
+        QT *= sql
+        DEFINES *= TINYORM_USING_QTSQLDRIVERS
+        export(QT)
+    }
+
+    export(DEFINES)
+}

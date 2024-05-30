@@ -1,0 +1,3189 @@
+Increase/bump the release version:
+----------------------------------
+
+- bump message format:
+
+bump version to TinyORM v0.37.1 and tom v0.9.0
+
+- just simply search the current version number in all files eg. 0.37.1
+- don't forget to update a version number in the silverqx/TinyORM-HelloWorld find_package() call
+
+- TinyORM:
+  9 files must be modified, README.md, docs/README.mdx, two vcpkg.json files, NOTES.txt,
+  hello-world.mdx, migrations.mdx, tinyorm.mdx plus bumped version.hpp file
+- tom:
+  5 files must be modified, README.md, docs/README.mdx, NOTES.txt, plus bumped version.hpp file
+
+- increase in the following files
+
+include/orm/version.hpp
+tests/TinyUtils/src/version.hpp
+tom/include/tom/version.hpp
+
+- and also informational version in badges
+
+README.md
+docs/README.md
+
+- vcpkg ports version number
+
+cmake/vcpkg/ports/tinyorm/vcpkg.json
+cmake/vcpkg/ports/tinyorm-qt5/vcpkg.json
+
+- verions in docs
+
+hello-world.mdx#cmake-project
+hello-world.mdx#fetchcontent
+migrations.mdx#cmake-project
+tinyorm.mdx#consume-tinyorm-library-cmake
+
+
+Number of Unit tests:
+---------------------
+
+- Qt5 has 14 unit tests less; the QSQLITE driver tests are excluded in the tst_migrate;
+  Not SKIPPED but excluded using preprocessor macros!
+
+Testing of the Qt 5 QSQLITE driver is excluded because it doesn't support
+ALTER TABLE DROP COLUMN, support for dropping columns was added
+in the SQLite v3.35.0.
+
+- Linux has 3 unit tests less and 3 SKIPPED unit tests more;
+  checking exe properties are excluded in the tst_versions;
+  They are SKIPPED!
+
+Linux doesn't have exe properties like version, description, ...
+
+
+How to updated vcpkg tinyorm and tinyorm-qt5 ports:
+---------------------------------------------------
+
+Everything needed is in the tools/deploy.ps1 script so I write only a small summary.
+
+Important are the vcpkg_from_github() REF and SHA512 options in the portfile.cmake.
+
+Prefer tags in the REF but can also be a commit ID.
+
+The SHA512 is a hash of the source code tinyorm.tar.gz archive, the tools/Get-VcpkgHash.ps1
+script can be used to obtain this hash. The URL to download this archive is:
+https://github.com/silverqx/TinyORM/archive/v0.37.1.tar.gz
+https://github.com/silverqx/TinyORM/archive/ca8909896247b21bf08d62a5109b23e9f65c89e1.tar.gz
+
+If only the vcpkg is updated but the TinyORM version number is not bumped then
+the port-version field must be added or bumped in the vcpkg.json file.
+
+But all of this is handled by the tools/deploy.ps1 script. 👌
+
+
+Proxy methods that internally call the toBase() (applySoftDeletes):
+-------------------------------------------------------------------
+
+I have little misunderstood when the SoftDeletes constraint will be applied, I thought that it will be applied only
+during the TinyBuilder::toBase(), that is not absolutely true because whether it will be applied is controlled by
+the Model::newQueryXyz() methods. These Model::newQueryXyz() methods are called on various places, somehwhere
+the newQuery() (applies SoftDeletes) is called and on another places the newModelQuery() (doesn't apply SoftDeletes) or newQueryWithoutRelationships() is called.
+
+Anyway I leave this new structure of proxy methods that are divided by the toBase() or getQuery() internal method calls,
+it makes sense.
+
+Proxy methods on the TinyBuilder that need to apply SoftDeletes (call toBase() internally).
+
+aggregate
+average
+avg
+count
+dd
+decrement
+doesntExist
+doesntExistOr
+dump
+exists
+existsOr
+explain (currently not implemented)
+implode
+increment
+max
+min
+pluck
+remove
+sum
+toSql
+update
+upsert
+
+These three getters are discutable, but I will apply SoftDeletes, it won't hurt anything:
+from
+getConnection
+getGrammar
+
+There is not need to apply SoftDeletes for the getBindings() as the BuildsSoftDeletes is not adding any new bindings:
+getBindings
+
+There is not need to apply SoftDeletes on insert methods:
+insert
+insertGetId
+insertOrIgnore
+insertUsing
+
+There is not need to apply SoftDeletes on these:
+raw
+
+
+QDateTime and database date/time types:
+---------------------------------------
+
+The TinyORM handles the QDateTime's time zone correctly, it converts a time zone to the time zone
+defined in the "qt_timezone" connection configuration option and then it converts a QDateTime
+instance to a string using the Model::u_dateFormat,
+look at the Model::setAttribute() -> Model::fromDateTime().
+
+Also, look at the commit that has an extensive description:
+QDateTime overhaul 🤯🤐🙃 (1ded27bb)
+
+MySQL:
+---
+  Qt QMYSQL driver:
+    It's not so simple, first, it ignores the QDateTime timezone, it simply takes
+    a DateTime value that was given during the QDateTime creation (ctor/fromString/...),
+    and exactly this value will be sent to the MySQL database.
+
+    datetime column type:
+      - will save exactly the same value that was sent to the database
+
+    timestamp column type:
+      - is another story, here is important the MySQL timezone session variable,
+        the MySQL server converts the DateTime value that was sent to the UTC timezone
+        for storage and this UTC value will be saved in the database, the same is true during
+        retrieval of this value, so it converts it from the UTC to a session timezone
+
+  Database:
+    MySQL database converts TIMESTAMP values from the current timezone to UTC
+    for storage, and back from UTC to the current timezone for retrieval.
+    This does not occur for other types such as DATETIME.
+    By default, the current timezone for each connection is the server's time.
+    The timezone can be set on a per-connection basis using the time_zone system
+    variable.
+
+  Summary:
+    Sent:
+      It IGNORES the QDateTime timezone!
+      MYSQL_TIME *myTime = toMySqlDate(val.toDate(), val.toTime(), val.userType());
+      And the toMySqlDate() function picks internally the year, month, hour, minute, ...
+      one by one, so it calls date.year(), date.month(), time.hour(), ...
+    Retrieval:
+      Returns in the local timezone.
+      - for prepared statements:
+        return QDateTime(date, time);
+      - for non-prepared/normal statements:
+        return qDateTimeFromString(val); it internally calls
+        return QVariant(QDateTime::fromString(val, Qt::ISODate));
+
+SQLite:
+---
+  Qt QSQLITE driver:
+    It doesn't ignore the QDateTime timezone, it converts the QDateTime to a string using
+    .toString(Qt::ISODateWithMs) and this string value is sent to the database and
+    will be saved as a string column.
+
+  Database:
+    The SQLite database doesn't support DateTime-related types but has functions
+    for working with or converting DateTimes; they also allow to convert between
+    different timezones (using eg. strftime()).
+
+  Summary:
+    Sent:
+      It DOESN'T ignore the QDateTime timezone.
+      dateTime.toString(Qt::ISODateWithMs);
+    Retrieval:
+      It returns QVariant(QMetaType::QString).
+      - so it's up to a user how it will instantiate a QDateTime object from this
+        string value
+
+PostgreSQL:
+---
+  Qt QPSQL driver:
+    It's not so simple, it converts all QDateTime time zone to UTC and sends it to the database
+    in the ISO UTC format, for both for timestamps/datetime with or without time zone.
+    So the timestamps with time zone behave exactly like for the MySQL DB.
+    But timestamps without time zone don't, they are converted to the LOCAL DB server time zone
+    by DB before they are saved to DB storage.
+
+  Database:
+    The PostgreSQL server timezone can be set using the set TIME ZONE or set TIMEZONE TO
+    session variable or by the PGTZ environment variable, or of course using the main
+    configuration file and using the timezone configuration setting eg.
+    timezone = 'Europe/Bratislava'.
+
+  Summary:
+    Sent:
+      It DOESN'T ignore the QDateTime timezone.
+      // we force the value to be considered with a timezone information, and we force it to be UTC
+      // this is safe since postgresql stores only the UTC value and not the timezone offset (only used
+      // while parsing), so we have correct behavior in both case of with timezone and without tz
+      r = QStringLiteral("TIMESTAMP WITH TIME ZONE ") + QLatin1Char('\'') +
+                         QLocale::c().toString(field.value().toDateTime().toUTC(), u"yyyy-MM-ddThh:mm:ss.zzz") +
+                         QLatin1Char('Z') + QLatin1Char('\'');
+    Retrieval:
+      return QVariant(QDateTime::fromString(QString::fromLatin1(val),
+                                            Qt::ISODate).toLocalTime());
+
+
+Handling NULL values:
+---------------------
+
+Also look qsqlresult.cpp -> QSqlResultPrivate::isVariantNull()
+
+Also, look at the commit:
+tests QDateTime null values (e8b3c3c5)
+
+MySQL:
+---
+  Summary:
+    Sent:
+      if (field.isNull())
+        r = QStringLiteral("NULL");
+    Retrieval:
+      return QVariant(f.type);
+
+SQLite:
+---
+  Summary:
+    Sent:
+      if (QSqlResultPrivate::isVariantNull(value))
+        res = sqlite3_bind_null(d->stmt, i + 1);
+    Retrieval:
+      case SQLITE_NULL:
+        values[i + idx] = QVariant(QMetaType::fromType<QString>());
+
+PostgreSQL:
+---
+  Summary:
+    Sent:
+      const auto nullStr = [](){ return QStringLiteral("NULL"); };
+      QString r;
+      if (field.isNull())
+        r = nullStr();
+    Retrieval:
+      if (PQgetisnull(d->result, currentRow, i))
+        return QVariant(type, nullptr);
+
+
+Handling integer values:
+------------------------
+
+bool, smallint, bigint, ... are database types, _u suffix means unsigned.
+Int, Short, LongLong, ... are QMetaType-s.
+
+            bool      smallint  smallint_u  int       int_u     bigint    bigint_u   double  decimal
+MySQL       Int       Short     UShort      Int       UInt      LongLong  ULongLong  Double  Double
+PostgreSQL  Bool      Int       -           Int       -         -         -          Double  Double
+SQLite      LongLong  LongLong  LongLong    LongLong  LongLong  LongLong  LongLong   Double  Double
+
+Special rules:
+-----
+
+PostgreSQL:
+---
+ - doesn't have unsigned integer numbers.
+ - returns Int for all types <Int
+ - bigint has special handling, it returns LongLong for positive numbers and ULongLong for negative,
+   it simply detects - character at the beginning
+
+
+null values:
+-----
+
+In this case Int, Short, LongLong, ... are QMetaType-s that are passed to the QVariant ctor to
+create a null QVariant eg. QVariant(QMetaType(QMetaType::Int)).
+
+            bool      smallint  smallint_u  int       int_u     bigint    bigint_u   double   decimal
+MySQL       Char      Short     UShort      Int       UInt      LongLong  ULongLong  Double   Double
+PostgreSQL  Bool      Int       -           Int       -         LongLong  LongLong   Double   Double
+SQLite      QString   QString   QString     QString   QString   QString   QString    QString  QString
+
+Special rules:
+-----
+ - QSQLITE driver - returns null QVariant(QMetaType(QMetaType::QString)) for all null values
+ - QMYSQL driver  - returns null QVariant(QMetaType(QMetaType::Char)) for tinyint database types
+ - QPSQL driver   - the logic for - and ULongLong is not applied for the null values, so it's
+                    everytime LongLong
+
+
+All places where is created some Model instance:
+------------------------------------------------
+
+The following list contains only a direct Model's constructor calls like "Derived model;",
+these direct constructor calls have been replaced everywhere to Model::instance() related
+methods to support the Default Attribute values.
+All instance allocation are on the stack unless otherwise noted.
+
+Model:
+  ctors
+  instance()
+  on()
+  query()
+  newTinyBuilder()
+  newFromBuilder()
+  newInstance()
+
+HasAttributes:
+  getOriginal()
+
+HasRelationships:
+  newRelatedInstance() - heap allocation
+
+ModelProxies:
+  destroy()
+
+BasePivot:
+  fromAttributes()
+
+
+Orm::DatabaseConnection smart pointers data members graph:
+----------------------------------------------------------
+
+The order is also correct in the following graph, I'm visualizing it to better understand and try
+to avoid shared pointers reference cycles.
+
+ - DatabaseConnection : public std::enable_shared_from_this<DatabaseConnection>
+   - shared_ptr<QueryGrammar>  m_queryGrammar
+   - shared_ptr<SchemaGrammar> m_schemaGrammar
+   - unique_ptr<SchemaBuilder> m_schemaBuilder
+     - shared_ptr<DatabaseConnection> m_connection
+     - shared_ptr<SchemaGrammar>      m_grammar
+   - unique_ptr<QueryProcessor>   m_postProcessor
+
+ - QueryBuilder
+   - std::shared_ptr<DatabaseConnection> m_connection
+   - std::shared_ptr<QueryGrammar>       m_grammar
+
+ - SchemaBuilder
+   - std::shared_ptr<DatabaseConnection> m_connection
+   - std::shared_ptr<QueryGrammar>       m_grammar
+
+ - Relation
+   - std::shared_ptr<Related> m_related
+
+ - TinyBuilder
+   - std::shared_ptr<QueryBuilder> m_query
+
+
+C preprocessor macros, defines, private, public, interface:
+-----------------------------------------------------------
+
+ - qmake:
+   - TINYORM_MYSQL_PING and linking against MySQL C library:
+     - TINYORM_MYSQL_PING is public macro and should also be defined in the application that
+       consumes TinyORM library. If the TinyORM library was build with the mysql_ping config. then
+       it should also be  defined in the consumer application. But, if the mysql_ping is not defined
+       Nothing Bad Happens because the TINYORM_MYSQL_PING is only used in the databaseconnection.hpp
+       to #ifdef the friend MySqlConnection declaration what means that it doesn't affect
+       a consumer application in any sense.
+     - linking against MySQL C library is not needed in the TinyOrm.pri and tom.pri
+
+
+Todos to check in TinyOrm:
+--------------------------
+
+ - QueryBuilder::insertGetId() allows insert with empty attributes, also Model::performInsert()
+   when incrementing == true, but all other insert methods don't, it's big inconsistency, unify it
+
+
+Documentation TinyOrm Todos:
+----------------------------
+
+ - how to refer NULL in docs, for now I leave it NULL
+
+
+TODOs which look bad in code:
+-----------------------------
+
+ - future add onDelete (and similar) callback feature
+
+/*! Delete records from the database. */
+void deleteModel()
+{
+    // TODO future add onDelete (and similar) callback feature silverqx
+//    if (isset($this->onDelete)) {
+//        return call_user_func($this->onDelete, $this);
+//    }
+
+    return toBase().deleteRow();
+}
+
+ - add c++20 compiler check, something like:
+#ifdef __cplusplus
+#  if __cplusplus < 201103L && !defined(Q_CC_MSVC)
+#    error Qt requires a C++11 compiler and yours does not seem to be that.
+#  endif
+#endif
+
+ - check this in cmake build:
+#include(GenerateExportHeader)
+#_test_compiler_hidden_visibility()
+
+
+Todo categories:
+----------------
+
+Common:
+
+ - api different      : different api than Laravel's Eloquent
+ - check              : something to find out 🤔
+ - concept            : add concept or constraint
+ - docs               : document code or update markdown documentation
+ - desirable          : feature which is extremely wanted
+ - dilemma            : some sort of a fuckup
+ - duplicate          : duplicate code
+ - feature            : some feature to implement, perpend before feature described below
+ - future             : task which has lower priority, because still much to do
+ - mistake            : bad decision during prototyping 😭
+ - move               : c++ move semantics
+ - mystery            : don't know why that stuff is happening, find out what's up
+ - now                : do it before commit
+ - next               : next thing in the row to do after commit
+ - overflow           : add check code, eg when size_t to int conversion
+ - perf               : performance
+ - production         : check before deploy to production
+ - regex              : mark regex-es, try to avoid them
+ - reliability        : make things more robust and reliable
+ - repeat             : tasks that should I make from time to time
+ - security           : self explaining
+ - study              : don't know how something works, need to check up
+ - sync               : synchronization in multi thread environment silverqx
+ - test               : tasks in auto tests
+ - types              : juggling with c++ types
+
+Features related/to implement:
+
+ - aggregates            : aggregate values like count, max, min, avg and sum
+ - castable              : attributes casting
+ - default attributes    : Default Attribute Values
+ - dilemma primarykey    : different types for primary keys
+ - expression            : DB::raw() support in the query builder
+ - events                : event system
+ - ga                    : github actions
+ - guarded               : related to the mass assignable feature
+ - json columns          : JSON support
+ - logging               : logging related
+ - migrations            : database migrations related
+ - multidriver           : task related to adding support for another drivers PostgreSQL, SQLite and SQL Server
+ - pivot                 : pivot table in the many-to-many relationship
+ - postgres              : specific to PostgreSQL server
+ - qt6                   : related to Qt6 upgrade or compatibility
+ - read/write connection : read/write connection
+ - relations             : relations related 🤓
+ - savepoints            : database savepoints
+ - scopes                : query scopes
+ - seeders               : seeders related
+ - table prefix          : table prefix in the query grammar
+ - tom                   : tom migrations related
+
+
+Upgrade the Qt to new version:
+------------------------------
+
+ - run the QtCreator and do the PrintScreen of the Settings - Kits - Kits
+ - close the QtCreator
+ - run the Qt Maintenance Tool and add a new Qt version and also remove the old Qt version if want
+ - remove the old C:\Qt\x.y.z version folder (leftovers)
+ - open dotfiles in the vscode and file/replace all occurences of x.y.z and x_y_z to the new version; commit - upgraded to Qt vx.y.z
+ - add a new Qt version on the user PATH environment variable
+ - build the QMYSQL driver - qtbuild-qmysql-driver.ps1 6.7.0
+ - open the QtCreator
+   - fix all the Settings - Kits - Kits Qt versions
+   - fix the Settings - Debugger - Source Paths Mapping
+   - open the Projects mode (ctrl+5) for TinyORM and TinyOrmPlayground and disable/enable kit to update all build paths
+ - rebuild TinyORM and invoke unit tests
+
+GitHub Action workflows:
+
+ - open TinyORM in the vscode and file/replace all occurrences of x.y.z and x_y_z to the new version
+ - commit - workflows upgraded to Qt vx.y.z
+ - TinyOrm-files:
+   - 7zip the qsqlmysql.dll, qsqlmysql.pdb, qsqlmysqld.dll, qsqlmysqld.pdb to the TinyOrm-files/qmysql_dlls-x.y.z.7z
+   - remove the old TinyOrm-files/qmysql_dlls-x.y.z.7z file
+   - generate the new hash - .\tools\Get-DownloadsHash.ps1 -Platform Linux, Windows
+   - commit - upgraded to Qt v6.7.0
+ - update the URL_QMYSQL_DLLS_MSVC_X64_x_y_z GitHub secret
+
+MySQL Timezone tables:
+
+ - update the URL_MYSQL_TIMEZONE_TABLES GitHub secret
+ - download from https://dev.mysql.com/downloads/timezones.html
+ - pick the posix version without the leap second
+ - Commands to update MySQL server on merydeye-devel
+mysql_config_editor print --all
+mysql --login-path=root -p mysql
+source timezone_posix.sql;
+Restart-Service MySQL83
+
+
+Versions info:
+--------------
+
+This is laravel/framework version, not laravel/laravel version:
+
+ - I have cloned repository at - E:\htdocs\laravel-src-master
+ - based on Laravel v8.26.1
+ - upgrade to Laravel v8.41.0 ( 15.5.2021, but I didn't merged/reflected new changes to TinyORM )
+ - upgrade to Laravel v8.80.0 ( 19.1.2021, upgrade from v8.41.0 )
+ - compare URLs (remove after merge):
+   - https://github.com/laravel/framework/compare/v8.26.1...v8.41.0
+   - https://github.com/laravel/framework/compare/v8.41.0...v8.80.0
+
+ - upgraded to Laravel 9
+   - v9.44.0 to v9.48.0
+   - v9.48.0 to v9.50.2
+
+ - upgraded to Laravel 10
+   - v9.50.2 to v10.0.3
+   - v10.9.0 to v10.14.1
+
+ - close all expanded sections in github compare diff:
+
+document.querySelectorAll('.btn-octicon.js-details-target[aria-expanded=true]').forEach((value) => value.click())
+
+
+Maintenance:
+------------
+
+ - from time to time try:
+   - compile without PCH
+   - compile with Qt6, I have still problem with clazy
+
+
+GitHub Actions:
+---------------
+
+ - Mass deletion of GitHub workflow runs
+   - authenticate using the gh if auth expired
+     - gh auth login -h github.com
+
+   - dwr silverqx/TinyORM
+     - <tab> or <shift-tab> to un/select
+     - <enter> to delete selected runs
+     - ~/.dotfiles/bin/dwr
+
+ - upgrade to the latest dwr
+   - https://qmacro.org/blog/posts/2021/03/26/mass-deletion-of-github-actions-workflow-runs/
+   - https://raw.githubusercontent.com/qmacro/dotfiles/230c6df494f239e9d1762794943847816e1b7c32/scripts/dwr
+
+ - Runner images: https://github.com/actions/runner-images/tree/main/images
+
+ - My common folders structure:
+
+   - checkout to the current folder
+     - the github.workspace is the current workspace folder
+     - if using more repo checkouts then checkout using side-by-side method:
+       https://github.com/actions/checkout?tab=readme-ov-file#Checkout-multiple-repos-side-by-side
+
+   - the runner.workspace points to the parent folder
+     - I'm using it for build folders or things that are generated during workflows
+
+   - the env.TinyRunnerWorkPath points two folders up ../..
+     - it's directly in the _work/ or work/ folder
+     - I'm using it for more common things like data from GH extensions or databases data folders
+
+ - all actions with versions currently used by TinyORM:
+
+   actions/cache@v3
+   actions/checkout@v4
+   actions/github-script@v6
+   ilammy/msvc-dev-cmd@v1
+   jurplel/install-qt-action@v3
+   KyleMayes/install-llvm-action@v1
+   lukka/get-cmake@latest
+   msys2/setup-msys2@v2
+   mxschmitt/action-tmate@v3
+   seanmiddleditch/gha-setup-ninja@master
+
+   Not using anymore:
+
+   Chocobo1/setup-ccache-action@v1
+
+ - periodical upgrades:
+
+   - analyzers-qtX.yml
+     - add-apt-repository Clang 14
+   - clang-cl-qt6.yml
+     - Install LLVM and Clang 15.0.6 (KyleMayes/install-llvm-action@v1)
+     - Qt 6.7.0 install base components (jurplel/install-qt-action@v3)
+     - QMYSQL install driver dlls (Qt 6.7.0) - needed to rebuild the QSQL QMYSQL driver
+   - linux-qtX.yml
+     - add-apt-repository Clang 15
+   - msvc-2022.yml
+     - Qt 6.7.0 install base components (jurplel/install-qt-action@v3)
+     - QMYSQL install driver dlls (Qt 6.7.0) - needed to rebuild the QSQL QMYSQL driver
+
+ - how to update the clazy-standalone (analyzers.yml):
+   - update the QtCreator to latest version, copy libexec/qtcreator/clang/ to some empty folder
+   - leave only the clazy-standalone executable in the bin/ and lib/ folder, and compress it:
+tar cjvf ../clazy-standalone.tar.bz2 .
+
+   - then update this file in the https://github.com/silverqx/files project
+   - no need to udpate the URL in the GitHub URL_CLAZY_STANDALONE_LINUX_X64 secret,
+     it's still the same:
+https://github.com/silverqx/files/raw/main/clazy-standalone.tar.bz2
+
+ - prepend to the env. variables:
+
+    - name: Print env
+      run: |
+        echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+        echo "LIBRARY_PATH: $LIBRARY_PATH"
+        echo "PATH: $PATH"
+
+    - name: TinyORM prepend to the system $PATH
+      working-directory: ..
+      run: |
+        echo "LD_LIBRARY_PATH=$PWD${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        echo "LIBRARY_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        pwd >> $GITHUB_PATH
+
+    - name: Print env
+      working-directory: ..
+      run: |
+        pwd
+        echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+        echo "LIBRARY_PATH: $LIBRARY_PATH"
+        echo "PATH: $PATH"
+
+    - run: exit 1
+
+ - vcpkg debug:
+
+    - name: TinyORM cmake configure (msvc-cmake-debug)
+      run: >-
+        echo $env:VCPKG_ROOT
+
+        echo $env:VCPKG_DEFAULT_TRIPLET
+
+        echo $env:VCPKG_MAX_CONCURRENCY
+
+        cmake
+        -S .
+        -B ../TinyORM-builds-cmake/build-msvc-cmake-debug
+        ...
+
+- ssh into runner:
+
+  - shortcuts:
+    ctrl-b ?   - help (show commands)
+    ctrl-b c   - new window
+    ctrl-b l   - last window (switch to)
+    ctrl-b n   - next window (switch to)
+    ctrl-b p   - previous window (switch to)
+    ctrl-b 0-9 - switch to window
+    ctrl-b [   - enable scroll mode (eg. Up Arrow or PgDn), press q to quit the scroll mode
+
+    ctrl-b "    - split pane (horizontally)
+    ctrl-b %    - split pane (vertically)
+    ctrl-b z    - resize pane (toggle maximize)
+    ctrl-b M-up - resize pane (up, down, left, right; M- is L-ALT)
+    ctrl-b up   - select pane (up, down, left, right)
+
+  - run if failure or success:
+
+    - name: Setup tmate session
+      if: ${{ always() }}
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+    - run: exit 1
+
+  - !!! with if: ${{ failure() }} condition !!!
+             --------------------
+
+    - name: Setup tmate session
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+    - run: exit 1
+
+  - all TinyORM env. variables
+
+      env:
+        DB_MYSQL_CHARSET: ${{ secrets.DB_MYSQL_CHARSET }}
+        DB_MYSQL_COLLATION: ${{ secrets.DB_MYSQL_COLLATION }}
+        DB_MYSQL_DATABASE: ${{ secrets.DB_MYSQL_DATABASE }}
+        DB_MYSQL_HOST: ${{ secrets.DB_MYSQL_HOST_SSL }}
+        DB_MYSQL_PASSWORD: ${{ secrets.DB_MYSQL_PASSWORD }}
+        DB_MYSQL_SSL_CA: ${{ runner.workspace }}/../mysql/data/ca.pem
+        DB_MYSQL_SSL_CERT: ${{ runner.workspace }}/../mysql/data/client-cert.pem
+        DB_MYSQL_SSL_KEY: ${{ runner.workspace }}/../mysql/data/client-key.pem
+        DB_MYSQL_SSL_MODE: ${{ secrets.DB_MYSQL_SSL_MODE }}
+        DB_MYSQL_USERNAME: ${{ secrets.DB_MYSQL_USERNAME }}
+        DB_PGSQL_CHARSET: utf8
+        DB_PGSQL_DATABASE: ${{ secrets.DB_PGSQL_DATABASE }}
+        DB_PGSQL_HOST: ${{ secrets.DB_PGSQL_HOST }}
+        DB_PGSQL_PASSWORD: ${{ secrets.DB_PGSQL_PASSWORD }}
+        DB_PGSQL_USERNAME: ${{ secrets.DB_PGSQL_USERNAME }}
+        DB_SQLITE_DATABASE: ${{ runner.temp }}/${{ secrets.DB_SQLITE_DATABASE }}
+        TOM_TESTDATA_ENV: testing
+
+- print all contexts:
+
+  Linux:
+
+    - name: Dump pwd
+      run: pwd
+    - name: Dump OS env (unsorted)
+      run: env
+    - name: Dump OS env (sorted)
+      run: |
+        env | sort --ignore-case
+
+  Windows:
+
+    - name: Dump pwd
+      run: Get-Location
+    - name: Dump OS env
+      run: |
+        Get-ChildItem env:
+
+  Common:
+
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT"
+    - name: Dump job context
+      env:
+        JOB_CONTEXT: ${{ toJSON(job) }}
+      run: echo "$JOB_CONTEXT"
+    - name: Dump steps context
+      env:
+        STEPS_CONTEXT: ${{ toJSON(steps) }}
+      run: echo "$STEPS_CONTEXT"
+    - name: Dump runner context
+      env:
+        RUNNER_CONTEXT: ${{ toJSON(runner) }}
+      run: echo "$RUNNER_CONTEXT"
+    - name: Dump strategy context
+      env:
+        STRATEGY_CONTEXT: ${{ toJSON(strategy) }}
+      run: echo "$STRATEGY_CONTEXT"
+    - name: Dump matrix context
+      env:
+        MATRIX_CONTEXT: ${{ toJSON(matrix) }}
+      run: echo "$MATRIX_CONTEXT"
+    - name: Dump env context
+      env:
+        ENV_CONTEXT: ${{ toJSON(env) }}
+      run: echo "$ENV_CONTEXT"
+    - run: exit 1
+
+- query caches using the gh api
+
+# Print all caches usage summary
+gh api -H "Accept: application/vnd.github+json" /repos/silverqx/TinyORM/actions/cache/usage
+# List caches
+gh api -H "Accept: application/vnd.github+json" /repos/silverqx/TinyORM/actions/caches
+# Delete all caches for TinyORM repo
+gh api --method DELETE -H "Accept: application/vnd.github+json" /repos/silverqx/TinyORM/actions/caches
+# Delete a cache by ID for TinyORM repo
+gh api --method DELETE -H "Accept: application/vnd.github+json" /repos/silverqx/TinyORM/actions/caches/CACHE_ID
+
+
+- ternary operator alternative:
+
+${{ matrix.compiler.key == 'gcc' && 1 || 2 }}
+
+ - use quotes for strings:
+
+${{ matrix.compiler.key == 'gcc' && '400M' || '250M' }}
+
+
+- ccache initial build sizes:
+
+First value is with a default compression and second uncompressed (ccache --show-compression)
+
+with PCH:
+
+linux-gcc-qt64   - 780MB (5.0GB)
+linux-clang-qt63 - 440MB (1.3GB)
+linux-gcc-qt5    - 770MB (4.5GB)
+
+w/o PCH:
+
+clang-cl-qt64    - 135MB (880MB)
+msvc2022-qt64    - 190MB (1.5GB)
+msvc2019-qt5     - 175MB (1.5GB)
+linux-gcc-qt64   - 165MB (700MB)
+linux-clang-qt63 - 100MB (680MB)
+linux-gcc-qt5    - 115MB (665MB)
+linux-clang-qt5  -  90MB (640MB)
+
+MSYS2-clang-qt5  - 140MB (900MB)
+MSYS2-clang-qt6  - 140MB (895MB)
+MSYS2-gcc-qt5    - 180MB (940MB)
+MSYS2-gcc-qt6    - 180MB (940MB)
+
+
+- ccache debugging (Linux):
+
+
+    - name: Ccache enable debugging
+      id: ccache-debug
+      run: |
+        ccacheDebugDir0='${{ runner.temp }}/ccache_debug/run_0'
+        ccacheDebugDir1='${{ runner.temp }}/ccache_debug/run_1'
+
+        mkdir -p "$ccacheDebugDir0"
+        mkdir -p "$ccacheDebugDir1"
+
+        echo "CCACHE_DEBUG=1" >> $GITHUB_ENV
+
+        echo "TinyCcacheDebugDir0=$ccacheDebugDir0" >> $GITHUB_OUTPUT
+        echo "TinyCcacheDebugDir1=$ccacheDebugDir1" >> $GITHUB_OUTPUT
+
+... do build here
+
+    - name: TinyORM cmake build ✨ (${{ matrix.compiler.key }}-cmake-debug) (ccache debug 0)
+      run: >-
+        export CCACHE_DEBUGDIR='${{ steps.ccache-debug.outputs.TinyCcacheDebugDir0 }}'
+
+        cmake --build ../TinyORM-builds-cmake/build-${{ matrix.compiler.key }}-cmake-debug
+        --target all --parallel 2
+
+    - name: Ccache statistics
+      run: |
+        ccache --show-stats -vv
+        ccache --zero-stats
+
+    - name: Ccache upload debugging logs (ccache debug 0)
+      uses: actions/upload-artifact@v3
+      with:
+        name: ccache_debug_run_0
+        path: ${{ steps.ccache-debug.outputs.TinyCcacheDebugDir0 }}
+        if-no-files-found: error
+
+    - name: TinyORM cmake build ✨ (${{ matrix.compiler.key }}-cmake-debug) (ccache debug 1)
+      run: >-
+        cmake --build ../TinyORM-builds-cmake/build-${{ matrix.compiler.key }}-cmake-debug
+        --target clean
+
+        export CCACHE_DEBUGDIR='${{ steps.ccache-debug.outputs.TinyCcacheDebugDir1 }}'
+
+        cmake --build ../TinyORM-builds-cmake/build-${{ matrix.compiler.key }}-cmake-debug
+        --target all --parallel 2
+
+    - name: Ccache statistics (ccache debug 1)
+      run: |
+        ccache --show-stats -vv
+        ccache --zero-stats
+
+    - name: Ccache upload debugging logs (ccache debug 1)
+      uses: actions/upload-artifact@v3
+      with:
+        name: ccache_debug_run_1
+        path: ${{ steps.ccache-debug.outputs.TinyCcacheDebugDir1 }}
+        if-no-files-found: error
+
+
+RegEx-s:
+-------
+
+ - const data members:
+(?<![\(\)])(const) +.* +\bm_.*\b( +.*)?;$
+(?<![\(\)])(const) +.* +\bm_.*\b +=
+(?<![\(\)])(const) +.* +\bm_.*\b +{
+ - const data member references:
+(?<![\(\)])(const) +.* +&\bm_.*\b( +.*)?;$
+ - all exceptions:
+throw (.*::)?\w+(E|_error)
+
+
+Powershell commands:
+--------------------
+
+ - export todos to csv:
+Get-ChildItem -Path *.cpp,*.hpp -Recurse | sls -Pattern ' (TODO|NOTE|FIXME|BUG|WARNING|CUR|FEATURE|TEST|FUTURE) ' -CaseSensitive | % { $_.Line = $_.Line.Trim().TrimStart('// '); return  $_; } | select Line,LineNumber,Path | Export-Csv todos.csv -Delimiter ';' -NoTypeInformation
+
+ - search in todos:
+Get-ChildItem -Path *.cpp,*.hpp -Recurse | sls -Pattern ' (TODO|NOTE|FIXME|BUG|WARNING|CUR|FEATURE|TEST|FUTURE) ' -CaseSensitive | % { $_.Line = $_.Line.Trim().TrimStart('// '); return  $_; } | where Line -Match 'pch' | select Line,LineNumber,Path | ft -AutoSize
+
+ - filter out executed queries:
+Get-Content .\tmp.sql | sls -Pattern '^(Executed prepared query)' | Set-Content executed_queries.sql
+
+ - TinyOrmPlayground - run InvokeXTimes.ps1 on Linux:
+stp && sq5
+export LD_LIBRARY_PATH=../../../TinyORM/TinyORM-builds-qmake/build-TinyORM-Desktop_Qt_5_15_2_GCC_64bit_ccache-Debug/src
+pwsh -NoLogo -NoProfile -File InvokeXTimes.ps1 2 ../../../TinyOrmPlayground/TinyOrmPlayground-builds-qmake/build-TinyOrmPlayground-Desktop_Qt_5_15_2_GCC_64bit_ccache-Debug/TinyOrmPlayground
+
+ - TinyORM - run InvokeXTimes.ps1 on Linux:
+stp && sq5 && cdtq && cd build-TinyORM-Desktop_Qt_5_15_2_GCC_64bit_ccache-Debug
+export LD_LIBRARY_PATH=./src:./tests/TinyUtils${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
+export PATH=$HOME/Code/c/TinyORM/tools:$PATH
+InvokeXTimes.ps1
+pwsh -NoLogo -NoProfile -File InvokeXTimes.ps1 100
+
+
+Powershell Clang analyzers:
+---------------------------
+
+qa-lint-tinyorm-qt5.ps1 is tailor-made for TinyORM project.
+
+qa-clang-tidy.ps1, qa-clazy-standalone.ps1, qa-clazy-standalone-st.ps1 are more general, they can be used with any project, "-st" script calls raw clazy-standalone.exe.
+
+run-clang-tidy.ps1, run-clazy-standalone.ps1 are raw Powershell wrappers around python run-clang-tidy/run-clazy-standalone.py python scripts.
+
+Invoke the run-clang-tidy.ps1 manually:
+--
+run-clang-tidy.ps1 -use-color -extra-arg-before='-Qunused-arguments' -j=10 -p='E:\c\qMedia\TinyORM\TinyORM-builds-cmake\build-lint-qt6_Debug' -checks='-*,readability-convert-member-functions-to-static' '(?:src|tests)[\\\/]+.+?[\\\/]+(?!mocs_)[\w_\-\+]+\.cpp$'
+
+
+- test *.hpp count
+
+gci -Force -Recurse -Include *.hpp `
+-Path E:\c\qMedia\TinyORM\TinyORM\include,E:\c\qMedia\TinyORM\TinyORM\examples,e:\c\qMedia\TinyORM\TinyORM\tom,E:\c\qMedia\TinyORM\TinyORM\tests | `
+select -ExpandProperty FullName > b.txt
+
+- test *.cpp count
+
+cat .\compile_commands.json | sls '"file":' > a.txt
+
+And use regex-es from analyzers-qt5/6.yml
+
+
+Clazy in QtCreator:
+-------------------
+
+- set environment variable
+  - (?:) doesn't work!
+CLAZY_IGNORE_DIRS=C:[\\/]+(Qt|Program Files|Program Files \(x86\))[\\/].*
+
+  - new RegEx:
+^(([Cc]?:[\\/]+(Program Files|Program Files \(x86\))[\\/])|([Ee]?:[\\/]+Qt[\\/])|([Ee]?:[\\/]+c_libs[\\/]vcpkg[\\/]installed[\\/])|([Oo]?:[\\/]+Code[\\/]+c_libs[\\/]vcpkg[\\/]installed[\\/])).*
+
+- set Project environment (Ctrl+5)
+CLAZY_HEADER_FILTER=[\\/]+(drivers|examples|orm|tests|tom)[\\/]+.+\.(h|hpp)$
+
+
+pwsh autocomeplete:
+-------------------
+For a fast lookup for debugging.
+
+ - tom command:
+   - argument:
+tom complete --word="mi" --commandline="tom mi" --position=6
+
+   - option:
+tom complete --word="--" --commandline="tom migrate --" --position=14
+tom complete --word="--p" --commandline="tom migrate --p" --position=15
+
+tom complete --word="--only=env" --commandline="tom about --only=env" --position=20
+tom complete --word="" --commandline="tom about --only=environment," --position=29
+tom complete --word="m" --commandline="tom about --only=environment,m" --position=30
+
+
+cmake build commands:
+---------------------
+
+vcvars64.ps1
+cd E:\c\qMedia\TinyORM\TinyORM-builds-cmake\build-cmake\
+cmake.exe -S E:/c/qMedia/TinyORM/TinyORM -B E:/c/qMedia/TinyORM/TinyORM-builds-cmake/build-cmake -GNinja `
+-DCMAKE_BUILD_TYPE:STRING=Debug `
+-DCMAKE_TOOLCHAIN_FILE:PATH=E:/c_libs/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+cmake --build . --target all
+
+ - generate Graphviz dependency image:
+
+cmake.exe -S E:/c/qMedia/TinyORM/TinyORM -B E:/c/qMedia/TinyORM/TinyORM-builds-cmake/build-cmake -GNinja `
+-DCMAKE_BUILD_TYPE:STRING=Debug `
+-DCMAKE_TOOLCHAIN_FILE:PATH=E:/c_libs/vcpkg/scripts/buildsystems/vcpkg.cmake `
+--graphviz=E:/c/qMedia/TinyORM/TinyORM-builds-cmake/build-cmake/graph/graph.dot; `
+`
+dot -Tpng -o .\graph\graph.png .\graph\graph.dot; `
+.\graph\graph.png
+
+ - running ctest (use CTEST_OUTPUT_ON_FAILURE=1 env. or --output-on-failure, to see what failed)
+
+E:\c\qMedia\TinyORM\TinyORM\tests\auto\utils\testdata\dotenv.ps1
+$env:Path = "E:\c\qMedia\TinyORM\TinyORM-builds-cmake\build-TinyORM-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug-cmake;E:\c\qMedia\TinyORM\TinyORM-builds-cmake\build-TinyORM-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug-cmake\tests\auto\utils;" + $env:Path
+ctest
+ctest --progress
+
+ - some debug output:
+
+cmake --trace-expand --trace-source=tests/auto/unit/orm/query/mysql_querybuilder/CMakeLists.txt -LA ..
+cmake -LA .
+
+ - full build command, not needed, I leave it here as a shortcut:
+
+cmake.exe -S E:/c/qMedia/TinyORM/TinyORM -B E:/c/qMedia/TinyORM/TinyORM-builds-cmake/build-cmake -GNinja `
+"-DCMAKE_BUILD_TYPE:STRING=Debug" `
+"-DCMAKE_PROJECT_INCLUDE_BEFORE:PATH=E:/Qt/Tools/QtCreator/share/qtcreator/package-manager/auto-setup.cmake" `
+"-DQT_QMAKE_EXECUTABLE:STRING=E:/Qt/5.15.2/msvc2019_64/bin/qmake.exe" `
+"-DCMAKE_PREFIX_PATH:STRING=E:/Qt/5.15.2/msvc2019_64" `
+"-DCMAKE_C_COMPILER:STRING=C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30037/bin/HostX64/x64/cl.exe" `
+"-DCMAKE_CXX_COMPILER:STRING=C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30037/bin/HostX64/x64/cl.exe" ` "-DCMAKE_TOOLCHAIN_FILE:PATH=E:/c_libs/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+ - put TinyOrm and TinyUtils libraries on the system path:
+
+$env:Path = "E:\c\qMedia\TinyORM\TinyORM-builds-cmake\build-cmake;E:\c\qMedia\TinyORM\TinyORM-builds-cmake\build-cmake\tests\auto\utils;" + $env:Path
+
+
+TinyORM docs github pages:
+--------------------------
+tags: docusaurus
+---
+
+- npm run clear
+
+Clear a Docusaurus site's generated assets, caches, build artifacts.
+We recommend running this command before reporting bugs, after upgrading versions, or anytime you have issues with your Docusaurus site.
+
+- deploy:
+
+.\dotenv.ps1
+npm run deploy; echo "Algolia Rebuild"; sleep 30; .\algolia_rebuild.ps1
+
+- local development:
+
+npm start
+npm start -- --no-open
+
+- update Algolia index by DocSearch:
+
+.\dotenv.ps1
+.\algolia_rebuild.ps1
+
+- upgrade Docusaurus npm:
+
+npm install @docusaurus/core@latest @docusaurus/plugin-client-redirects@latest @docusaurus/plugin-ideal-image@latest @docusaurus/preset-classic@latest
+
+- upgrade Docusaurus yarn:
+
+yarn upgrade @docusaurus/core@latest @docusaurus/preset-classic@latest
+
+
+TinyOrm headres used in TinyDrivers:
+------------------------------------
+
+TinyDrivers and SQL libraries like TinyMySql use some header files from TinyOrm library.
+It can only use TinyOrm as header library because of circular library dependencies so it can't
+use any header file that has the cpp file (translation unit TU).
+
+These are all header files that are used:
+
+#include <orm/macros/archdetect.hpp>
+#include <orm/macros/commonnamespace.hpp>
+#include <orm/macros/compilerdetect.hpp>
+#include <orm/macros/export_common.hpp>
+#include <orm/macros/likely.hpp>
+#include <orm/macros/stringify.hpp>
+#include <orm/macros/systemheader.hpp>
+#include <orm/support/replacebindings.hpp>
+
+
+TinyDrivers output of operator<<()-s:
+-------------------------------------
+
+Output of all TinyDrivers operator<<()-s SqlDatabase, SqlRecord, SqlField, DummySqlError
+
+SqlDatabase(driver="QMYSQL", database="tinyorm_test_1", host="mysql.test", port=3306, user="szachara", open=true", options="SSL_CERT=C:/mysql/mysql_8.3/data/client-cert.pem;SSL_CA=C:/mysql/mysql_8.3/data/ca.pem;SSL_KEY=C:/mysql/mysql_8.3/data/client-key.pem")
+--
+SqlRecord(7)
+ 0: SqlField(name: "id", type: qulonglong, value: "1", isNull: false, isValid: true, length: 20, precision: 0, required: true, sqlType: 8, sqlTypeName: BIGINT, autoIncrement: true, tableName: "users")
+ 1: SqlField(name: "name", type: QString, value: "andrej", isNull: false, isValid: true, length: 1020, precision: 0, required: true, sqlType: 253, sqlTypeName: VARCHAR, autoIncrement: false, tableName: "users")
+ 2: SqlField(name: "is_banned", type: char, value: "0", isNull: false, isValid: true, length: 1, precision: 0, required: true, sqlType: 1, sqlTypeName: TINYINT, autoIncrement: false, tableName: "users")
+ 3: SqlField(name: "note", type: QString, value: NULL, isNull: true, isValid: true, length: 1020, precision: 0, required: false, sqlType: 253, sqlTypeName: VARCHAR, autoIncrement: false, tableName: "users")
+ 4: SqlField(name: "created_at", type: QDateTime, value: "2022-01-01T14:51:23.000", isNull: false, isValid: true, length: 19, precision: 0, required: false, sqlType: 7, sqlTypeName: TIMESTAMP, autoIncrement: false, tableName: "users")
+ 5: SqlField(name: "updated_at", type: QDateTime, value: "2022-01-01T17:46:31.000", isNull: false, isValid: true, length: 19, precision: 0, required: false, sqlType: 7, sqlTypeName: TIMESTAMP, autoIncrement: false, tableName: "users")
+ 6: SqlField(name: "deleted_at", type: QDateTime, value: NULL, isNull: true, isValid: true, length: 19, precision: 0, required: false, sqlType: 7, sqlTypeName: TIMESTAMP, autoIncrement: false, tableName: "users")
+--
+SqlField(name: "name", type: QString, value: "andrej", isNull: false, isValid: true, length: 1020, precision: 0, required: true, sqlType: 253, sqlTypeName: VARCHAR, autoIncrement: false, tableName: "users")
+--
+DummySqlError(errorType: NoError)
+--
+SqlRecord(30)
+ 0: SqlField(name: "id", type: qulonglong, value: "1", isNull: false, isValid: true, length: 20, precision: 0, required: true, sqlType: 8, sqlTypeName: BIGINT, autoIncrement: true, tableName: "types")
+ 1: SqlField(name: "bool_true", type: char, value: "1", isNull: false, isValid: true, length: 1, precision: 0, required: false, sqlType: 1, sqlTypeName: TINYINT, autoIncrement: false, tableName: "types")
+ 2: SqlField(name: "bool_false", type: char, value: "0", isNull: false, isValid: true, length: 1, precision: 0, required: false, sqlType: 1, sqlTypeName: TINYINT, autoIncrement: false, tableName: "types")
+ 3: SqlField(name: "smallint", type: short, value: "32760", isNull: false, isValid: true, length: 6, precision: 0, required: false, sqlType: 2, sqlTypeName: SMALLINT, autoIncrement: false, tableName: "types")
+ 4: SqlField(name: "smallint_u", type: ushort, value: "32761", isNull: false, isValid: true, length: 5, precision: 0, required: false, sqlType: 2, sqlTypeName: SMALLINT, autoIncrement: false, tableName: "types")
+ 5: SqlField(name: "int", type: int, value: "2147483640", isNull: false, isValid: true, length: 11, precision: 0, required: false, sqlType: 3, sqlTypeName: INT, autoIncrement: false, tableName: "types")
+ 6: SqlField(name: "int_u", type: uint, value: "2147483641", isNull: false, isValid: true, length: 10, precision: 0, required: false, sqlType: 3, sqlTypeName: INT, autoIncrement: false, tableName: "types")
+ 7: SqlField(name: "bigint", type: qlonglong, value: "9223372036854775800", isNull: false, isValid: true, length: 20, precision: 0, required: false, sqlType: 8, sqlTypeName: BIGINT, autoIncrement: false, tableName: "types")
+ 8: SqlField(name: "bigint_u", type: qulonglong, value: "9223372036854775801", isNull: false, isValid: true, length: 20, precision: 0, required: false, sqlType: 8, sqlTypeName: BIGINT, autoIncrement: false, tableName: "types")
+ 9: SqlField(name: "double", type: double, value: "1000000.123", isNull: false, isValid: true, length: 22, precision: 31, required: false, sqlType: 5, sqlTypeName: DOUBLE, autoIncrement: false, tableName: "types")
+10: SqlField(name: "double_nan", type: double, value: NULL, isNull: true, isValid: true, length: 22, precision: 31, required: false, sqlType: 5, sqlTypeName: DOUBLE, autoIncrement: false, tableName: "types")
+11: SqlField(name: "double_infinity", type: double, value: NULL, isNull: true, isValid: true, length: 22, precision: 31, required: false, sqlType: 5, sqlTypeName: DOUBLE, autoIncrement: false, tableName: "types")
+12: SqlField(name: "decimal", type: double, value: "100000.12", isNull: false, isValid: true, length: 10, precision: 2, required: false, sqlType: 246, sqlTypeName: DECIMAL, autoIncrement: false, tableName: "types")
+13: SqlField(name: "decimal_nan", type: double, value: NULL, isNull: true, isValid: true, length: 10, precision: 2, required: false, sqlType: 246, sqlTypeName: DECIMAL, autoIncrement: false, tableName: "types")
+14: SqlField(name: "decimal_infinity", type: double, value: NULL, isNull: true, isValid: true, length: 11, precision: 0, required: false, sqlType: 246, sqlTypeName: DECIMAL, autoIncrement: false, tableName: "types")
+15: SqlField(name: "decimal_down", type: double, value: "100.12", isNull: false, isValid: true, length: 10, precision: 2, required: false, sqlType: 246, sqlTypeName: DECIMAL, autoIncrement: false, tableName: "types")
+16: SqlField(name: "decimal_up", type: double, value: "100.13", isNull: false, isValid: true, length: 10, precision: 2, required: false, sqlType: 246, sqlTypeName: DECIMAL, autoIncrement: false, tableName: "types")
+17: SqlField(name: "string", type: QString, value: "string text", isNull: false, isValid: true, length: 1020, precision: 0, required: false, sqlType: 253, sqlTypeName: VARCHAR, autoIncrement: false, tableName: "types")
+18: SqlField(name: "text", type: QString, value: "text text", isNull: false, isValid: true, length: 262140, precision: 0, required: false, sqlType: 252, sqlTypeName: TEXT, autoIncrement: false, tableName: "types")
+19: SqlField(name: "medium_text", type: QString, value: NULL, isNull: true, isValid: true, length: 67108860, precision: 0, required: false, sqlType: 252, sqlTypeName: TEXT, autoIncrement: false, tableName: "types")
+20: SqlField(name: "timestamp", type: QDateTime, value: "2022-09-09T08:41:28.000", isNull: false, isValid: true, length: 19, precision: 0, required: false, sqlType: 7, sqlTypeName: TIMESTAMP, autoIncrement: false, tableName: "types")
+21: SqlField(name: "datetime", type: QDateTime, value: "2022-09-10T08:41:28.000", isNull: false, isValid: true, length: 19, precision: 0, required: false, sqlType: 12, sqlTypeName: DATETIME, autoIncrement: false, tableName: "types")
+22: SqlField(name: "date", type: QDate, value: "2022-09-11", isNull: false, isValid: true, length: 10, precision: 0, required: false, sqlType: 10, sqlTypeName: DATE, autoIncrement: false, tableName: "types")
+23: SqlField(name: "binary", type: QByteArray, value: "Qt is great!", isNull: false, isValid: true, length: 65535, precision: 0, required: false, sqlType: 252, sqlTypeName: BLOB, autoIncrement: false, tableName: "types")
+24: SqlField(name: "medium_binary", type: QByteArray, value: NULL, isNull: true, isValid: true, length: 16777215, precision: 0, required: false, sqlType: 252, sqlTypeName: BLOB, autoIncrement: false, tableName: "types")
+↓↓↓ I manually added these columns during testing, they don't exist in the `types` table
+25: SqlField(name: "char_col", type: QString, value: NULL, isNull: true, isValid: true, length: 60, precision: 0, required: false, sqlType: 254, sqlTypeName: CHAR, autoIncrement: false, tableName: "types")
+26: SqlField(name: "bin", type: QByteArray, value: NULL, isNull: true, isValid: true, length: 255, precision: 0, required: false, sqlType: 254, sqlTypeName: BINARY, autoIncrement: false, tableName: "types")
+27: SqlField(name: "varbin", type: QByteArray, value: NULL, isNull: true, isValid: true, length: 255, precision: 0, required: false, sqlType: 253, sqlTypeName: VARBINARY, autoIncrement: false, tableName: "types")
+28: SqlField(name: "enum1", type: QString, value: NULL, isNull: true, isValid: true, length: 8, precision: 0, required: false, sqlType: 254, sqlTypeName: ENUM, autoIncrement: false, tableName: "types")
+29: SqlField(name: "set1", type: QString, value: NULL, isNull: true, isValid: true, length: 36, precision: 0, required: false, sqlType: 254, sqlTypeName: SET, autoIncrement: false, tableName: "types")
+
+- SQL to quickly add 5 new columns above:
+ALTER TABLE `types` ADD `char_col` CHAR(20) NULL DEFAULT NULL AFTER `medium_binary`, ADD `bin` BINARY(255) NULL DEFAULT NULL AFTER `char_col`, ADD `varbin` VARBINARY(255) NULL DEFAULT NULL AFTER `bin`, ADD `enum1` ENUM('aa','bb','cc') NULL DEFAULT NULL AFTER `varbin`, ADD `set1` SET('qq','ww','yy') NULL DEFAULT NULL AFTER `enum1`;
+
+
+CMake Guidelines:
+-----------------
+
+All are snake-case unless otherwise specified.
+
+ - variable names:
+   - global variables: tiny_
+   - local variables: preferred camelCase or snake-case
+   - function parameters: lowercase and optional tiny_ prefix
+   - cmake_parse_arguments: TINY_
+ - option variables: upper case without prefix
+ - cached variables: TINY_
+ - function names has the tiny_ prefix
+ - compile definitions prefix by project eg. TINYORM_, TINYUTILS_
+ - commands:
+   - foreach: use the foreach(depend ${depends}) syntax everywhere as default syntax and use
+              the IN LISTS XYZ syntax only if needed
+
+https://learn.microsoft.com/en-us/vcpkg/contributing/cmake-guidelines
+
+
+CMake confusions:
+-----------------
+
+- CMAKE_SOURCE_DIR, PROJECT_SOURCE_DIR, CMAKE_BINARY_DIR, CMAKE_CURRENT_SOURCE_DIR, ...
+  Look at commit:
+  cmake added FetchContent support (23d0d904)
+
+- foreach ITEMS vs LISTS
+  - ITEMS:
+    - used like foreach(depend ${depends})
+    - it loops over the each item in the given list
+    - can't wrap in quotes as it will be parsed as a one-value
+  - LISTS:
+    - used like foreach(depend IN LISTS depends anotherList)
+    - it loops over the each item in the given LISTS so you can pass MORE list variables
+  - the forms ITEMS ${A} and LISTS A are equivalent
+  - I'm using the first syntax everywhere, eg. vcpkg uses the second syntax everywhere
+
+- Variables
+  - every new scope (block, function, add_subdirectory(), ...) creates a copy of all variables
+    from the current scope that means all variable are immutable so you can't change/overwrite
+    variables in parent scopes using simple set(xyz ...) call
+
+- add_custom_command()
+  - COMMAND_EXPAND_LISTS
+    - if something output eg. a;b;c eg. genex then it will be converted to string like a b c
+  - VERBATIM
+    - you don't need to care about escaping so what you type in command arguments will be exactly
+      what you get as output or on command line and it will be correctly escaped
+    - only one thing that I discovered that need to be escaped is backslash like \\
+    - w/o VERBATIM you need to escape eg. \" to be passed on command-line
+    - also, everything is already quoted correctly with or w/o verbatim that is a little weird,
+      eg. if some list item contains space and is used with copy command then it will be quotes,
+      also the main command is quoted everytime
+    - hard to tell how this works but use VERBATIM and don't care about escaping 🤔 because it's
+      also cross-platform or cross-shell so it knows which OS or shell is used and will escape
+      correctly
+
+
+TinyORM CMake build:
+--------------------
+
+Here I describe how the TinyORM's CMake build works because I was confused last time I returned
+to it and had to fix some problems.
+
+ - at the beginning are prepared and initialized CMake options and compiler requirements so
+   nothing special
+ - then are set header/sources files, PCH, prepared TinyOrm target definitions, properties
+ - Windows RC and manifest
+ - resolved and linked dependencies
+   the tiny_find_package() macro is used for this and it has additional functionality and
+   it is to collect the dependency names for the find_dependency() that will be used during
+   the deployment ❗
+ - nothing special until Deployment
+
+How the Deployment works:
+
+ - first the find_dependency() calls are generated using the tiny_generate_find_dependency_calls()
+ - then are created Package Config and Package Config Version files for the Build and Install Tree
+ - look at the TinyDeployment.cmake tiny_install_tinyorm() and tiny_export_build_tree() functions
+   they are greatly commented so it's crystal clear how they works
+ - generating the Package Config for the Install tree also takes into account the vcpkg package
+   manager
+ - TinyOrmConfig.cmake.in is for the Install tree
+ - TinyOrmBuildTreeConfig.cmake.in is for the Build tree
+
+How the Package Config file works:
+
+ - they are used when linking against the TinyORM library so generating these config files and
+   linking against them are two different things so a different code is executed for these two
+   things
+ - first info messages are are printed:
+   - log messages output can be controlled by the --log-level=<level> and --log-context CMake
+     parameters during configure eg.:
+     - --log-level=DEBUG --log-context (full output)
+     - --log-level=VERBOSE (only verbose without debug output)
+
+   - I have invested a lot of effort to these info messages
+   - whether linking against the single, multi, vcpkg builds
+   - against which TinyORM package is linking eg.:
+     Found package TinyOrm 0.37.1.0 Debug (requested 0.37.1) at O:/Code/c/qMedia/TinyORM/TinyORM-builds-cmake/build-TinyORM-Desktop_Qt_6_7_0_MSVC2022_64bit-Debug/TinyOrmConfig.cmake
+
+   - whether Matching build type for Build tree was enabled/disabled eg.:
+     Matching build type for the TinyOrm 0.37.1.0 package build tree was enabled
+   - Matching build type is controlled by the MATCH_EQUAL_EXPORTED_BUILDTREE CMake config. option
+     during the TinyORM library configure
+
+   - if the MYSQL_PING was enabled then it also sets the CMAKE_MODULE_PATH to our Modules folder
+     to find the FindMySQL.cmake package module
+   - then are called find_dependency() from CMakeFindDependencyMacro modules to find Qt,
+     range-v3, and tabulate
+   - setting up meaningful values for MAP_IMPORTED_CONFIG_<CONFIG> to avoid link a release type
+     builds against a debug build
+   - as the last thing is called the check_required_components() from CMakePackageConfigHelpers
+     module. https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html
+
+Differences between Package Config files for Install and Build tree:
+
+ - they are pactically identical
+ - this is how the Package Config for the Install tree differs from the Build tree:
+   - it has a little different logic for the Information message about build type used because
+     it must the vcpkg package manager into account, it calls the tiny_get_build_types() and
+     because of this it needs to include the TinyPackageConfigHelpers.cmake module
+ - doesn't print the Info message about matching build type (it's Build tree specific)
+
+ - sets the set() and set_and_check() for the cmake --target install;
+   they are the Install destination directories for the Install Tree
+ - and that's all
+
+How the Package Config Version file works:
+
+ - they are complex for sure, I will not describe how they work because I don't exactly remember
+ - ok, I added comments to the tiny_build_type_requirements_install_tree() and
+   tiny_build_type_requirements_build_tree() in the TinyPackageConfigHelpers.cmake so it should be
+   clear how they works now
+   - they check if Package configs are suitable, eg.:
+     - single-config is not suitable for multi-config
+     - or no CMake targets installed so unsuitable
+     - or linking debug against release for MSVC is unsuitable
+
+ - my logic also adds nice info messages if linking against unsuitable CMake package
+ - also a lot of debug messages that can be enabled using the --log-level=<level> and
+   --log-context CMake parameters during configure eg.:
+     - --log-level=DEBUG --log-context (full ouput)
+     - --log-level=VERBOSE (only verbose without debug output)
+
+ - they check if the versions are correct, the COMPATIBILITY SameMajorVersion is the main
+   thing here! (defined in the TinyDeployment.cmake during the write_basic_package_version_file()
+   Check here what the SameMajorVersion means:
+   https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html
+
+Differences between Package Config files for Install and Build tree:
+
+ - all differences are in the tiny_build_type_requirements_install_tree() and
+   tiny_build_type_requirements_build_tree() in the TinyPackageConfigHelpers.cmake
+
+ - for Install tree:
+   - no CMake targets installed so unsuitable
+   - takes into account also the vcpkg (is multi-config so don't do the checks)
+
+ - for Build tree:
+   - if matching equal build tree was enabled and builds types don't match then tag as unsuitable
+
+It's crazy 🙃😲🙋‍
+
+
+TinyORM vcpkg testing (CMake build):
+------------------------------------
+
+Don't install it to the main vcpkg installation because it can happend that whole qtbase will be
+installed and it pulls in many boost packages or mysql client library pulls in much more in.
+
+I have created the svcpkg_tinyorm_port_qt5/qt6_testing.ps1 scripts so execute it and
+use the installation at:
+O:\Code\c_libs\vcpkg-tinyorm-port-qt5\
+O:\Code\c_libs\vcpkg-tinyorm-port-qt6\
+
+To install only the neccesary minimum use:
+
+vcpkg install tinyorm[core] qtbase[core,sql] --dry-run
+vcpkg install tinyorm[core] qtbase[core,sql-sqlite] --dry-run
+vcpkg install tinyorm[core]
+vcpkg install tinyorm[core] --editable
+
+With --editable option you can edit TinyORM source code at:
+buildtrees\tinyorm\src\b067300643-08e2ea7916\
+
+The o:\Code\c_libs\vcpkg-tinyorm-port\buildtrees\tinyorm\src\b067300643-08e2ea7916.clean\ folder
+is for the vcpkg install tinyorm[core] without the --editable option.
+You can call the vcpkg install tinyorm[core] --editable right away, w/o calling
+the vcpkg install tinyorm[core] first.
+
+ - To debug eg. vcpkg-cmake scripts set around a command to debug:
+
+set(PORT_DEBUG ON)
+set(PORT_DEBUG OFF)
+
+Note added a few months later:
+
+Set HEAD_REF to branch you want to test eg. HEAD_REF silverqx-develop, it doesn't need to update
+the SHA512 (it ignores it). Then call vcpkg install with the --head parameter.
+The head source code is in buildtrees\tinyorm\src\head\ceb68d7bf0-e190df2f70\, every new commit
+creates a new xyz..d7bf0-e190df2f70 folder.
+You don't need to update/increment the "port-version" in vcpkg.json file.
+
+To use head in vcpkg manifest mode define set(VCPKG_USE_HEAD_VERSION ON) before vcpkg_from_github()
+Source: https://github.com/microsoft/vcpkg/pull/16613#issuecomment-799801106
+
+Commands for this new workflow:
+--
+svcpkg_tinyorm_port_qt6_testing.ps1
+cdvp6.ps1
+vcpkg remove tinyorm:x64-windows
+vcpkg remove tinyorm:x64-windows-static
+vcpkg install tinyorm[core,sql-mysql,tom-example]:x64-windows --recurse --editable --head
+vcpkg install tinyorm[core,build-mysql-driver,tom-example]:x64-windows --recurse --editable --head
+vcpkg install tinyorm[core,sql-mysql,tom-example]:x64-windows-static --recurse --editable --head
+vcpkg install tinyorm[core,build-mysql-driver,tom-example]:x64-windows-static --recurse --editable --head
+
+vcpkg install libmysql libmysql:x64-windows-static
+vcpkg install qtbase[core] qtbase[core]:x64-windows-static --recurse
+vcpkg install qtbase[core,sql-mysql] qtbase[core,sql-mysql]:x64-windows-static --recurse
+vcpkg remove --recurse vcpkg-cmake vcpkg-cmake-config zlib boost-uninstall libmysql qtbase
+vcpkg remove --recurse vcpkg-cmake:x64-windows-static vcpkg-cmake-config:x64-windows-static zlib:x64-windows-static boost-uninstall:x64-windows-static libmysql:x64-windows-static qtbase:x64-windows-static
+
+
+Drop all PostgreSQL tables:
+---------------------------
+
+DROP TABLE IF EXISTS "tag_properties" CASCADE;
+DROP TABLE IF EXISTS "tag_torrent" CASCADE;
+DROP TABLE IF EXISTS "torrent_tags" CASCADE;
+DROP TABLE IF EXISTS "roles" CASCADE;
+DROP TABLE IF EXISTS "role_user" CASCADE;
+DROP TABLE IF EXISTS "users" CASCADE;
+DROP TABLE IF EXISTS "user_phones" CASCADE;
+DROP TABLE IF EXISTS "settings" CASCADE;
+DROP TABLE IF EXISTS "torrents" CASCADE;
+DROP TABLE IF EXISTS "torrent_peers" CASCADE;
+DROP TABLE IF EXISTS "torrent_previewable_files" CASCADE;
+DROP TABLE IF EXISTS "torrent_previewable_file_properties" CASCADE;
+DROP TABLE IF EXISTS "file_property_properties" CASCADE;
+DROP TABLE IF EXISTS "migrations" CASCADE;
+DROP TABLE IF EXISTS "migrations_example" CASCADE;
+DROP TABLE IF EXISTS "migrations_unit_testing" CASCADE;
+
+
+UBSan:
+------
+
+Has to be invoked on Linux clang and errors are detected at runtime.
+
+This enable the undefined group:
+
+QMAKE_CXXFLAGS += -O1 -fsanitize=undefined
+QMAKE_LFLAGS += -fsanitize=undefined
+
+This with the above one! enables all the possible sanitizers:
+
+QMAKE_CXXFLAGS += -O1 -fsanitize=nullability -fsanitize=float-divide-by-zero -fsanitize=unsigned-integer-overflow -fsanitize=implicit-conversion -fsanitize=local-bounds
+QMAKE_LFLAGS += -fsanitize=nullability -fsanitize=float-divide-by-zero -fsanitize=unsigned-integer-overflow -fsanitize=implicit-conversion -fsanitize=local-bounds
+
+Set in the QtCreator env. before execution, it suspends some errors detected in the Qt library:
+
+UBSAN_OPTIONS=suppressions=/home/silverqx/Code/c/TinyORM/TinyORM/tools/configs/UBSan.supp:print_stacktrace=0
+
+
+Valgrind, callgrind, and KCachegrind:
+-------------------------------------
+
+This only works on the Linux, I have setup Gentoo for this.
+
+ - switch project to Profile build type
+ - QtCreator debug view (ctrl+4) and open/switch to the Callgrind view (in the bottom view)
+ - simply Start Valgrind analysis and open the result in the KCachegrind
+ - described here - https://doc.qt.io/qtcreator/creator-cache-profiler.html
+
+I have enabled debug symbols and source files for the glibc, so I can see everything nicely:
+ - described here - https://wiki.gentoo.org/wiki/Debugging
+
+KCachegrind legend:
+ - Self Cost - function itself ("Self" is sometimes also referred to as "Exclusive" costs)
+ - Inclusive Cost - the cost including all called functions (Incl. in UI)
+ - described in the F1 KCachegrind help - Chapter 5. Questions and Answers
+ - sidebar Flat Profile next to the Search is the grouping dropdown by ELF is useful 🔥
+ - select function and in the bottom view select the "Call Graph" or "Callees" tab, they are most
+   useful 🔥
+   - you can double-click through the "Callees" tab down through most expensive functions and
+     track down what is causing high cost 🔥
+ - I have selected % Relative, Cycle Detection, Shorten Templates, and Cycle Estimation
+   in the top toolbar
+ - Instruction Fetch vs Cycle Estimation
+   - Instruction Fetch looks like the Instruction Read Access and it means how much assembler
+     instructions a selected function coasted
+   - I don't exactly understand it
+   - described here https://stackoverflow.com/questions/38311201/kcachegrind-cycle-estimation
+ - also these two video were useful:
+   - https://www.youtube.com/watch?v=h-0HpCblt3A&ab_channel=DerickRethans
+   - https://www.youtube.com/watch?v=iH-hDOuQfcY&ab_channel=DerickRethans
+
+
+inline constants:
+-----------------
+
+ - for static archive build only inline constants are allowed, this is the default for all scenarios, any ify
+
+ - cmake
+   - normal behavior is that user can switch between inline and extern constants using the INLINE_CONSTANTS cmake option
+   - default is to provide/show this INLINE_CONSTANTS cmake option with the default value OFF, so extern constants are enabled by default
+   - MinGW clang shared build crashes with inline constants
+     - so don't show INLINE_CONSTANTS cmake option and value is NOT DEFINED in this case so the default will be used and it's extern constants
+     - related issue: https://github.com/llvm/llvm-project/issues/55938
+   - MinGW clang static build is not supported, problem with inline constants :/
+     - this is different than qmake build, it compiles (qmake has problem with duplicit symbols) but it crashes
+     - so throw cmake message(FATAL_ERROR) with a nice message in TinyHelpers tiny_check_unsupported_build()
+     - related issue: https://github.com/llvm/llvm-project/issues/55938
+   - clang-cl shared build crashes with extern constants, so force to inline constants 😕🤔
+     - don't show INLINE_CONSTANTS cmake option and provide the default value ON using feature_option_dependent(INLINE_CONSTANTS) depends option, so inline constants is the default
+     - so inline constants are only one option with clang-cl
+
+ - qmake
+   - normal behavior is that user can switch between inline and extern constants using the inline_constants/extern_constants qmake CONFIG option
+   - default is when no qmake CONFIG option is set and in this case extern constants (extern_constants CONFIG option) is set/enabled
+   - MinGW clang shared build crashes with inline constants
+     - when user set inline_constants then qmake error() is thrown with nice message
+     - so the default is extern constants, if no CONFIG option was set or user can set the extern_constants qmake CONFIG option manually
+   - MinGW clang static build is not supported, contains a problem with duplicit symbols, this build type is disabled
+     - qmake error() is thrown with a nice message
+     - cmake compiles ok but crashes in this scenario
+   - clang-cl shared build crashes with extern constants, so force to inline constants 😕🤔
+     - when is shared build then inline_constants qmake CONFIG option is set (this is the default)
+     - when user set extern_constants then qmake error() is thrown with nice message
+     - so inline constants are only one option with clang-cl
+
+The conclusion is that the funckin string constants 💥, it was bearable until I have added the clang-cl MSVC support.
+
+
+eagerLoadRelations() and Model::load() history:
+-----------------------------------------------
+
+At the beginning it was like this:
+
+// FUTURE make possible to pass single model to eagerLoadRelations() and whole relation flow, I indicative counted how many methods would have to rewrite and it is around 12 methods silverqx
+/* I have to make a copy here of this, because of eagerLoadRelations(),
+   the solution would be to add a whole new chain for eager load relations,
+   which will be able to work only on one Model &, but it is around
+   10-15 methods refactoring, or add a variant which can process
+   QVector<std::reference_wrapper<Derived>>.
+   For now, I have made a copy here and save it into the QVector and after
+   that move relations from this copy to the real instance. */
+ModelsCollection<Model> models {&model};
+
+/* Replace only relations which was passed to this method, leave other
+   relations untouched.
+   They do not need to be removed before 'eagerLoadRelations(models)'
+   call, because only the relations passed to the 'with' at the beginning
+   will be loaded anyway. */
+this->replaceRelations(models.first()->getRelations(), relations);
+
+builder->with(relations).eagerLoadRelations(models);
+
+After this commit:
+
+Added eagerLoadRelations(ModelsCollection<Model *> &) that accepts
+a collection of model pointers. It allows to implement
+the ModelsCollection::load() and also avoids making a copy of Model
+in Model::load().
+
+It's like this:
+
+ModelsCollection<Model *> models {&model};
+
+builder->with(relations).eagerLoadRelations(models);
+
+Conclusion:
+It helped to avoid one Model copy 🙃 but the reason why it was refactored like this was
+the ModelsCollection::load() method, this method needs to operate also
+on the ModelsCollection<Model *> so this eagerLoadRelations<Model *>() overload was needed
+to make it real.
+
+
+constructor copy/move snippet:
+------------------------------
+
+Add code below to class you want to optimize and set breakpoints inside and you will see what cause what 😎:
+
+Torrent(const Torrent &torrent)
+    : Model(torrent)
+{
+    qDebug() << "Torrent copy ctor";
+}
+Torrent(Torrent &&torrent) noexcept
+    : Model(std::move(torrent))
+{
+    qDebug() << "Torrent move ctor";
+}
+Torrent &operator=(const Torrent &torrent)
+{
+    Model::operator=(torrent);
+    qDebug() << "Torrent copy assign";
+    return *this;
+}
+Torrent &operator=(Torrent &&torrent) noexcept
+{
+    Model::operator=(std::move(torrent));
+    qDebug() << "Torrent move assign";
+    return *this;
+}
+
+
+Model QDebug operator<<():
+--------------------------
+
+/* Non-member functions */
+
+template<Orm::Tiny::ModelConcept Model>
+QDebug operator<<(QDebug debug, const Model &model)
+{
+    const QDebugStateSaver saver(debug);
+
+    debug.nospace() << Orm::Utils::Type::classPureBasename<Model>().toUtf8().constData()
+                    << model.getKey().template value<Model::KeyType>() << ", "
+                    << model.getAttribute("name").template value<QString>()
+                    << ')';
+
+    return debug;
+}
+
+
+conversions:
+------------
+
+Makes possible to assign QVector<AttributeItem> to the Model,
+or implicitly converts a QVector<AttributeItem> to Model:
+
+Model(const QVector<AttributeItem> &attributes);
+Model(QVector<AttributeItem> &&attributes);
+
+--
+Allows initialize the Model with QVector<AttributeItem>:
+
+Model(std::initializer_list<AttributeItem> attributes)
+    : Model(QVector<AttributeItem> {attributes.begin(), attributes.end()})
+{}
+
+--
+Makes possible to assign the Model to the QVector<AttributeItem>,
+or converts the Model to the QVector<AttributeItem>:
+
+operator QVector<AttributeItem>() const;
+
+
+Check copy/move/swap operations:
+--------------------------------
+
+{
+    using TypeToCheck       = Orm::SqlQuery;
+    using ConstructibleFrom = QVariant;
+
+    qDebug() << "\n-- is_trivial";
+    qDebug() << std::is_trivial_v<TypeToCheck>;
+
+    qDebug() << "\n-- nothrow";
+    qDebug() << std::is_nothrow_default_constructible_v<TypeToCheck>;
+    qDebug() << std::is_nothrow_copy_constructible_v<TypeToCheck>;
+    qDebug() << std::is_nothrow_copy_assignable_v<TypeToCheck>;
+    qDebug() << std::is_nothrow_move_constructible_v<TypeToCheck>;
+    qDebug() << std::is_nothrow_move_assignable_v<TypeToCheck>;
+    qDebug() << std::is_nothrow_swappable_v<TypeToCheck>;
+    qDebug() << std::is_nothrow_destructible_v<TypeToCheck>;
+
+    qDebug() << "-- throw";
+    qDebug() << std::is_default_constructible_v<TypeToCheck>;
+    qDebug() << std::is_copy_constructible_v<TypeToCheck>;
+    qDebug() << std::is_copy_assignable_v<TypeToCheck>;
+    qDebug() << std::is_move_constructible_v<TypeToCheck>;
+    qDebug() << std::is_move_assignable_v<TypeToCheck>;
+    qDebug() << std::is_swappable_v<TypeToCheck>;
+    qDebug() << std::is_destructible_v<TypeToCheck>;
+
+    qDebug() << "-- trivially";
+    qDebug() << std::is_trivially_default_constructible_v<TypeToCheck>;
+    qDebug() << std::is_trivially_copyable_v<TypeToCheck>;
+    qDebug() << std::is_trivially_copy_constructible_v<TypeToCheck>;
+    qDebug() << std::is_trivially_copy_assignable_v<TypeToCheck>;
+    qDebug() << std::is_trivially_move_constructible_v<TypeToCheck>;
+    qDebug() << std::is_trivially_move_assignable_v<TypeToCheck>;
+    qDebug() << std::is_trivially_destructible_v<TypeToCheck>;
+
+    if constexpr (!std::is_void_v<ConstructibleFrom>) {
+        qDebug() << "-- nothrow constructible from";
+        qDebug() << std::is_nothrow_constructible_v<TypeToCheck, ConstructibleFrom>;
+        qDebug() << std::is_nothrow_constructible_v<TypeToCheck, const ConstructibleFrom &>;
+        qDebug() << std::is_nothrow_constructible_v<TypeToCheck, ConstructibleFrom &&>;
+    }
+}
+
+
+Ranges transform:
+-----------------
+
+const auto relationToWithItem = [](const auto &relation) -> WithItem
+{
+    return WithItem {relation};
+};
+
+builder->with(relations | ranges::views::transform(relationToWithItem)
+                        | ranges::to<QVector<WithItem>>());
+
+
+DatabaseConnection config:
+--------------------------
+
+QHash<QString, QVariant> config {
+//    {"driver",         "mysql"},
+//    {"url",            qEnvironmentVariable("DATABASE_URL")},
+//    {"url",            qEnvironmentVariable("MYSQL_DATABASE_URL")},
+    {"host",           qEnvironmentVariable("DB_MYSQL_HOST", "127.0.0.1")},
+    {"port",           qEnvironmentVariable("DB_MYSQL_PORT", "3306")},
+    {"database",       qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
+    {"username",       qEnvironmentVariable("DB_MYSQL_USERNAME", "root")},
+    {"password",       qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
+//    {"unix_socket",    qEnvironmentVariable("DB_MYSQL_SOCKET", "")},
+    {"charset",        qEnvironmentVariable("DB_MYSQL_CHARSET", "utf8mb4")},
+    {"collation",      qEnvironmentVariable("DB_MYSQL_COLLATION", "utf8mb4_unicode_ci")},
+//    {"collation",      qEnvironmentVariable("DB_MYSQL_COLLATION", "utf8mb4_0900_ai_ci")},
+//    {"timezone",  "+00:00"},
+//    {"prefix",         ""},
+//    {"prefix_indexes", true},
+    {"strict",         true},
+//    {"engine",         {}},
+    {"options",        ""},
+};
+
+QHash<QString, QVariant> config {
+    {"driver",    "QSQLITE"},
+    {"database",  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
+    {"prefix",    ""},
+    {"options",   QVariantHash()},
+    {"foreign_key_constraints", qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
+                                                     "true")},
+    {"check_database_exists",   true},
+};
+
+
+QtCreator common CMake options:
+-------------------------------
+
+-G Ninja
+-D CMAKE_BUILD_TYPE:STRING=Debug
+-D BUILD_TESTS:BOOL=OFF
+-D MATCH_EQUAL_EXPORTED_BUILDTREE:BOOL=ON
+-D MYSQL_PING:BOOL=ON
+-D ORM:BOOL=OFF
+-D TOM:BOOL=ON
+-D TOM_EXAMPLE:BOOL=ON
+-D TOM_MIGRATIONS_DIR:PATH=database/migrations
+-D VERBOSE_CONFIGURE:BOOL=OFF
+-D CMAKE_VERBOSE_MAKEFILE:BOOL=OFF
+-D CMAKE_DISABLE_PRECOMPILE_HEADERS:BOOL=OFF
+-D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF
+-D CMAKE_PROJECT_INCLUDE_BEFORE:PATH=%{IDE:ResourcePath}/package-manager/auto-setup.cmake
+-D QT_QMAKE_EXECUTABLE:STRING=%{Qt:qmakeExecutable}
+-D CMAKE_PREFIX_PATH:STRING=%{Qt:QT_INSTALL_PREFIX}
+-D CMAKE_C_COMPILER:STRING=%{Compiler:Executable:C}
+-D CMAKE_CXX_COMPILER:STRING=%{Compiler:Executable:Cxx}
+
+
+ - for QtCreator:
+
+-D CMAKE_CXX_COMPILER_LAUNCHER:FILEPATH=C:/Users/<username>/scoop/shims/ccache.exe
+-D CMAKE_VERBOSE_MAKEFILE:BOOL=OFF
+-D VERBOSE_CONFIGURE:BOOL=ON
+-D BUILD_TESTS:BOOL=ON
+-D MATCH_EQUAL_EXPORTED_BUILDTREE:BOOL=OFF
+-D MYSQL_PING:BOOL=ON
+-D ORM:BOOL=ON
+-D TOM:BOOL=ON
+-D TOM_EXAMPLE:BOOL=ON
+-D TOM_MIGRATIONS_DIR:PATH=database/migrations
+
+ - MSYS2 ccache
+
+-D CMAKE_CXX_COMPILER_LAUNCHER:FILEPATH=C:/msys64/ucrt64/bin/ccache.exe
+
+
+DatabaseConnection debug code:
+------------------------------
+
+{
+    auto [ok, query] = select("select @@session.time_zone, @@global.time_zone");
+    while(query.next()) {
+        qDebug().nospace() << query.value(0).toString() << "\n"
+                 << query.value(1).toString();
+    }
+}
+
+{
+    auto [ok, query] = select("select @@session.character_set_client, @@session.character_set_connection, "
+            "@@session.character_set_results, @@session.collation_connection");
+            while(query.next()) {
+        qDebug().nospace() << query.value(0).toString() << "\n"
+                 << query.value(1).toString() << "\n"
+                 << query.value(2).toString() << "\n"
+                 << query.value(3).toString();
+    }
+}
+
+{
+    auto [ok, query] = select("select @@global.character_set_client, @@global.character_set_connection, "
+            "@@global.character_set_results, @@global.collation_connection");
+    while(query.next()) {
+        qDebug().nospace() << query.value(0).toString() << "\n"
+                 << query.value(1).toString() << "\n"
+                 << query.value(2).toString() << "\n"
+                 << query.value(3).toString();
+    }
+}
+
+{
+    auto [ok, query] = select("select @@global.sql_mode, @@session.sql_mode");
+            while(query.next()) {
+        qDebug().nospace() << query.value(0).toString() << "\n"
+         << query.value(1).toString();
+    }
+}
+
+
+Database connection character set and collation debug code:
+-----------------------------------------------------------
+
+{
+    auto query = DB::select("SHOW VARIABLES like 'version%';", {}, connection);
+    while (query.next()) {
+        qDebug().noquote().nospace()
+                << query.value("Variable_name").toString() << ": "
+                << query.value("Value").toString();
+    }
+}
+
+{
+    auto query = DB::select("SHOW SESSION VARIABLES LIKE 'character_set_%'", {}, connection);
+    while (query.next()) {
+        qDebug().noquote().nospace()
+                << query.value("Variable_name").toString() << ": "
+                << query.value("Value").toString();
+    }
+}
+
+{
+    auto query = DB::select("SHOW SESSION VARIABLES LIKE 'collation_%';", {}, connection);
+    while (query.next()) {
+        qDebug().noquote().nospace()
+                << query.value("Variable_name").toString() << ": "
+                << query.value("Value").toString();
+    }
+}
+
+
+ModelsCollection<std::reference_wrapper<Model>>:
+------------------------------------------------
+
+/*! Converting constructor from the ModelsCollection<Model>. */
+ModelsCollection(ModelsCollection<std::unwrap_reference_t<Model>> &models) // NOLINT(google-explicit-constructor)
+requires (!std::is_pointer_v<Model> &&
+          std::same_as<Model, std::reference_wrapper<ModelRawType>>)
+{
+    ModelsCollection<std::reference_wrapper<ModelRawType>> result;
+    result.reserve(models.size());
+
+    for (ModelRawType &model : models)
+        this->emplace_back(model);
+}
+
+
+ModelsCollection::operator==():
+-------------------------------
+
+/* Others */
+/*! Equality comparison operator for the ModelsCollection. */
+inline bool operator==(const ModelsCollection<Model> &) const = default;
+bool operator==(const ModelsCollection<ModelRawType *> &other) const
+requires (!std::is_pointer_v<Model>)
+{
+    if (this->size() != other.size())
+        return false;
+
+    for (size_type index = 0; index < this->size(); ++index)
+        if (this->at(index) != *other.at(index))
+            return false;
+
+    return true;
+}
+
+
+tmp notes:
+----------
+
+message(-------)
+message(XXX config.pri)
+message(PWD: $$PWD)
+message(OUT_PWD: $$OUT_PWD)
+message(_PRO_FILE_PWD_: $$_PRO_FILE_PWD_)
+message(INCLUDEPATH: $$INCLUDEPATH)
+message(-------)
+
+
+tmp notes - Queryable columns:
+------------------------------
+
+    template<SubQuery T>
+    struct Queryable
+    {
+        QString as;
+//        std::variant<std::function<void(Orm::QueryBuilder &)>> queryable;
+        T       queryable;
+    };
+
+    Queryable(Orm::QueryBuilder &) -> Queryable<Orm::QueryBuilder &>;
+
+
+        /*! Set the columns to be selected. */
+        template<SubQuery T>
+        Builder &select(const QVector<Queryable<T>> &columns)
+//        Builder &select(const QVector<Queryable> &columns)
+        {
+            clearColumns();
+
+            for (const auto &q : columns)
+                selectSub(q.queryable, q.as);
+
+            return *this;
+        }
+        /*! Set the column to be selected. */
+//        template<SubQuery T>
+//        Builder &select(const Column &column);
+//        /*! Add new select columns to the query. */
+//        template<SubQuery T>
+//        Builder &addSelect(const QVector<Column> &columns);
+//        /*! Add a new select column to the query. */
+//        template<SubQuery T>
+//        Builder &addSelect(const Column &column);
+
+
+        /*! Makes "from" fetch from a subquery. */
+//        template<SubQuery T>
+//        Builder &whereSub(T &&query, const QVariant &value)
+//        {
+//            /* If the column is a Closure instance and there is an operator value, we will
+//               assume the developer wants to run a subquery and then compare the result
+//               of that subquery with the given value that was provided to the method. */
+//            auto [queryString, bindings] = createSub(std::forward<T>(query));
+
+//            addBinding(bindings, BindingType::WHERE);
+
+//            return where(Expression(QStringLiteral("(%1)").arg(queryString)),
+//                         QStringLiteral("="), value);
+//        }
+
+
+Model copy ctor:
+----------------
+
+    template<typename Derived, AllRelationsConcept ...AllRelations>
+    Model<Derived, AllRelations...>::Model(const Model &model)
+        : exists(model.exists)
+        , u_table(model.u_table)
+        , u_connection(model.u_connection)
+        , u_incrementing(model.u_incrementing)
+        , u_primaryKey(model.u_primaryKey)
+        , u_relations(model.u_relations)
+        , u_with(model.u_with)
+        , m_attributes(model.m_attributes)
+        , m_original(model.m_original)
+        , m_changes(model.m_changes)
+        , m_attributesHash(model.m_attributesHash)
+        , m_originalHash(model.m_originalHash)
+        , m_changesHash(model.m_changesHash)
+        , m_relations(model.m_relations)
+        , u_touches(model.u_touches)
+        , m_pivots(model.m_pivots)
+        , u_timestamps(model.u_timestamps)
+    {}
+
+
+AssignmentList:
+---------------
+
+I want to save this pattern:
+
+struct AssignmentListItem
+{
+    QString  column;
+    QVariant value;
+};
+
+class AssignmentList final : public QVector<AssignmentListItem>
+{
+    // Inherit all the base class constructors, wow 😲✨
+    using QVector<AssignmentListItem>::QVector;
+
+public:
+    AssignmentList(const QVariantHash &variantHash)
+    {
+        auto itHash = variantHash.constBegin();
+        while (itHash != variantHash.constEnd()) {
+            *this << AssignmentListItem({itHash.key(), itHash.value()});
+            ++itHash;
+        }
+    }
+};
+
+
+Example of the std::hash<> specialization:
+------------------------------------------
+
+/*! The std::hash specialization for the CastItem. */
+template<>
+class std::hash<TINYORM_END_COMMON_NAMESPACE::Orm::Tiny::CastItem>
+{
+    /*! Alias for the CastItem. */
+    using CastItem = TINYORM_END_COMMON_NAMESPACE::Orm::Tiny::CastItem;
+    /*! Alias for the CastType. */
+    using CastType = TINYORM_END_COMMON_NAMESPACE::Orm::Tiny::CastType;
+    /*! Alias for the helper utils. */
+    using Helpers = Orm::Utils::Helpers;
+
+public:
+    /*! Generate hash for the given CastItem. */
+    inline std::size_t operator()(const CastItem &castItem) const noexcept
+    {
+        /*! CastType underlying type. */
+        using CastTypeUnderlying = std::underlying_type_t<CastType>;
+
+        std::size_t resultHash = 0;
+
+        const auto castType = static_cast<CastTypeUnderlying>(castItem.type());
+
+        Helpers::hashCombine<CastTypeUnderlying>(resultHash, castType);
+        Helpers::hashCombine<QString>(resultHash, castItem.modifier());
+
+        return resultHash;
+    }
+};
+
+
+Grammar::SelectComponentType:
+-----------------------------
+
+ - if by any chance will be needed in the future
+
+/*! Select component types. */
+enum struct SelectComponentType
+{
+     AGGREGATE,
+     COLUMNS,
+     FROM,
+     JOINS,
+     WHERES,
+     GROUPS,
+     HAVINGS,
+     ORDERS,
+     LIMIT,
+     OFFSET,
+     LOCK,
+};
+
+
+EntityManager.hpp:
+------------------
+
+#ifndef ENTITYMANAGER_H
+#define ENTITYMANAGER_H
+
+#include "orm/databaseconnection.hpp"
+#include "orm/repositoryfactory.hpp"
+
+#ifdef TINYORM_COMMON_NAMESPACE
+namespace TINYORM_COMMON_NAMESPACE
+{
+#endif
+namespace Orm
+{
+
+    /*! The EntityManager is the central access point to ORM functionality. */
+    class SHAREDLIB_EXPORT EntityManager final
+    {
+        Q_DISABLE_COPY(EntityManager)
+
+    public:
+        EntityManager(const QVariantHash &config);
+        EntityManager(DatabaseConnection &connection);
+        ~EntityManager();
+
+        /*! Factory method to create EntityManager instances. */
+        static EntityManager create(const QVariantHash &config);
+
+        /*! Gets the repository for an entity class. */
+        template<typename Repository>
+        QSharedPointer<Repository> getRepository() const;
+
+        /*! Create a new QSqlQuery. */
+        QSqlQuery query() const;
+        /*! Get a new query builder instance. */
+        QSharedPointer<QueryBuilder> queryBuilder() const;
+        /*! Check database connection and show warnings when the state changed. */
+        bool pingDatabase();
+        /*! Start a new database transaction. */
+        bool transaction();
+        /*! Commit the active database transaction. */
+        bool commit();
+        /*! Rollback the active database transaction. */
+        bool rollback();
+        /*! Start a new named transaction savepoint. */
+        bool savepoint(const QString &id);
+        /*! Rollback to a named transaction savepoint. */
+        bool rollbackToSavepoint(const QString &id);
+
+        /*! Get underlying database connection. */
+        inline DatabaseConnection &connection() const
+        { return m_db; }
+
+    protected:
+        /*! Factory method to create DatabaseConnection instances. */
+        static DatabaseConnection &
+        createConnection(const QVariantHash &config);
+
+    private:
+        /*! The database connection used by the EntityManager. */
+        DatabaseConnection &m_db;
+        /*! The repository factory used to create dynamic repositories. */
+        RepositoryFactory m_repositoryFactory;
+    };
+
+    template<typename Repository>
+    QSharedPointer<Repository> EntityManager::getRepository() const
+    {
+        return m_repositoryFactory.getRepository<Repository>();
+    }
+
+} // namespace Orm
+#ifdef TINYORM_COMMON_NAMESPACE
+} // namespace TINYORM_COMMON_NAMESPACE
+#endif
+
+#endif // ENTITYMANAGER_H
+
+
+EntityManager.cpp:
+------------------
+
+#include "orm/entitymanager.hpp"
+
+#include <QtSql/QSqlQuery>
+
+#ifdef TINYORM_COMMON_NAMESPACE
+namespace TINYORM_COMMON_NAMESPACE
+{
+#endif
+namespace Orm
+{
+
+/*!
+    \class EntityManager
+    \brief The EntityManager class manages repositories and a connection
+    to the database.
+
+    \ingroup database
+    \inmodule Export
+
+    EntityManager is the base class to work with the database, it creates
+    and manages repository classes by helping with the RepositoryFactory
+    class.
+    Creates the database connection which is represented by
+    DatabaseConnection class.
+    EntityManager should be used in controllers ( currently TorrentExporter
+    is like a controller class ), services, and repository classes to access
+    the database. There is no need to use the QSqlDatabase or the
+    DatabaseConnection classes directly.
+    EntityManager is also injected into a repository and a service
+    classes constructors.
+    The circular dependency problem is solved by including entitymanager.hpp
+    in the baserepository.hpp file.
+*/
+
+EntityManager::EntityManager(const QVariantHash &config)
+    : m_db(createConnection(config))
+    , m_repositoryFactory(*this)
+{}
+
+EntityManager::EntityManager(DatabaseConnection &connection)
+    : m_db(connection)
+    , m_repositoryFactory(*this)
+{}
+
+EntityManager::~EntityManager()
+{
+    DatabaseConnection::freeInstance();
+}
+
+EntityManager EntityManager::create(const QVariantHash &config)
+{
+    return EntityManager(createConnection(config));
+}
+
+QSqlQuery EntityManager::query() const
+{
+    return m_db.query();
+}
+
+QSharedPointer<QueryBuilder> EntityManager::queryBuilder() const
+{
+    return m_db.query();
+}
+
+bool EntityManager::pingDatabase()
+{
+    return m_db.pingDatabase();
+}
+
+bool EntityManager::transaction()
+{
+    return m_db.transaction();
+}
+
+bool EntityManager::commit()
+{
+    return m_db.commit();
+}
+
+bool EntityManager::rollback()
+{
+    return m_db.rollback();
+}
+
+bool EntityManager::savepoint(const QString &id)
+{
+    return m_db.savepoint(id);
+}
+
+bool EntityManager::rollbackToSavepoint(const QString &id)
+{
+    return m_db.rollbackToSavepoint(id);
+}
+
+DatabaseConnection &
+EntityManager::createConnection(const QVariantHash &config)
+{
+    return DatabaseConnection::create(config.find("database").value().toString(),
+                                      config.find("prefix").value().toString(),
+                                      config);
+}
+
+} // namespace Orm
+#ifdef TINYORM_COMMON_NAMESPACE
+} // namespace TINYORM_COMMON_NAMESPACE
+#endif
+
+
+Check whether first data member in BaseCommand is QString (unsuccessful):
+---
+
+struct CommandDefinition
+{};
+
+struct BaseCommand : CommandDefinition
+{
+    QString name;
+};
+
+struct Idx1 : CommandDefinition
+{
+    int i = 0;
+    QString name;
+};
+
+template<typename T>
+concept IsQString = requires(T t)
+{
+//    requires std::same_as<decltype (std::declval<T>().name), QString>;
+    {t.name} -> std::same_as<QString &>;
+};
+
+BaseCommand i {.name = "h i"};
+Idx1 i1 {.i = 10, .name = "h i1"};
+CommandDefinition &bi = i;
+CommandDefinition &bi1 = i1;
+
+if constexpr (IsQString<decltype (reinterpret_cast<BaseCommand &>(bi))>)
+    qDebug() << "y";
+else
+    qDebug() << "n";
+
+
+Test Column expressions code, just swap groupBy
+-----
+
+auto q1 = Torrent::find(1)->torrentFiles()->groupBy({"xyz", "abc"}).toSql();
+qDebug() << q1;
+auto q2 = Torrent::find(1)->torrentFiles()->groupBy("xyz").toSql();
+qDebug() << q2;
+auto q = Torrent::find(1)->torrentFiles()->groupBy("abc", "def").toSql();
+qDebug() << q;
+
+auto t1 = Torrent::find(1)->torrentFiles()->groupBy({DB::raw("xyz"), "abc"}).toSql();
+qDebug() << t1;
+auto t2 = Torrent::find(1)->torrentFiles()->groupBy(DB::raw("xyz")).toSql();
+qDebug() << t2;
+auto t = Torrent::find(1)->torrentFiles()->groupBy("abc", DB::raw("def")).toSql();
+qDebug() << t;
+
+QString s1("abc");
+const QString s2("fgh");
+auto q3 = Torrent::find(1)->torrentFiles()->groupBy(s1, s2).toSql();
+qDebug() << q3;
+auto q4 = Torrent::find(1)->torrentFiles()->groupBy(std::move(s1), s2).toSql();
+qDebug() << q4;
+
+const QString s3("jkl");
+auto t3 = Torrent::find(1)->torrentFiles()->groupBy(s3, DB::raw(s2)).toSql();
+qDebug() << t3;
+auto t4 = Torrent::find(1)->torrentFiles()->groupBy(std::move(s3), DB::raw(s2)).toSql();
+qDebug() << t4;
+
+
+Performance measure timer:
+--------------------------
+
+#include <QElapsedTimer>
+QElapsedTimer timer;
+timer.start();
+qDebug().noquote() << QStringLiteral("Elapsed in XX : %1ms").arg(timer.elapsed());
+
+$startTime = microtime(true);
+printf("Elapsed in %s : %sms\n", $connection,
+    number_format((microtime(true) - $startTime) * 1000, 2));
+
+
+Fastly write to the file:
+-------------------------
+
+#include <fstream>
+std::ofstream("E:/tmp/aa.txt", std::ios::out | std::ios::app) << "first\nsecond\n";
+std::ofstream("E:/tmp/aa.txt", std::ios::out | std::ios::app) << "another line\n";
+
+
+Connect to the MySQL server using the raw QSqlDatabase:
+-------------------------------------------------------
+
+auto db = QSqlDatabase::addDatabase("QMYSQL");
+db.setHostName(qEnvironmentVariable("DB_MYSQL_HOST"));
+db.setDatabaseName(qEnvironmentVariable("DB_MYSQL_DATABASE"));
+db.setUserName(qEnvironmentVariable("DB_MYSQL_USERNAME"));
+db.setPassword(qEnvironmentVariable("DB_MYSQL_PASSWORD"));
+db.setPort(qEnvironmentVariable("DB_MYSQL_PORT").toUInt());
+db.setConnectOptions(QStringLiteral("SSL_CERT=%1;SSL_KEY=%2;SSL_CA=%3;MYSQL_OPT_SSL_MODE=%4")
+                     .arg(qEnvironmentVariable("DB_MYSQL_SSL_CERT"),
+                          qEnvironmentVariable("DB_MYSQL_SSL_KEY"),
+                          qEnvironmentVariable("DB_MYSQL_SSL_CA"),
+                          qEnvironmentVariable("DB_MYSQL_SSL_MODE")));
+
+auto ok = db.open();
+if (ok) {
+    qDebug() << "yes";
+}
+else {
+    qDebug() << "no";
+}
+
+
+MySQL C connector - invoked functions:
+--------------------------------------
+
+Note about invoked mysql_xyz() function during normal and prepared queries.
+
+Common for both normal and prepared queries
+--
+
+ - creating connection - MySqlDriver::open()
+
+MySqlDriverPrivate::MYSQL *mysql = nullptr
+mysql_library_init(0, nullptr, nullptr)
+mysql = mysql_init(nullptr)
+mysql_options()
+mysql_real_connect()
+mysql_set_character_set(d->mysql, cs->csname)
+mysql_select_db(d->mysql, db.toUtf8().constData())
+// check if this client and server version of MySQL/MariaDB support prepared statements
+checkPreparedQueries(MYSQL *mysql)
+  mysql_stmt_init(mysql)
+  mysql_stmt_prepare()
+  mysql_stmt_param_count()
+#if QT_CONFIG(thread)
+  mysql_thread_init();
+#endif
+
+ - before, everything is cleared and reset
+
+   - inside SqlQuery::exec("select ...")
+   - OR
+   - inside SqlQuery::prepare("select ...")
+     - there is the same reset logic like in the exec()
+   - there are two branches one if no query was executed before and other is any query
+     was executed before like:
+
+mysql_free_result(d->result)
+mysql_next_result(mysql) == 0
+  MYSQL_RES *res = mysql_store_result(mysql)
+  mysql_free_result(res)
+mysql_stmt_close(d->stmt)
+mysql_free_result(d->meta)
+
+NORMAL queries (non-prepared)
+--
+
+ - executing normal queries - SqlQuery::exec("select ...")
+
+mysql_real_query()
+d->result = mysql_store_result(mysql)
+mysql_field_count(mysql)
+int numFields = mysql_field_count(mysql)
+// For SELECT statements, mysql_affected_rows() works like mysql_num_rows()
+d->rowsAffected = mysql_affected_rows(mysql)
+
+isSelect()
+  MYSQL_FIELD* field = mysql_fetch_field_direct(d->result, i)
+  d->fields[i].type = qDecodeMYSQLType(field->type, field->flags)
+  d->fields[i].myField = field
+
+setAt(QSql::BeforeFirstRow);
+setActive(true)
+
+ - obtaining results for normal queries - SqlQuery::next()
+   - looping over rows (result sets)
+
+// Seeks to an arbitrary row in a query result set by the i (index)
+mysql_data_seek(d->result, i)
+[MYSQL_ROW] d->row = mysql_fetch_row(d->result)
+
+ - obtaining a value from positioned result set for normal queries - SqlQuery::value()
+
+// Following creates SqlRecord (result row of SqlField-s)
+MYSQL_RES *res = d->result
+
+if (!mysql_errno(mysql))
+  mysql_field_seek(res, 0)
+  MYSQL_FIELD* field = mysql_fetch_field(res)
+  while (field)
+    // qToField converts MySQL field to the Orm::Drivers::SqlField
+    [QList<SqlField>] info.append(qToField(field));
+    field = mysql_fetch_field(res);
+mysql_field_seek(res, 0)
+[SqlRecord] return info
+
+MySqlResult::data()
+const MySqlResultPrivate::MyField &f = d->fields.at(field);
+QString val
+fieldLength = mysql_fetch_lengths(d->result)[field]
+// ALL MySQL types are fetches into the QString val variable (weird but it work well)
+// except the QMetaType::QByteArray and converted appropriately by the f.type.id() and
+// returned as the QVariant
+switch (f.type.id())
+case QMetaType::LongLong:
+    [QVariant] return QVariant(val.toLongLong())
+case QMetaType::QDate:
+    [QVariant] return qDateFromString(val)
+
+
+PREPARED queries
+--
+
+ - preparing prepared queries and IN bindings metadata - SqlQuery::prepare("select ...")
+
+d->stmt = mysql_stmt_init(mysql)
+r = mysql_stmt_prepare(d->stmt)
+paramCount = mysql_stmt_param_count(d->stmt)
+d->outBinds = new MYSQL_BIND[paramCount]()
+
+bindInValues()
+meta = mysql_stmt_result_metadata(stmt)
+fields.resize(mysql_num_fields(meta))
+// Zero memory
+inBinds = new MYSQL_BIND[fields.size()]
+memset(inBinds, 0, fields.size() * sizeof(MYSQL_BIND))
+
+const MYSQL_FIELD *fieldInfo = mysql_fetch_field(meta))
+  here are set all field/column metadata from the fieldInfo to the inBinds
+  MYSQL_BIND *bind = &inBinds[i]; it prepares this inBinds structure for binding prepared
+  values
+
+ - now we can add/bind bindings
+   - eg. the addBindValue() add positional binding
+
+addBindValue(val)
+d->binds = PositionalBinding
+d->values[index] = val
+++d->bindCount
+
+ - executing prepared queries - SqlQuery::exec()
+   - the exec() method is different for normal and prepared queries
+     - normal queries call SqlQuery::exec()
+     - prepared queries call MySqlResult::exec()
+
+const QList<QVariant> values = boundValues()
+r = mysql_stmt_reset(d->stmt)
+
+if (mysql_stmt_param_count(d->stmt) > 0 &&
+    mysql_stmt_param_count(d->stmt) == (uint)values.size())
+  MYSQL_BIND* currBind = &d->outBinds[i];
+
+  here are set all needed metadata from the val QVariant value to the outBinds
+  mysql_stmt_bind_param() is used to bind input data for the parameter markers in the SQL statement
+  that was passed to mysql_stmt_prepare(). It uses MYSQL_BIND structures to supply the data.
+  bind is the address of an array of MYSQL_BIND structures.
+
+  r = mysql_stmt_bind_param(d->stmt, d->outBinds);
+
+// When we have all bindings prepared we can execute the prepared query
+r = mysql_stmt_execute(d->stmt)
+
+// Now we need to bind columns to output buffers 🫤😲 It's really complex ❗
+// mysql_stmt_bind_result() is used to associate (that is, bind) output columns in the result set
+// to data buffers and length buffers.
+// All columns must be bound to buffers prior to calling mysql_stmt_fetch()
+d->rowsAffected = mysql_stmt_affected_rows(d->stmt)
+if (isSelect())
+  r = mysql_stmt_bind_result(d->stmt, d->inBinds)
+
+// Some special logic for blobs
+// causes mysql_stmt_store_result() to update the metadata MYSQL_FIELD->max_length value
+if (d->hasBlobs)
+  mysql_stmt_attr_set(d->stmt, STMT_ATTR_UPDATE_MAX_LENGTH, &update_max_length)
+
+r = mysql_stmt_store_result(d->stmt)
+
+// Again some special logic for blobs (to avoid crashes on MySQL <4.1.8)
+r = mysql_stmt_bind_result(d->stmt, d->inBinds)
+
+Now should be everything ready and we can start obtaining result sets and values
+
+ - obtaining results for prepared queries - SqlQuery::next()
+   - looping over rows (result sets)
+   - prepared queries has different set of functions for this
+
+// Seeks to an arbitrary row in a query result set by the i (index)
+mysql_stmt_data_seek(d->stmt, i)
+int nRC = mysql_stmt_fetch(d->stmt)
+
+ - obtaining a value from positioned result set for prepared queries - SqlQuery::value()
+
+// Following creates SqlRecord (result row of SqlField-s)
+// Prepared queries use the d->meta instead of d->result, the rest is the same
+MYSQL_RES *res = d->meta
+
+if (!mysql_errno(mysql))
+  mysql_field_seek(res, 0)
+  MYSQL_FIELD* field = mysql_fetch_field(res)
+  while (field)
+    // qToField converts MySQL field to the Orm::Drivers::SqlField
+    [QList<SqlField>] info.append(qToField(field));
+    field = mysql_fetch_field(res);
+mysql_field_seek(res, 0)
+[SqlRecord] return info
+
+The beginning of this last step is different for prepared queries and it also do converting
+here and EARLY returns.
+The rest of converting logic is same for column type that were not processed in the step above.
+
+
+Invoke-Tests.ps1:
+-----------------
+
+- 100 times run
+  - 28. dec 2021
+    - Windows 10:
+      - Qt 5.15.2 ; msvc 16.11.8 x64
+        - debug build
+All AutoTests Execution time : 792519ms
+All AutoTests Average Execution time : 7925ms
+
+      - Qt 6.2.1 ; msvc 16.11.8 x64
+        - debug build
+All AutoTests Execution time : 986531ms
+All AutoTests Average Execution time : 9865ms
+
+    - Gentoo:
+      - Qt 5.15.2 ; GCC 11.2 x64 ccache
+        - debug build
+All AutoTests Execution time : 519138ms
+All AutoTests Average Execution time : 5191ms
+      - Qt 6.2.2 ; GCC 11.2 x64 ccache
+        - debug build
+All AutoTests Execution time : 546585ms
+All AutoTests Average Execution time : 5466ms
+
+
+Compilation time and Memory usage:
+----------------------------------
+
+- 04. jun 2022 qmake ("CONFIG+=mysql_ping tom_example build_tests")
+  - Qt 6.2.4
+MSVC2019          9.9GB 1:27
+MSVC2022          8.0GB 1:25
+clang-cl MSVC2022 5.5GB 1:35
+
+
+bugs:
+-----
+
+- BUG std::unordered_map can not be instantiated with the incomplete value type, reproducible only on the Linux GCC/Clang, MSYS2 and msvc don't have any problem with the incomplete type ✨🚀
+
+add this to the testforplay.cpp
+
+#include <filesystem>
+#include <iostream>
+#include <typeindex>
+#include <typeinfo>
+
+#include <unordered_map>
+
+namespace Models {
+class Torrent;
+}
+
+struct Test1
+{
+    std::unordered_map<QString, Models::Torrent> m_a {};
+};
+
+#include <range/v3/all.hpp>
+
+#include <orm/db.hpp>
+
+
+Unused code:
+------------
+
+Orm::Utils::Container:
+
+ - hpp
+        /*! Get a size of the greatest element in the container. */
+        template<QStringContainer T, typename SizeType = typename T::size_type>
+        static SizeType
+        maxElementSize(const T &container, typename T::size_type addToElement = 0);
+
+    template<QStringContainer T, typename SizeType>
+    SizeType
+    Container::maxElementSize(const T &container,
+                              const typename T::size_type addToElement)
+    {
+        // Nothing to do
+        if (container.empty())
+            return 0;
+
+        SizeType result = 0;
+
+        for (const auto &element : container)
+            if (const auto elementSize = element.size();
+                elementSize > result
+            )
+                result = elementSize;
+
+        /* This is the reason for the addToElement argument, this algorithm returns 0,
+           if the result is 0. */
+        if (result == 0)
+            return 0;
+
+        return result + addToElement;
+    }
+
+Orm::Utils::String:
+
+ - hpp
+        /*! Convert a string to kebab case. (kebab-case). */
+        inline static QString kebab(const QString &string);
+        /*! Get the singular form of an English word. */
+        static QString singular(const QString &string);
+
+    QString String::kebab(const QString &string)
+    {
+        return snake(string, Orm::Constants::DASH);
+    }
+
+ - cpp
+QString String::singular(const QString &string)
+{
+    if (!string.endsWith(QLatin1Char('s')))
+        return string;
+
+    return string.chopped(1);
+}
+
+std::format for QString:
+
+template <>
+struct std::formatter<QString>
+{
+    constexpr static auto parse(std::format_parse_context &ctx)
+    {
+        return ctx.begin();
+    }
+
+    static auto format(const QString &string, std::format_context &ctx)
+    {
+        return std::format_to(ctx.out(), "{}", string.toUtf8().constData());
+    }
+};
+
+usage:
+
+std::cout << std::format("String {}", QString("hello")) << "\n";
+
+
+Upgrade Laravel main version:
+-----------------------------
+
+composer selfup
+composer global outd -D
+composer global up
+laravel new laravel-10
+cd .\laravel-10\
+npm install
+composer require laravel/breeze --dev
+art breeze:install
+composer require --dev barryvdh/laravel-ide-helper
+npm install
+| WinMerge composer.json
+composer up
+| create a new nginx site
+install-Dotfiles.ps1 -Pretend
+install-Dotfiles.ps1
+new-Item -ItemType SymbolicLink -Path .\laravel-10.conf -Target ..\sites-available\laravel-10.conf
+edithosts.ps1
+Restart-Service phpcgi -Force
+| WinMerge .env
+| copy app/Support/TestSchema.php
+| WinMerge app/Models/User.php
+| copy app/Models/
+| copy app/Http/Controllers/TestController.php
+| WinMerge app/
+art vendor:publish --provider="Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider" --tag=config
+| copy resources/views/test/index.blade.php
+| WinMerge routes/
+| WinMerge config/
+| WinMerge database/
+| ! merging/comparing migrations was tricky, I have copied whole database, deleted jobs and cache related tables, and then run mig:st (without our migrations, Laravel migrations only (there were migrations for users, cache, jobs tables)), I updated migrations table manually when needed, then I copied our migrations, mig:st of course shows that they are already migrated what is OK
+| copy MySQL database using phpMyAdmin Operations - Copy Database
+| copy PostgreSQL database using Create database - Template to previous DB - set Template to unchecked (false)
+| replace all occurences of DB_LARAVEL_X to the new X version (.env, config/database.php)
+art migrate:status
+art migrate --pretend
+art migrate
+art migrate:status --database=pgsql
+art migrate --pretend --database=pgsql
+art migrate --database=pgsql
+| PHPStorm create a new server and debug configuration
+| copy and apply instructions in the NOTES.txt
+| set MAIL_MAILER=log and MAIL_LOG_CHANNEL=mail in .env file
+| create mail log channel in the config/logging.php (copy of single channel and mail.log file)
+| regenerate passwords (Forgot your password?), the reset link will be logged to the storage/logs/mail.log
+| login
+| set breakpoint and try query DB and check storage/app/sql.log if queries are logged correctly
+| done 🎉
+
+
+Performance:
+------------
+tests was done on std::vector<AttributeItem> with 1'000'000 values
+--
+
+ - appending using grow container when needed vs loop over input data, compute size and reserve
+   Result: reserve is 200% faster
+
+ - QString.append() vs QStringLiteral.arg()
+   Result: QString.append() is 50% faster
+
+ - moving vs copying data to the container
+   Result: moving is ~40-50% faster
+
+ - std::unordered_map lookup vs std::vector eg. with std::ranges::find_if
+   Result: unordered_map lookup is blazing fast 2.8s on 1'000'000 items;
+           std::vector with eg. std::ranges::find_if is unusable,
+           it so slow that on 1000 items it takes 1s, on 4000 items it takes 17s, and
+           on 100'000 items it takes forever, 1'000'000 items would take days 😮
+
+ - breaking point when the std::unordered_map takes performance advantage over manually
+   searching the std::vector:
+   Result for int (trivial types): ~1000 items - map 0ms and vector  1ms;
+                                   ~2000 items - map 0ms and vector  5ms;
+                                   ~4000 items - map 1ms and vector 21ms;
+   Result for QString:  ~200 items - map 0ms and vector  1ms;
+                        ~400 items - map 1ms and vector  7ms;
+                       ~1000 items - map 2ms and vector 52ms;
+   Conclusion: so for QString if the vector has more than 300 items then is good to initialize
+               the unordered_map and use fast lookup
+
+ - std::unordered_map<int, int> at() vs operator[] vs find()
+   Result: at() and operator[] are equally fast ~120ms, find() is ~35% slower
+
+ - global inline or extern constants are much faster than constructing new strings
+   Result: on 1'000'000 loop for a simple QString construction it's like 8ms vs 570ms
+
+ - the QHash<QString, RelationVisitor> u_relations are ~50ms faster than the std::unordered_map,
+   tested with the TinyOrmPlayground with ~1595 queries
+
+ - QString constants - returning the QString from the function, 1'000'000 loops:
+
+   The following proves that TinyORM inline and extern constants are worth it.
+   It's 6000% faster!!! than constructing a new QString-s still again, benefits are huge. 😎👌
+
+   The function simply contains only the return xyz-scenarios described below (NRVO applied at 100%):
+     ~9ms - QStringLiteral defined in the same TU
+     ~9ms - inline QStringLiteral in another hpp
+    ~10ms - extern QStringLiteral in another TU
+   ~682ms - returning const char * directly eg. return "xyz"
+   ~628ms - returning QLatin1String directly eg. return "xyz"_L1
+    ~14ms - returning QStringLiteral directly using return u"xyz"_s
+    ~14ms - returning QStringLiteral directly using return QStringLiteral("xyz")
+
+   All the same as above but forced a copy inside the function like:
+    QString s;
+    s = sl;
+    return s;
+
+    ~46ms - QStringLiteral defined in the same TU
+    ~46ms - inline QStringLiteral in another hpp
+    ~47ms - extern QStringLiteral in another TU
+   ~734ms - returning const char * directly eg. return "xyz"
+   ~683ms - returning QLatin1String directly eg. return "xyz"_L1
+    ~48ms - returning QStringLiteral directly using return u"xyz"_s
+    ~50ms - returning QStringLiteral directly using return QStringLiteral("xyz")
+
+
+QtSql vs TinyDrivers performance:
+---------------------------------
+
+ - invoke tests Alt+PgDw
+ - Switch tests output to Text View and copy the whole output
+ - paste it to some file eg. pp.txt
+ - check if has the correct number of '^  <Duration ' (using RegEx Find)
+ - invoke the Get-TextCasesDuration.ps1 on this file to obtain the result (Duration in seconds)
+
+TestCases UnitTests BuildTime Type       Duration in seconds
+39        1924(50)  3:13      loadable - 25.00, 26.00, 25.90, 25.23, 25.21
+39        1922(50)  2:58      shared   - 24.68, 24.92, 24.96
+39        1920(50)  3:04      static   - 25.50, 24.58, 24.34
+37        1914(42)  2:51      QtSql    - 26.10, 25.75, 25.20, 25.31
+
+
+Qt confusions:
+--------------
+
+QVariant null vs invalid:
+
+ - null QVariant is valid
+ - invalid QVariant is also null!
+ - so checks like this (attribute.isNull() || !attribute.isValid()) are redundand because it would
+   be enough to only check (attribute.isNull()), but I'm checking both in most cases.
+
+    QVariant vnull {QMetaType(QMetaType::QString)};
+    QVariant vinvalid;
+
+    qDebug() << vnull.isNull();
+    qDebug() << !vnull.isValid();
+    qDebug() << vinvalid.isNull();
+    qDebug() << !vinvalid.isValid();
+
+QLibrary debugging:
+
+ - set: QT_DEBUG_PLUGINS=1
+ - it will log all debug messages to the console
+
+
+c++ library confusions:
+-----------------------
+
+ - std::unordred_map reserve() vs ctor(size_type), they are the same
+
+ - shared_ptr and unique_ptr complete vs incomeplete type:
+   - https://en.cppreference.com/w/cpp/memory/unique_ptr
+   - https://howardhinnant.github.io/incomplete.html
+     local copy in Books (search):
+     smart_pointers_shared_ptr_unique_ptr_incomplete_types.html
+   - shared_ptr doesn't need polymorphic class to correctly destroy it through the shared_ptr<Base>
+   - unique_ptr does need polymorphic class to correctly destroy it through the unique_ptr<Base>
+   - shared_ptr needs complete type during construction
+   - unique_ptr can be constructed with incomplete type
+
+
+c++ mutex-es:
+-------------
+
+The Note, to avoid always figuring out how this works, update this if I will use mutexes and will
+have more experiences.
+
+Nice sum up, all about multithreading:
+https://www.youtube.com/watch?v=A7sVFJLJM-A&t=2450s&ab_channel=CppCon
+
+ - always use std::scoped_lock
+ - std::lock and std::try_lock are simple functions which lock mutex, like std::mutex::lock/try_lock
+ - std::lock_guard unlocks mutex at the end of a scope
+ - std::scoped_lock does the same as std::lock and std::lock_guard
+ - std::unique_lock is needed with the std::conditional_variable, with these you can wait
+   for data across threads
+ - the best example is in the cpp std::scoped_lock documentation:
+   https://en.cppreference.com/w/cpp/thread/scoped_lock
+
+Shared/exclusive (read/write) mutex-es:
+
+ - std::shared_mutex - use it for this purposes
+ - std::shared_lock locks shared_mutex in the shared/read mode
+ - std::scoped_lock and std::unique_lock locks shared_mutex in the exclusive/write mode
+ - std::scoped_lock can be used with shared_mutex-es the same way as the std::unique_lock
+ - also everything described in the section above is true for the shared_mutex
+   in the exclusive/write mode but not for the std::shared_lock (it's special)
+
+Qt mappings:
+
+ - QReadWriteLock = std::shared_mutex
+ - QReadLocker    = std::shared_lock
+ - QWriteLocker   = std::scoped_lock or std::unique_lock
+
+
+Serialization - Appending Values To JSON:
+-----------------------------------------
+
+Currently isn't possible to serialize appended Aggregate types and Value Objects because
+of the QJsonValue, the reason is explained in the QJsonValue::fromVariant() documentation
+at https://doc.qt.io/qt-6/qjsonvalue.html#fromVariant
+
+The best what can be done is to return the QVariantMap or QVariantList from the accessors.
+
+Aggregate types and Value Objects works good with the Model's toMap() and toVector() methods,
+especially with Qt6's QVariant::fromValue(), Qt6 doesn't need to declare the Q_DECLARE_METATYPE().
+
+
+PowerShell confusions:
+----------------------
+
+ - .Count comes from IEnumerate interface and should be used for array-like containers
+   - on arrays the Count is an alias to the Length property
+ - .Length should be used for strings
+   - string doesn't have Count property but 'str'.Count returns 1
+ - array-s are immutable
+ - -match operator:
+   - calling -match on string returns bool and sets the $Matches variable
+   - calling -match container filters it
+ - variable names are case-insensitive
+ - you don't have to ` escape newline: after + | = or inside () -join -replace
+ - you must ` escape newline between function parameters eg.: -Path `\n -Message
+
+
+qmake confusions:
+-----------------
+
+ - load() vs include() prf files:
+   - if load() or include() is called inside other feature prf or pri file then you don't need
+     to load() or include() again, it's imported into the current scope (what is logical)
+   - if any variable is defined inside other feature prf or pri file and this file is
+     include()-ed or load()-ed then the variable will be available in the so called parent file
+     where the inclusion was called; this is also true if the variable is defined inside
+     the qmake Scope but isn't true if the variable is defined inside the test or replace function
+   - include() or load() inside function will not be available outside this function
+   - include()
+     - includes the contents of the file specified by filename into the current project
+       at the point where it is included
+     - succeeds if filename is included; otherwise it fails
+     - included file is processed immediately
+   - load()
+     - loads the feature file (.prf) specified by feature, unless the feature has already been loaded
+     - if the CONFIG contains the feature name it will be loaded after the current project is
+       processed
+     - the feature will be loaded for every sub-project
+     - the load() function can also be in scope checks (returns true/false) but it doesn't make
+       sense because it also throws an error
+
+ - using CONFIG in the qmake features (prf files):
+   - you set CONFIG in the feature prf files but they will no effect on the current project file
+     because feature prf files are processed after the current project
+   - so if you need to set another CONFIG option inside the feature prf file you need to call
+     the load(feature) manually
+
+ - build_pass:
+   Additional makefile is being written (build_pass is not set when the primary Makefile
+   is being written).
+   When both debug_and_release and static_and_shared are used all four Debug/Release and
+   Static/Shared combinations will occur in addition to build_pass.
+
+ - static vs staticlib
+   - static
+     means prefer linking against static library archives and if the sub-project TEMAPLTE qmake
+     option constains ".*lib" then set the CONFIG += staticlib
+   - staticlib
+     means build all sub-projects as static archive libraries and it also sets the CONFIG += static
+     What means don't use it for the whole TinyORM project because it contains many sub-projects
+     and it can cause problems, instead use the CONFIG += static!
+
+ - export() variable in deeper functions:
+   - if we are eg. three functions deep inside then it's enough to call export() only once,
+     there is no need to re-export() in parent functions
+
+
+tools/deploy.ps1:
+-----------------
+
+Alternative committing code:
+
+function Invoke-BumpVersions
+
+    NewLine
+    Write-Info ('Please check updated versions and commit all files in SmartGit with ' +
+        'the following commit message')
+    NewLine
+    Write-Output (Get-BumpCommitMessage)
+    Approve-Continue -Exit
+
+function Invoke-CreateTag
+
+    Write-Info 'Please create annotated signed tag in SmartGit with the following tag message'
+    NewLine
+    Write-Output (Get-TagMessage)
+    Approve-Continue -Exit
+
+
+Windows File properties:
+------------------------
+tags: FILEFLAGS, debug
+--
+
+They can also be checked using, especially checking the IsDebug build:
+
+(Get-Item .\tom.exe).VersionInfo | fl
+
+
+TinyORM C++ Coding Style:
+-------------------------
+
+ - Macro guard must copy what will be in the #include for the current header file,
+   not how the namespace is named and isn't based on the folder structure.
+
+   Eg. if the following header files will be included like this:
+#include "orm/drivers/mysql/mysqlresult_p.hpp"
+#include "orm/drivers/mysql/constants_extern_p.hpp"
+   Then the macro guards will be:
+#define ORM_DRIVERS_MYSQL_MYSQLRESULT_P_HPP
+#define ORM_DRIVERS_MYSQL_CONSTANTS_EXTERN_P_HPP
+
+
+GitHub actions self-hosted runners:
+-----------------------------------
+
+Invoke Linux on: workflow_dispatch:
+---
+cdt
+gh workflow run
+gh workflow run --ref silverqx-develop
+gh workflow run linux-qt6-drivers.yml --ref silverqx-develop; gh workflow run vcpkg-linux.yml --ref silverqx-develop
+gh workflow run analyzers.yml --ref silverqx-develop
+
+OS settings:
+---
+
+ - Linux:
+   - set time zone to 'Etc/UTC' (this was the default)
+
+merydeye-tinyactions useful commands:
+---
+
+ - removing old Clang 17:
+sudo apt purge clang-17 clang-tidy-17 lld-17
+apt-key list
+sudo rm llvm-17.asc (from trusted.gpg.d/)
+add-apt-repository --list
+sudo rm archive_uri-http_apt_llvm_org_jammy_-jammy.list (from sources.list.d/)
+
+ - install Clang 18:
+wget -O- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/llvm-18.asc
+sudo add-apt-repository --yes --sourceslist 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main'
+sudo apt install clang-18 clang-tidy-18 lld-18
+
+ - upgrade aqtinstall (needed before ugprading Qt)
+python3 -m pip install --upgrade pip
+aqt version
+pip list
+pip show aqtinstall
+pip install --upgrade aqtinstall
+
+ - removing old Qt v6.5.3
+sudo rm -rf /opt/Qt/6.5.3
+
+ - install Qt v6.7.0
+aqt list-qt linux desktop
+aqt list-qt linux desktop --arch 6.7.0
+aqt install-qt --external 7z --outputdir /opt/Qt linux desktop 6.7.0 linux_gcc_64
+
+ - Qt Maintenance Tool:
+
+initial installation of Qt base FW only (w/o user input):
+./qt-unified-linux-x64-4.7.0-online.run --root /opt/Qt --email 'silver.zachara@gmail.com' --password '' --accept-licenses --default-answer --confirm-command install qt.qt6.670.linux_gcc_64
+
+Following install also QtCreator, QtDesignerStudio, CMake, and Ninja:
+./qt-unified-linux-x64-4.7.0-online.run --root /opt/Qt --email 'silver.zachara@gmail.com' --password '' install
+
+Searching packages:
+./MaintenanceTool --type package --filter-packages "DisplayName=Desktop, Version=6.7.0" search qt.qt6.670.linux_gcc_64
+./MaintenanceTool --type package --filter-packages "DisplayName=Desktop" search qt.qt6.670.linux_gcc_64
+
+Install packages:
+./MaintenanceTool install qt.qt5.5152.gcc_64
+./MaintenanceTool --mirror https://qt-mirror.dannhauer.de install qt.qt5.5152.gcc_64
+
+Removing packages:
+./MaintenanceTool remove qt.tools.cmake qt.tools.ninja qt.tools.qtcreator_gui qt.tools.qtdesignstudio
+
+Updating packages (not tested yet):
+./MaintenanceTool update
+./MaintenanceTool update qt.qt6.670.linux_gcc_64
+
+Others:
+./MaintenanceTool check-updates
+./MaintenanceTool clear-cache (if cache is too big: du -sh ~/.cache/qt-unified-linux-online)
+
+Others:
+---
+
+After a few week all stoped runners are invalided so they must be re-configured.
+Simply delete the .runner file and invoke the config script again as is described here:
+https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners
+
+ - Common for both:
+   - you can safely remove these folders from _work/TinyORM:
+HelloWorld-builds-cmake
+HelloWorld-FetchContent-Install
+TinyORM-builds-cmake
+
+ - Linux:
+   - AutoHotkey shortcuts
+     - ctrl-ga (leader), r - run, s - suspend, h - htop, a - un/pause
+
+Start-TinyORMActions
+cd /opt/actions-runners/tinyorm
+sudo ./svc.sh stop
+mv .runner .runner.bak
+./config.sh --url https://github.com/silverqx/TinyORM --token <token_from_GH_settings>
+runner name already was in lower case
+sudo ./svc.sh start
+rm .runner.bak
+Stop-TinyORMActions (after work is done)
+
+- Windows:
+cd E:\actions-runners\tinyorm
+sst-a.ps1
+mv .\.runner .\.runner.bak
+./config.cmd --url https://github.com/silverqx/TinyORM --token <token_from_GH_settings>
+ - Enter the name of runner: [press Enter for MERYDEYE-DEVEL] merydeye-devel (changed name to lower case)
+ - Would you like to run the runner as service? (Y/N) [press Enter for N] y (non-default answer)
+ - User account to use for the service [press Enter for NT AUTHORITY\NETWORK SERVICE] (default answer)
+rm -Force .\.runner.bak
+change Service actions.runner.silverqx-TinyORM.merydeye-devel Startup type to Manual
+ - or Disabled after work is done
+sst-a.ps1 (after work is done)
+
+- pwsh scripts to work with runner services:
+sg-a.ps1  (Get-Service)
+sst-a.ps1 (Stop-Service)
+ss-a.ps1  (Start-Service)
+sr-a.ps1  (Restart-Service)
+
+- Notes:
+ - !!! (don't delete runner's folder) backup .env and .path (Linux only) before deleting
+       whole runner's folder
+ - no need to remove services before re-configuring
+   - on Linux call this commend before: sudo ./svc.sh stop
+   - Linux svc commands: sudo ./svc.sh start/status/stop
+ - config.sh script on Linux can be invoked without sudo
+ - config.cmd on Windows must be invoked in Admin. shell because it installs service
+ - all prompt questions leave at default, only one thing is to change the Windows runner name
+   to the lowercase
+ - I have added two helper scripts to execute/stop these runners:
+   - Start-TinyORMActions
+   - Stop-TinyORMActions
+
+ - needed manual actions:
+   - deleting build folders eg. after compiler or Qt upgrade (see Common for both section above)
+   - deleting and re-cloning the vcpkg repo
+     - the owner must be changed on Windows to NETWORK SERVICE because of git filesystem owner check
+     - isn't needed often, look on this step in actions (vcpkg-linux/windows.yml files) why it's so,
+       step name to search: vcpkg upgrade repository (latest version)
+       - i'm simply fetching latest changes and doing hard reset on master
+
+
+Windows Database servers services:
+----------------------------------
+
+Examples of Service name, command-line, and log on account, and install command.
+
+ - don't user mysql_install_db.exe for MariaDB because it only creates a new data directory, it fails
+   when a data directory already exists
+
+MariaDB11
+"C:\Program Files\MariaDB 11.3\bin\mysqld.exe" "--defaults-file=E:\mysql\mariadb_11\data\my.ini" "MariaDB11"
+NT SERVICE\MariaDB11
+mysqld.exe --install MariaDB11 --defaults-file="E:\mysql\mariadb_11\data\my.ini"
+
+MySQL83
+"C:\Program Files\MySQL\MySQL Server 8.3\bin\mysqld.exe" --defaults-file="C:\ProgramData\MySQL\MySQL Server 8.3\my.ini" MySQL83
+NT SERVICE\MySQL83
+mysqld.exe --install MySQL83 --defaults-file="C:\ProgramData\MySQL\MySQL Server 8.3\my.ini"
+
+postgresql-x64-16
+"C:\Program Files\PostgreSQL\16\bin\pg_ctl.exe" runservice -N "postgresql-x64-16" -D "E:\postgres\16\data" -w
+Network Service
+pg_ctl.exe register --pgdata="E:\postgres\16\data" -N postgresql-x64-16 -U 'NT AUTHORITY\NETWORK SERVICE' --wait
+
+
+Integral casting rules:
+-----------------------
+
+The following are most used cases which I corrected during the static_cast<> revisit.
+
+ - static_cast<>
+   - qint64 -> int
+   - std::size_t -> qint64 or int
+   - qint64 or int -> std::size_t (if signed value can't be <0, eg. .size() methods)
+ - IntegralCast<>
+   - qint64 or int -> std::size_t (if signed value can be <0)
+ - no cast:
+   - int -> qint64
+
+
+Building QtSql5 MySQL drivers for Qt5:
+--------------------------------------
+
+QtSql5 isn't able to build against the latest MySQL v8.3 server, it must be built against
+the MySQL v8.0.x branch. Reason are mysql_list_fields() and mysql_ssl_set() functions that
+were removed in the latest MySQL versions (at sure in v8.3 branch).
+
+Build commands:
+qmake E:\Qt\5.15.2\Src\qtbase\src\plugins\sqldrivers\sqldrivers.pro -- MYSQL_INCDIR="C:/optx64/mysql-8.0.36-winx64/include" MYSQL_LIBDIR="C:/optx64/mysql-8.0.36-winx64/lib"
+jom sub-mysql
+jom sub-mysql-install_subtargets (or you can use this install target)
+
+To install just copy two dll and pdb files to Qt\5.15.2\msvc2019_64\plugins\sqldrivers, not needed
+to copy the Qt5Sql_QMYSQLDriverPlugin.cmake as the default installation already contains it.
+
+All this isn't enough as you need the correct libmysql.dll and openssl 1 libraries. I added
+these libaries to my dotfiles at bin_qt5.
+To use these libraries prepend this path to the Qt v5.15 KIT Environment:
+PATH=+E:\dotfiles\bin_qt5;

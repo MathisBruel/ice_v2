@@ -1,0 +1,296 @@
+---
+sidebar_position: 3
+sidebar_label: Casts
+description: Attribute casting allows you to transform TinyORM attribute values when you retrieve them on model instances. For example, you may want to convert a `datetime` string that is stored in your database to the `QDateTime` instance when it is accessed via your TinyORM model.
+keywords: [c++ orm, orm, casts, casting, attributes, tinyorm]
+---
+
+# TinyORM: Casting
+
+- [Introduction](#introduction)
+- [Accessors](#accessors)
+    - [Defining An Accessor](#defining-an-accessor)
+- [Attribute Casting](#attribute-casting)
+    - [Date Casting](#date-casting)
+    - [Query Time Casting](#query-time-casting)
+
+## Introduction
+
+Attribute casting allows you to transform TinyORM attribute values when you retrieve them on model instances. For example, you may want to convert a `datetime` string that is stored in your database to the `QDateTime` instance when it is accessed via your TinyORM model. Or, you may want to convert a `tinyint` number that is stored in the database to the `bool` when you access it on the TinyORM model.
+
+## Accessors
+
+:::caution
+Accessors are currently only used during the serialization by the [Appending Values](tinyorm/serialization.mdx#appending-values-to-json) feature. They are not used during the `getAttribute` or `getAttributeValue` methods calls.
+:::
+
+### Defining An Accessor
+
+An accessor transforms a TinyORM attribute value when it is accessed (currently during serialization only by the [Appending Values](tinyorm/serialization.mdx#appending-values-to-json) feature). To define an accessor, create a protected method on your model to represent the accessible attribute. This method name should correspond to the "camelCase" representation of the true underlying model attribute / database column when applicable.
+
+In this example, we'll define an accessor for the `first_name` attribute. The accessor will automatically be called by TinyORM during serialization if the `first_name` attribute is defined in the `u_appends` data member set. All attribute accessor methods must return the `Orm::Tiny::Casts::Attribute`:
+
+    #include <orm/tiny/model.hpp>
+
+    using Orm::Tiny::Model;
+
+    class User final : public Model<User>
+    {
+        friend Model;
+        using Model::Model;
+
+    protected:
+        /*! Get the user's first name (accessor). */
+        Attribute firstName() const noexcept
+        {
+            return Attribute::make(/* get */ [this]() -> QVariant
+            {
+                auto firstName = getAttribute<QString>("first_name");
+
+                if (!firstName.isEmpty())
+                    firstName[0] = firstName.at(0).toUpper();
+
+                return firstName;
+            });
+        }
+
+    private:
+        /*! Map of mutator names to methods. */
+        inline static const QHash<QString, MutatorFunction> u_mutators {
+            {"first_name", &User::firstName},
+        };
+    };
+
+All accessor methods return an `Attribute` instance which defines how the attribute will be accessed. To do so, we supply the `get` argument to the `Attribute` class constructor or `Attribute::make` factory method.
+
+As you can see, the current model is captured by-reference using the `[this]` capture, allowing you to obtain a value by the `getAttribute` method inside the lambda expression, manipulate it and return a new value.
+
+You can also use the second overload that allows you to pass the `ModelAttributes` unordered map to the lambda expression:
+
+    protected:
+        /*! Get the user's first name (accessor). */
+        Attribute firstName() const noexcept
+        {
+            return Attribute::make(
+                   /* get */ [](const ModelAttributes &attributes) -> QVariant
+            {
+                auto firstName = attributes.at<QString>("first_name");
+
+                if (!firstName.isEmpty())
+                    firstName[0] = firstName.at(0).toUpper();
+
+                return firstName;
+            });
+        }
+
+The [`ModelAttributes`](https://github.com/silverqx/TinyORM/blob/main/include/orm/tiny/types/modelattributes.hpp) container extends the `std::unordered_map<QString, QVariant>` and adds the `at<T>` method that allows you to cast the underlying QVariant value.
+
+Special note should be given to the `u_mutators` static data member map, which maps accessors' attribute names to its methods. This data member is __required__ because C++ does not currently support reflection.
+
+:::info
+If you would like these computed values to be added to the vector, map, or JSON representations of your model, [you will need to append them](tinyorm/serialization.mdx#appending-values-to-json).
+:::
+
+:::danger
+You must guarantee that the current model will live long enough to avoid the dangling reference and crash if the current model is captured by-reference. Of course, you can capture it by-copy in edge cases or if you can't guarantee this.
+:::
+
+#### Building Value From Multiple Attributes
+
+Sometimes your accessor may need to transform multiple model attributes into a single value. You can use both methods described above to accomplish this:
+
+    using Orm::Constants::SPACE_IN;
+
+    protected:
+        /*! Get the user's full name (accessor). */
+        Attribute fullName() const noexcept
+        {
+            return Attribute::make(/* get */ [this]() -> QVariant
+            {
+                return SPACE_IN.arg(getAttribute<QString>("first_name"),
+                                    getAttribute<QString>("last_name"));
+            });
+        }
+
+Or you can use the `ModelAttributes` overload:
+
+    /*! Get the user's full name (accessor). */
+    Attribute fullName() const noexcept
+    {
+        return Attribute::make(
+                /* get */ [](const ModelAttributes &attributes) -> QVariant
+        {
+            return SPACE_IN.arg(attributes.at<QString>("first_name"),
+                                attributes.at<QString>("last_name"));
+        });
+    }
+
+#### Accessor Caching
+
+Sometimes computing an attribute value can be intensive, in this case, you can enable caching for this attribute value. To accomplish this, you have to invoke the `shouldCache` method when defining your accessor:
+
+    using Orm::Constants::SPACE_IN;
+
+    protected:
+        /*! Get the user's full name (accessor). */
+        Attribute fullName() const noexcept
+        {
+            return Attribute::make(/* get */ [this]() -> QVariant
+            {
+                return SPACE_IN.arg(getAttribute<QString>("first_name"),
+                                    getAttribute<QString>("last_name"));
+            }).shouldCache();
+        }
+
+## Attribute Casting
+
+Attribute casting provides functionality that allows converting model attributes to the appropriate `QVariant` __metatype__ when it is accessed via your TinyORM model. The core of this functionality is a model's `u_casts` static data member that provides a convenient method of converting attributes' `QVariant` __internal types__ to the defined cast types.
+
+The `u_casts` static data member should be the `std::unordered_map<QString, Orm::CastItem>` where the key is the name of the attribute being cast and the value is the type you wish to cast the column to. The supported cast types are:
+
+<div id="casts-types-list">
+
+- `CastType::QString`
+- `CastType::Boolean` / `CastType::Bool`
+- `CastType::Integer` / `CastType::Int`
+- `CastType::UInteger` / `CastType::UInt`
+- `CastType::LongLong`
+- `CastType::ULongLong`
+- `CastType::Short`
+- `CastType::UShort`
+- `CastType::QDate`
+- `CastType::QDateTime`
+- `CastType::Timestamp`
+- `CastType::Real`
+- `CastType::Float`
+- `CastType::Double`
+- <code>CastType::Decimal:&lt;precision&gt;</code>
+- `CastType::QByteArray`
+
+</div>
+
+:::info
+The primary key name defined by the `u_primaryKey` model's data member is automatically cast to the `CastType::ULongLong` for all database drivers if the `u_incrementing` is set to true (its default value).
+:::
+
+To demonstrate attribute casting, let's cast the `is_admin` attribute, which is stored in our database as an integer (`0` or `1`) to a `QVariant(bool)` value:
+
+    #pragma once
+
+    #include <orm/tiny/model.hpp>
+
+    using Orm::Tiny::Model;
+
+    class User final : public Model<User>
+    {
+        friend Model;
+        using Model::Model;
+
+        /*! The attributes that should be cast. */
+        inline static std::unordered_map<QString, CastItem> u_casts {
+            {"is_admin", CastType::Boolean},
+        };
+    };
+
+After defining the cast, the `is_admin` attribute will always be cast to a `QVariant(bool)` when you access it, even if the underlying value is stored in the database as an integer:
+
+    using Orm::Utils::Helpers;
+
+    auto isAdmin = User::find(1)->getAttribute("is_admin");
+
+    // Proof of the QVariant type
+    Q_ASSERT(Helpers::qVariantTypeId(isAdmin) == QMetaType::Bool);
+
+    if (isAdmin.value<bool>()) {
+        //
+    }
+
+If you need to add a new, __temporary__ cast at runtime, you may use the `mergeCasts` method. These cast definitions will be added to any of the casts already defined on the model:
+
+    user->mergeCasts({
+        {"is_paid", CastType::Boolean},
+        {"income", {CastType::Decimal, 2}},
+    });
+
+:::caution
+You should never define a cast (or an attribute) that has the same name as a relationship.
+:::
+
+:::info
+Attributes that are `null` __will also be__ cast so that the `QVariant`'s internal type will have the correct type.
+:::
+
+### Date Casting
+
+By default, TinyORM will cast the `created_at` and `updated_at` columns to instances of `QDateTime`. You may cast additional date attributes by defining additional date casts within your model's `u_casts` static data member unordered map. Typically, dates should be cast using the `CastType::QDateTime`, `CastType::QDate`, or `CastType::Timestamp` cast types.
+
+When a database column is of the date type, you may set the corresponding model attribute value to a UNIX timestamp, date string (`Y-m-d`), date-time string, `QDate`, or `QDateTime` instance. The date's value will be correctly converted and stored in your database.<br/>
+The same is true for the datetime or timestamp database column types, you can set the corresponding model attribute value to a UNIX timestamp, date-time string, or a `QDateTime` instance.
+
+When defining the `CastType::QDate` or `CastType::QDateTime` cast, you may also specify the date's format. In this case you must use the `CastType::CustomQDate` or `CastType::CustomQDateTime` cast types. This format will be used when the [model is serialized to a vector, map, or JSON](tinyorm/serialization.mdx):
+
+    /*! The attributes that should be cast. */
+    inline static std::unordered_map<QString, CastItem> u_casts {
+        {"created_at", {CastType::CustomQDateTime, "yyyy-MM-dd"}},
+    };
+
+:::note
+The `CastType::CustomQDate` and `CastType::CustomQDateTime` cast types behave exactly like the `CastType::QDate` and `CastType::QDateTime` cast types with the additional __date's format__ functionality during <u>__serialization__</u>.
+:::
+
+You may customize the [default serialization format](tinyorm/serialization.mdx#customizing-the-default-date-format) for all of your model's dates or datetimes by defining a `serializeDate` or `serializeDateTime` methods on your model. These methods do not affect how your dates are formatted for storage in the database:
+
+    /*! Prepare a date for vector, map, or JSON serialization. */
+    QString serializeDate(const QDate date)
+    {
+        return date.toString("yyyy-MM-dd");
+    }
+
+    /*! Prepare a datetime for vector, map, or JSON serialization. */
+    QString serializeDateTime(const QDateTime &datetime)
+    {
+        return datetime.toUTC().toString("yyyy-MM-ddTHH:mm:ssZ");
+    }
+
+To specify the format that should be used when actually storing a model's dates within your database, you should define a `u_dateFormat` data member on your model:
+
+    /*! The storage format of the model's date columns. */
+    inline static QString u_dateFormat {QLatin1Char('U')};
+
+This format can be any format that the QDateTime's `fromString` or `toString` methods accept or the special `U` format that represents the UNIX timestamp (this `U` format is TinyORM-specific and isn't supported by `QDateTime`).
+
+Define a `u_timeFormat` data member on your model to specify the format that should be used when storing a model's times within your database:
+
+    /*! The storage format of the model's time columns. */
+    inline static QString u_timeFormat {"HH:mm:ss.zzz"};
+
+#### Date Casting, Serialization & Timezones {#date-casting-serialization-and-timezones}
+
+By default, the `CastType::CustomQDate` and `CastType::CustomQDateTime` casts will serialize dates to a UTC ISO-8601 date string (`yyyy-MM-ddTHH:mm:ss.zzzZ`), regardless of the timezone specified in your database connection's `qt_timezone` configuration option. You are strongly encouraged to always use this serialization format, as well as to store your application's dates in the UTC timezone by not changing your database connection's `qt_timezone` configuration option from its default `Qt::UTC` value. Consistently using the UTC timezone throughout your application will provide the maximum level of interoperability with other date manipulation libraries or services written in any programming language.
+
+If a custom format is applied to the `CastType::CustomQDate` or `CastType::CustomQDateTime` cast types, such as `{CastType::CustomQDateTime, "yyyy-MM-dd HH:mm:ss"}`, the inner timezone of the QDateTime instance will be used during date serialization. Typically, this will be the timezone specified in your database connection's `qt_timezone` configuration option.
+
+### Query Time Casting
+
+Sometimes you may need to apply casts while executing a query, such as when selecting a raw value from a table. For example, consider the following query:
+
+    using Models::Post;
+    using Models::User;
+
+    auto users = User::select("users.*")
+                 ->addSelect(
+                     Post::selectRaw("MAX(created_at)")
+                         ->whereColumnEq("user_id", "users.id")
+                         .toBase(),
+                     "last_posted_at"
+                 ).get();
+
+The `last_posted_at` attribute on the results of this query will be a simple string. It would be wonderful if we could apply a `CastType::QDateTime` cast to this attribute when executing the query. Thankfully, we may accomplish this using the `withCasts` or `withCast` methods:
+
+    auto users = User::select("users.*")
+                 ->addSelect(Post::selectRaw("MAX(created_at)")
+                                 ->whereColumnEq("user_id", "users.id")
+                                 .toBase(),
+                             "last_posted_at")
+                 .withCast({"last_posted_at", CastType::QDateTime})
+                 .get();

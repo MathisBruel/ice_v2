@@ -48,17 +48,33 @@ Installer avec `apt-get`:
 - mysqlclient
 - crypto
 - nodejs
+- qtbase5-dev qtbase5-dev-tools libqt5sql5 libqt5sql5-sqlite libqt5sql5-mysql
+- curl zip unzip tar
+- librange-v3-dev
+
+Intaller la lib `tabulate` :
+```
+cd && sudo git clone https://github.com/p-ranav/tabulate.git
+cd tabulate && sudo mkdir BUILD && cd BUILD 
+sudo cmake -G "Unix Makefiles" ..
+sudo make install
+cd && sudo rm -r tabulate
+```
 
 ## BUILD
 
 Se placer à la racine du répertoire de développement.
 
 **Compilation des librairies externes** 
-Lancer `./tasks -f build_all_external`
+Lancer `./tasks.sh -f build_all_external`
 **Compilation des exécutables ICE CORE et gestion centralisée (non terminée)**
-Lancer `./tasks -f build_lib_exe -t CORE`
+Lancer `./tasks.sh -f build_lib_exe -t CORE`
 **Package installer ICE CORE**
-Lancer `./tasks -f build_package`
+Lancer `./tasks.sh -f build_package -t CORE`
+**Compilation des exécutables ICE CENTRAL et ICE MIGRATION**
+Lancer `./tasks.sh -f build_lib_exe -t CENTRAL`
+**Package installer ICE CENTRAL**
+Lancer `./tasks.sh -f build_package -t CENTRAL`
 
 ## INSTALL
 
