@@ -1,0 +1,34 @@
+@startuml Use Case Diagram WebCentral
+title "Use Case Diagram Movie in WebCentral"
+
+actor "User IT" as U_IT
+package "WebCentral" as WebCentral {
+    usecase "Login" as UC_Login
+    usecase "Add movie" as UC_Movie
+    usecase "Publish LCP"  as UC_LCP
+    usecase "Add CPL file" as UC_CPL
+    usecase "Push CIS" as UC_CIS
+    usecase "Add SYNC file" as UC_SYNC_A
+    usecase "Add SYNC loop file" as UC_SYNC_H
+}
+actor "\t <<Actor>> \n ICE Server Auditorium" as ICE_SERVER_A
+actor "\t <<Actor>> \n ICE Server Hallway" as ICE_SERVER_H
+actor "\t <<Actor>> \n ICE Server Proj" as ICE_SERVER_P
+actor "User Bunker" as U_BUNKER
+
+U_IT -- UC_LCP
+UC_Login <.. UC_Movie : Include
+
+UC_Movie <.. UC_LCP : Include
+UC_LCP <.. UC_SYNC_A :  XOR
+UC_SYNC_A ..> UC_CPL  : Include
+UC_LCP <.. UC_SYNC_H :  XOR
+
+UC_SYNC_A --> ICE_SERVER_A
+UC_SYNC_H --> ICE_SERVER_H
+UC_CPL --> ICE_SERVER_P
+UC_CIS <.left. UC_LCP : Include 
+UC_CIS <-- U_BUNKER
+U_IT <.. U_BUNKER
+
+@enduml
