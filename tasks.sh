@@ -1,12 +1,5 @@
 #! /usr/bin/env sh
 
-build_all_external() {
-    for sts in 1 2 3 4 5 8; do
-        stage=$sts
-        build_external
-    done
-}
-
 build_external() {
 
     # Prepare and clean repository
@@ -42,6 +35,13 @@ build_external() {
     eval $cmdInstall
     
     cd ../..
+}
+
+build_all_external() {
+    for sts in 1 2 3 4 5 8 9 10; do
+        stage=$sts
+        build_external
+    done
 }
 
 build_lib_exe() {

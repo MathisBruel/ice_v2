@@ -36,6 +36,17 @@ services:
       cabin:
         ipv4_address: 192.167.50.1
 
+  rabbitmq:
+    hostname: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    container_name: rabbitmq-container
+    networks:
+      cabin:
+        ipv4_address: 192.167.50.2
+  
 networks:
   cabin:
     name: "cabin"
