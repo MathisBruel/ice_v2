@@ -1,4 +1,10 @@
 #include "machine.hpp"
+#include "Domain/Content.h"
+#include "Domain/Release.h"
+#include "Domain/CIS.h"
+#include "Domain/CPL.h"
+#include "Domain/Sync.h"
+#include "Domain/SyncLoop.h"
 
 struct State_Idle;
 struct State_ContentInit;
@@ -12,6 +18,18 @@ struct State_Sync;
 struct State_SyncLoop;
 struct State_Cancel;
 struct State_InProd;
+
+struct Context
+{
+    bool CISFinish = false;
+    bool SyncFinish = false;
+    Content content;
+    Release release;
+    CIS cis;
+    CPL cpl;
+    Sync sync;
+    SyncLoop syncLoop;
+};
 
 // Event 
 struct InitContent {};

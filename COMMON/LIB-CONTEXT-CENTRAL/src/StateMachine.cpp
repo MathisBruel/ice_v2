@@ -6,46 +6,24 @@
 #include "machine.hpp" 
 #include "App/StateMachine.h"
 
-struct Context
-{
-    bool CISFinish = false;
-    bool SyncFinish = false;
-};
-
 using M = hfsm2::MachineT<hfsm2::Config::ContextT<Context>>;
 
 using FSM = M::PeerRoot<
     State_Idle,
     State_ContentInit,
     M::Orthogonal<State_Publishing,
-    State_UploadCIS,
-    M::Composite<State_SyncCreate,
-    State_IdleSync,
-    State_CPL,
-    State_Sync,
-    State_SyncLoop
-    >
+        State_UploadCIS,
+        M::Composite<State_SyncCreate,
+        State_IdleSync,
+        State_CPL,
+        State_Sync,
+        State_SyncLoop
+        >
     >,
     State_ReleaseCreation,
     State_Cancel,
     State_InProd
 >;
-
-static_assert(FSM::regionId<State_Publishing>() == 1, "");
-static_assert(FSM::regionId<State_SyncCreate>() == 2, "");
-
-static_assert(FSM::stateId<State_Idle>() == 1, "");
-static_assert(FSM::stateId<State_ContentInit>() == 2, "");
-static_assert(FSM::stateId<State_Publishing>() == 3, "");
-static_assert(FSM::stateId<State_UploadCIS>() == 4, "");
-static_assert(FSM::stateId<State_SyncCreate>() == 5, "");
-static_assert(FSM::stateId<State_IdleSync>() == 6, "");
-static_assert(FSM::stateId<State_CPL>() == 7, "");
-static_assert(FSM::stateId<State_Sync>() == 8, "");
-static_assert(FSM::stateId<State_SyncLoop>() == 9, "");
-static_assert(FSM::stateId<State_ReleaseCreation>() == 10, "");
-static_assert(FSM::stateId<State_Cancel>() == 11, "");
-static_assert(FSM::stateId<State_InProd>() == 12, "");
 
 struct Logger : M::LoggerInterface
 {
@@ -94,7 +72,6 @@ struct Base : FSM::State {
 };
 
 struct State_Idle : Base {
-    static FSM::Instance* stateMachine;
     using Base::react;
     void enter(Control&)  { std::cout << "Idle\n"; }
     void react(const InitContent&, EventControl& control)  {
@@ -208,14 +185,10 @@ struct State_InProd : Base {
     }
 };
 
-// Definition of static member
-FSM::Instance* State_Idle::stateMachine = nullptr;
-
 int main() {
     Context context;
     Logger logger;
     FSM::Instance machine(context, &logger);
-    State_Idle::stateMachine = &machine;
 
     std::cout << "Start n°1\n";
     machine.reset();
