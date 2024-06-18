@@ -1,3 +1,4 @@
+#pragma once
 enum LocalisationMovie {
     FRANCE = 0,
     USA,
@@ -6,4 +7,4 @@ enum LocalisationMovie {
     INDIA,
     AR_KSA,
     AR_AE
-}
+};

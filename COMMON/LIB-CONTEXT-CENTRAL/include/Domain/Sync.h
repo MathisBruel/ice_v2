@@ -1,3 +1,4 @@
+#pragma once
 #include "SyncRepo.h"
 #include <iostream>
 

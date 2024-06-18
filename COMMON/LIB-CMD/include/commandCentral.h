@@ -100,6 +100,18 @@ public:
         // -- specific REPO service
         GET_FILE,
 
+        // ------------------------
+        // -- State Machine Interaction
+        // ------------------------
+        CONTENT_CREATED,
+        CREATE_RELEASE,
+        RELEASE_CREATED,
+        CIS_CREATED,
+        CPL_CREATED,
+        SYNC_CREATED,
+        SYNCLOOP_CREATED,
+        CANCEL,
+
         // -- DEFAULT
         UNKNOW_COMMAND
     };

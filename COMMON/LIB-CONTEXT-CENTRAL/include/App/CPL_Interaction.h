@@ -1,9 +1,10 @@
-#include "App/StateMachine.h"
+#pragma once
+#include "App/State.h"
 class CPL_Interaction
 {
-private:
-    void (State_CPL::*pfTransition)(Const CreateSync&, EventControl&) = &State_CPL::react;
+// protected:
+//     State_CPL* state;
+//     CPL_Interaction(State_CPL& state) { this->state = &state; }
 public:
-    CPL_Interaction();
-    ~CPL_Interaction();
+    void (State_CPL::*pfTransition)();
 };

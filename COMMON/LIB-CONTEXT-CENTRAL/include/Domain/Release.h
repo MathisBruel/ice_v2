@@ -1,3 +1,4 @@
+#pragma once
 #include "ReleaseRepo.h"
 #include "LocalisationMovie.h"
 #include "TypeMovie.h"

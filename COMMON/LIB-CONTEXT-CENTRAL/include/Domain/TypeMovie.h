@@ -1,3 +1,4 @@
+#pragma once
 enum TypeMovie {
     FEATURE = 0,
     SHORT_FILM,
@@ -15,4 +16,4 @@ enum TypeMovie {
     EPISODE,
     STRONG_POINT,
     EVENT
-}
+};

@@ -1,3 +1,4 @@
+#pragma once
 #include "DatabaseConnector.h"
 #include "Query.h"
 #include "ResultQuery.h"

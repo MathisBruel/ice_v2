@@ -1,3 +1,4 @@
+#pragma once
 #include "ContentRepo.h"
 #include "Release.h"
 #include <iostream>

@@ -1,9 +1,10 @@
-#include "App/StateMachine.h"
+#pragma once
+#include "App/State.h"
 class CIS_Interaction
 {
-private:
-    void (State_UploadCIS::*pfTransition)(const Upload&, EventControl&) = &State_UploadCIS::react;
+// protected:
+//     State_UploadCIS* state;
+//     CIS_Interaction(State_UploadCIS& state) { this->state = &state; }
 public:
-    CIS_Interaction();
-    ~CIS_Interaction();
+    void (State_UploadCIS::*pfTransition)();
 };

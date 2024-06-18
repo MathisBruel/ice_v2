@@ -1,3 +1,4 @@
+#pragma once
 #include "CPLRepo.h"
 #include "Sync.h"
 #include <iostream>

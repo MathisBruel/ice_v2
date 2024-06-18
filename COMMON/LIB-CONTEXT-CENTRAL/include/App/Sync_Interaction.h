@@ -1,9 +1,10 @@
-#include "App/StateMachine.h"
+#pragma once
+#include "App/State.h"
 class Sync_Interaction
 {
-private:
-    void (State_Sync::*pfTransition)(Const SyncCreated&, EventControl&) = &State_Sync::react;
+// protected:
+//     State_Sync* state;
+//     Sync_Interaction(State_Sync& state) { this->state = &state; }
 public:
-    Sync_Interaction();
-    ~Sync_Interaction();
+    void (State_Sync::*pfTransition)();
 };

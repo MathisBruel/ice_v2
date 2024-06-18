@@ -1,3 +1,5 @@
+#pragma once
+#include <iostream>
 #include "machine.hpp"
 #include "Domain/Content.h"
 #include "Domain/Release.h"
@@ -5,19 +7,15 @@
 #include "Domain/CPL.h"
 #include "Domain/Sync.h"
 #include "Domain/SyncLoop.h"
-
-struct State_Idle;
-struct State_ContentInit;
-struct State_ReleaseCreation;
-struct State_Publishing;
-struct State_UploadCIS;
-struct State_SyncCreate;
-struct State_IdleSync;
-struct State_CPL;
-struct State_Sync;
-struct State_SyncLoop;
-struct State_Cancel;
-struct State_InProd;
+#include "App/State.h"
+#include "App/Content_Interaction.h"
+#include "App/Release_Interaction.h"
+#include "App/Publishing_Interaction.h"
+#include "App/CIS_Interaction.h"
+#include "App/IdleSync_Interaction.h"
+#include "App/CPL_Interaction.h"
+#include "App/Sync_Interaction.h"
+#include "App/SyncLoop_Interaction.h"
 
 struct Context
 {
@@ -29,16 +27,13 @@ struct Context
     CPL cpl;
     Sync sync;
     SyncLoop syncLoop;
-};
 
-// Event 
-struct InitContent {};
-struct Publish {};
-struct CreateCPL {};
-struct CreateSync {};
-struct CreateSyncLoop {};
-struct SyncCreated {};
-struct Upload {};
-struct CreateRelease {};
-struct ReleaseCreated {};
-struct Stop {};
+    Content_Interaction contentInteraction;
+    Release_Interaction releaseInteraction;
+    Publishing_Interaction publishingInteraction;
+    CIS_Interaction cisInteraction;
+    IdleSync_Interaction idleSyncInteraction;
+    CPL_Interaction cplInteraction;
+    Sync_Interaction syncInteraction;
+    SyncLoop_Interaction syncloopInteraction;
+};

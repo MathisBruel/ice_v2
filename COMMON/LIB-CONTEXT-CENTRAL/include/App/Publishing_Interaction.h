@@ -1,9 +1,10 @@
-#include "App/StateMachine.h"
+#pragma once
+#include "App/State.h"
 class Publishing_Interaction
 {
-private:
-    void (State_Publishing::*pfTransition)(Const CreateRelease&, EventControl&) = &State_Publishing::react;
+// protected:
+//     State_Publishing* state;
+//     Publishing_Interaction(State_Publishing& state) { this->state = &state; }
 public:
-    Publishing_Interaction();
-    ~Publishing_Interaction();
+    void (State_Publishing::*pfTransition)();
 };
