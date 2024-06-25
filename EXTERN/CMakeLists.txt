@@ -163,3 +163,22 @@ if (${STAGE_COMPILATION} STREQUAL "8")
 	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
 	add_subdirectory("${CMAKE_SOURCE_DIR}/TINYORM")
 endif()
+
+if (${STAGE_COMPILATION} STREQUAL "9")
+	### -------------------------------------------------------
+	### --------------------- LIB rabbitmq-c ---------------------
+	### -------------------------------------------------------	
+
+	set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../BUILD/rabbitmq-c" CACHE PATH "" FORCE)
+	set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+	add_subdirectory("${CMAKE_SOURCE_DIR}/rabbitmq-c")
+endif()
+	
+if (${STAGE_COMPILATION} STREQUAL "10")
+	### -------------------------------------------------------
+	### --------------------- LIB SimpleAmqpClient ---------------------
+	### -------------------------------------------------------	
+
+	set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../BUILD/SimpleAmqpClient" CACHE PATH "" FORCE)
+	add_subdirectory("${CMAKE_SOURCE_DIR}/SimpleAmqpClient")
+endif()
