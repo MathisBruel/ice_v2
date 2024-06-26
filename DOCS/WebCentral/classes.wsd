@@ -8,23 +8,32 @@ hide empty members
 
 package Domain {
     class Content {
+        - int id
         - string title
-        - Release* release
+        - Releases* release
         - ContentRepo* contentRepo
         --
         + CreateRelease(int id_movie, TypeMovie typeMovie, 
         LocalisationMovie localisationMovie)
 
         + setDatas(string title)
-        + setRelease(Release* release)
+        + setRelease(Releases* release)
 
+        + int* getId()
         + string getTitle()
-        + Release* getRelease()
+        + Releases* getRelease()
+    }
+    class ContentRepo {
+        --
+        + create(Content* content)
+        + read(Content* content)
+        + update(Content* content)
+        + remove(Content* content)
     }
     class ContentRepo #LightYellow
     Content o-- ContentRepo #DarkGoldenRod 
 
-    class Release {
+    class Releases {
         - int ids[3]
         - string cisPath
         - CIS* cis
@@ -45,16 +54,22 @@ package Domain {
         + setCPL(CPL* cpl)
         + setSyncLoop(SyncLoop* syncLoop)
 
-        + const int* getId()
+        + int* getId()
         + string getCISPath()
         + CIS* getCIS()
         + CPL* getCPL()
         + SyncLoop* getSyncLoop()
     }
-    Content o-- Release #DarkGrey
+    Content o-- Releases #DarkGrey
+    class ReleaseRepo {
+        --
+        + create(Releases* release)
+        + read(Releases* release)
+        + update(Releases* release)
+        + remove(Releases* release)
+    }
     class ReleaseRepo #LightYellow
-    Release o-- ReleaseRepo #DarkGoldenRod
-
+    Releases o-- ReleaseRepo #DarkGoldenRod
 
     class CIS {
         - int ids[4]
@@ -65,10 +80,17 @@ package Domain {
         int id_localisation)
         + setCISInfos(string pathCIS)
 
-        + const int* getId()
+        + int* getId()
         + string getCISPath()
     }
-    Release o-- CIS #DarkGrey
+    Releases o-- CIS #DarkGrey
+    class CISRepo {
+        --
+        + create(CIS* cis)
+        + read(CIS* cis)
+        + update(CIS* cis)
+        + remove(CIS* cis)
+    }
     class CISRepo #LightYellow
     CIS o-- CISRepo #DarkGoldenRod 
 
@@ -87,13 +109,20 @@ package Domain {
         + setDatas(string uuid, string name)
         + setCplInfos(string pathCpl)
 
-        + const int* getId()
+        + int* getId()
         + string getUuid()
         + string getName()
         + string getCplPath()
         + Sync* getSync()
     }
-    Release o-- CPL #DarkGrey
+    Releases o-- CPL #DarkGrey
+    class CPLRepo {
+        --
+        + create(CPL* cpl)
+        + read(CPL* cpl)
+        + update(CPL* cpl)
+        + remove(CPL* cpl)
+    }
     class CPLRepo #LightYellow
     CPL o-- CPLRepo #DarkGoldenRod 
 
@@ -106,10 +135,17 @@ package Domain {
         int id_type, int id_localisation)
         + setSyncInfos(string pathSync)
 
-        + const int* getID()
+        + int* getID()
         + string getSyncPath()
     }
     CPL o-- Sync #DarkGrey
+    class SyncRepo {
+        --
+        + create(Sync* sync)
+        + read(Sync* sync)
+        + update(Sync* sync)
+        + remove(Sync* sync)
+    }
     class SyncRepo #LightYellow
     Sync o-- SyncRepo #DarkGoldenRod 
 
@@ -122,81 +158,94 @@ package Domain {
         int id_type, int id_localisation)
         + setSyncLoopInfos(string pathSyncLoop)
 
-        + const int* getID()
+        + int* getID()
         + string getSyncLoopPath()
     }
-    Release o-- SyncLoop #DarkGrey
+    Releases o-- SyncLoop #DarkGrey
+    class SyncLoopRepo {
+        --
+        + create(SyncLoop* syncloop)
+        + read(SyncLoop* syncloop)
+        + update(SyncLoop* syncloop)
+        + remove(SyncLoop* syncloop)
+    }
     class SyncLoopRepo #LightYellow
     SyncLoop o-- SyncLoopRepo #DarkGoldenRod 
 
     enum TypeMovie
-    Release o-up- TypeMovie #DarkGrey
+    Releases o-up- TypeMovie #DarkGrey
     enum LocalisationMovie
-    Release o-up- LocalisationMovie #DarkGrey
+    Releases o-up- LocalisationMovie #DarkGrey
 }
 
 package App {
-    abstract Base <<HFSM2>> {
-        --
-        enter()
-        react()
+    abstract StateTemplate <<HFSM2>> {
+        + FullControl* StateControl
     }
 
-    abstract Base <<HFSM2>> #LightCyan
+    abstract StateTemplate <<HFSM2>> #LightCyan
     struct State_Idle{
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_Idle <<HFSM2>> #LightBlue
-    Base <|-- State_Idle #DarkCyan
+    StateTemplate <|-- State_Idle #DarkCyan
     class Idle_Interaction {
-        - (State_Idle::*pfTransition)
-        (Const InitContent&, EventControl&)
+        + State_Idle* State
+        --
+        + (State_Idle::*pfTransition)()
     }
     class Idle_Interaction #lightgrey
     State_Idle -- Idle_Interaction #DarkBlue
 
     struct State_ContentInit {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_ContentInit <<HFSM2>> #LightBlue
-    Base <|-- State_ContentInit #DarkCyan
+    StateTemplate <|-- State_ContentInit #DarkCyan
     State_ContentInit o-- Content #Blue;text:Blue; : To Create Release 
     class Content_Interaction {
-        - (State_ContentInit::*pfTransition)
-        (Const Publish&, EventControl&)
+        + State_ContentInit* State
+        --
+        + (State_ContentInit::*pfTransition)()
     }
     class Content_Interaction #lightgrey
     State_ContentInit -- Content_Interaction #DarkBlue
 
     struct State_ReleaseCreation {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_ReleaseCreation <<HFSM2>> #LightBlue
-    Base <|-- State_ReleaseCreation #DarkCyan
+    StateTemplate <|-- State_ReleaseCreation #DarkCyan
     State_ReleaseCreation o-- Content #Blue;text:Blue; : Create Release
     class Release_Interaction {
-        - (State_ReleaseCreation::*pfTransition)
-        (Const ReleaseCreated&, EventControl&)
+        + State_ReleaseCreation* State
+        --
+        + (State_ReleaseCreation::*pfTransition)()
     }
     class Release_Interaction #lightgrey
     State_ReleaseCreation -- Release_Interaction #DarkBlue
 
     struct State_Publishing {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_Publishing <<HFSM2>> #LightBlue
-    Base <|-- State_Publishing #DarkCyan
+    StateTemplate <|-- State_Publishing #DarkCyan
     class Publishing_Interaction {
-        - (State_Publishing::*pfTransition)
-        (Const CreateRelease&, EventControl&)
+        + State_Publishing* State
+        --
+        + (State_Publishing::*pfTransition)()
     }
     class Publishing_Interaction #lightgrey
     State_Publishing -- Publishing_Interaction #DarkBlue
@@ -206,15 +255,17 @@ package App {
 
     struct State_UploadCIS {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_UploadCIS <<HFSM2>> #LightBlue
-    Base <|-- State_UploadCIS #DarkCyan  
-    State_UploadCIS o-- Release #Blue;text:Blue; : Upload CIS
+    StateTemplate <|-- State_UploadCIS #DarkCyan  
+    State_UploadCIS o-- Releases #Blue;text:Blue; : Upload CIS
     class CIS_Interaction {
-        - (State_UploadCIS::*pfTransition)
-        (Const Upload&, EventControl&)  
+        + State_UploadCIS* State
+        --
+        + (State_UploadCIS::*pfTransition)() 
     }
     class CIS_Interaction #lightgrey
     State_UploadCIS -- CIS_Interaction #DarkBlue
@@ -222,97 +273,98 @@ package App {
     struct State_SyncCreate {
         --
         enter()
-        react()
     }
     struct State_SyncCreate <<HFSM2>> #LightBlue
-    Base <|-- State_SyncCreate #DarkCyan
+    StateTemplate <|-- State_SyncCreate #DarkCyan
 
     struct State_IdleSync <<HFSM2>> #LightBlue
-    Base <|-- State_IdleSync #DarkCyan
+    StateTemplate <|-- State_IdleSync #DarkCyan
     class IdleSync_Interaction {
-        - (State_IdleSync::*pfTransition)
-        (Const CreateCPL&, EventControl&)
-        - (State_IdleSync::*pfTransition)
-        (Const CreateSync&, EventControl&)
+        + State_IdleSync* State
+        --
+        + (State_IdleSync::*pfTransitionToCPL)()
+        + (State_IdleSync::*pfTransitionToSYNCLOOP)()
     }
     class IdleSync_Interaction #lightgrey
     State_IdleSync -- IdleSync_Interaction #DarkBlue
 
     struct State_CPL {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_CPL <<HFSM2>> #LightBlue
-    Base <|-- State_CPL #DarkCyan
+    StateTemplate <|-- State_CPL #DarkCyan
     State_CPL o-- CPL #Blue;text:Blue; : Create CPL
     class CPL_Interaction {
-        - (State_CPL::*pfTransition)
-        (Const CreateSync&, EventControl&)
+        + State_CPL* State
+        --
+        + (State_CPL::*pfTransition)()
     }
     class CPL_Interaction #lightgrey
     State_CPL -- CPL_Interaction #DarkBlue
 
     struct State_Sync {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_Sync <<HFSM2>> #LightBlue
-    Base <|-- State_Sync #DarkCyan
+    StateTemplate <|-- State_Sync #DarkCyan
     State_Sync o-- Sync #Blue;text:Blue; : Create Sync
     class Sync_Interaction {
-        - (State_Sync::*pfTransition)
-        (Const SyncCreated&, EventControl&)
+        + State_Sync* State
+        --
+        + (State_Sync::*pfTransition)()
     }
     class Sync_Interaction #lightgrey
     State_Sync -- Sync_Interaction #DarkBlue
 
     struct State_SyncLoop {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_SyncLoop <<HFSM2>> #LightBlue
-    Base <|-- State_SyncLoop #DarkCyan
-    State_SyncLoop o-- Release #Blue;text:Blue; : Create SyncLoop
+    StateTemplate <|-- State_SyncLoop #DarkCyan
+    State_SyncLoop o-- Releases #Blue;text:Blue; : Create SyncLoop
     class SyncLoop_Interaction {
-        - (State_SyncLoop::*pfTransition)
-        (Const SyncCreated&, EventControl&)
+        + State_SyncLoop* State
+        --
+        + (State_SyncLoop::*pfTransition)()
     }
     class SyncLoop_Interaction #lightgrey
     State_SyncLoop -- SyncLoop_Interaction #DarkBlue
 
-    struct State_Cancel {
-        --
-        enter()
-        react()
-    }
-    struct State_Cancel <<HFSM2>> #LightBlue
-    Base <|-- State_Cancel #DarkCyan
-    class Cancel_Interaction
-    class Cancel_Interaction #lightgrey
-    State_Cancel -- Cancel_Interaction #DarkBlue
+    ' struct State_Cancel {
+    '     --
+    '     entryGuard(FullControl& control)
+    '     enter()
+    '     Transition()
+    ' }
+    ' struct State_Cancel <<HFSM2>> #LightBlue
+    ' StateTemplate <|-- State_Cancel #DarkCyan
+    ' class Cancel_Interaction #lightgrey
+    ' State_Cancel -- Cancel_Interaction #DarkBlue
 
     struct State_InProd {
         --
+        entryGuard(FullControl& control)
         enter()
-        react()
+        Transition()
     }
     struct State_InProd <<HFSM2>> #LightBlue
-    Base <|-- State_InProd #DarkCyan
-
-    class StateMachine {
-        react()
-        update()
+    StateTemplate <|-- State_InProd #DarkCyan
+    class InProd_Interaction {
+        + State_InProd* State
+        --
+        + (State_InProd::*pfTransition)()
     }
-    class StateMachine <<HFSM2>> #LightCyan
-    StateMachine o-- Base #DarkCyan
-    ' class StateMachine_Interaction {
-    '     (StateMachine::*pfTransition)(const Event&)
-    ' }
-    ' class StateMachine_Interaction #lightgrey
-    ' StateMachine -- StateMachine_Interaction #DarkBlue
+    class InProd_Interaction #lightgrey
+    State_InProd -- InProd_Interaction #DarkBlue
 }
 
 package Infrastructure {
@@ -322,10 +374,10 @@ package Infrastructure {
             string database
             string table
             --
-            + Query* create(Content* content)
-            + Query* read(Content* content)
-            + Query* update(Content* content) 
-            + Query* remove(Content* content)
+            + Query* MySQLcreate(Content* content)
+            + Query* MySQLread(Content* content)
+            + Query* MySQLupdate(Content* content) 
+            + Query* MySQLremove(Content* content)
         }
         class MySQLContentRepo #LightPink
         ContentRepo <|-- MySQLContentRepo #Red
@@ -334,10 +386,10 @@ package Infrastructure {
             - string database
             - string table
             --
-            + Query* create(Release* release)
-            + Query* read(Release* release)
-            + Query* update(Release* release)
-            + Query* remove(Release* release)
+            + Query* MySQLcreate(Releases* release)
+            + Query* MySQLread(Releases* release)
+            + Query* MySQLupdate(Releases* release)
+            + Query* MySQLremove(Releases* release)
         }
         class MySQLReleaseRepo #LightPink
         ReleaseRepo <|-- MySQLReleaseRepo #Red
@@ -346,10 +398,10 @@ package Infrastructure {
             - string database
             - string table
             --
-            + Query* create(CIS* cis)
-            + Query* read(CIS* cis)
-            + Query* update(CIS* cis)
-            + Query* remove(CIS* cis)
+            + Query* MySQLcreate(CIS* cis)
+            + Query* MySQLread(CIS* cis)
+            + Query* MySQLupdate(CIS* cis)
+            + Query* MySQLremove(CIS* cis)
         }
         class MySQLCISRepo #LightPink
         CISRepo <|-- MySQLCISRepo #Red
@@ -358,10 +410,10 @@ package Infrastructure {
             - string database
             - string table
             --
-            + Query* create(CPL* cpl)
-            + Query* read(CPL* cpl)
-            + Query* update(CPL* cpl)
-            + Query* remove(CPL* cpl)
+            + Query* MySQLcreate(CPL* cpl)
+            + Query* MySQLread(CPL* cpl)
+            + Query* MySQLupdate(CPL* cpl)
+            + Query* MySQLremove(CPL* cpl)
         }
         class MySQLCPLRepo #LightPink
         CPLRepo <|-- MySQLCPLRepo #Red
@@ -370,10 +422,10 @@ package Infrastructure {
             - string database
             - string table
             --
-            + Query* create(CPL* cpl)
-            + Query* read(CPL* cpl)
-            + Query* update(CPL* cpl)
-            + Query* remove(CPL* cpl)
+            + Query* MySQLcreate(CPL* cpl)
+            + Query* MySQLread(CPL* cpl)
+            + Query* MySQLupdate(CPL* cpl)
+            + Query* MySQLremove(CPL* cpl)
         }
         class MySQLSyncRepo #LightPink
         SyncRepo <|-- MySQLSyncRepo #Red
@@ -382,10 +434,10 @@ package Infrastructure {
             - string database
             - string table
             --
-            + Query* create(SyncLoop* syncloop)
-            + Query* read(SyncLoop* syncloop)
-            + Query* update(SyncLoop* syncloop)
-            + Query* remove(SyncLoop* syncloop)
+            + Query* MySQLcreate(SyncLoop* syncloop)
+            + Query* MySQLread(SyncLoop* syncloop)
+            + Query* MySQLupdate(SyncLoop* syncloop)
+            + Query* MySQLremove(SyncLoop* syncloop)
         }
         class MySQLSyncLoopRepo #LightPink
         SyncLoopRepo <|-- MySQLSyncLoopRepo #Red
@@ -407,42 +459,149 @@ package Infrastructure {
     package Infrastructure::HTTP {
         interface HTTPInteraction {
             --
-            CommandCentral::CommandCentralType getCommandCentralType()
-            run()
+            + run()
+        }
+        class HTTPIdleInteraction {
+            - Idle_Interaction* StateInteraction
+            --
+            + HTTPIdleInteraction()
+            + HTTPIdleInteraction(Idle_Interaction* Interactor)
+            + ~HTTPIdleInteraction()
 
+            + SetInteractor(Idle_Interaction* Interactor)
+            + run()
+        }
+        class HTTPIdleInteraction #LightGreen
+        Idle_Interaction --o HTTPIdleInteraction #Green
+        HTTPIdleInteraction --|> HTTPInteraction
+        class HTTPContentInteraction {
+            - Content_Interaction* StateInteraction
+            --
+            + HTTPContentInteraction()
+            + HTTPContentInteraction(Content_Interaction* Interactor)
+            + ~HTTPContentInteraction()
+
+            + SetInteractor(Content_Interaction* Interactor)
+            + run()
         }
         class HTTPContentInteraction #LightGreen
-        Content_Interaction <|-- HTTPContentInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPContentInteraction #Green
+        Content_Interaction --o HTTPContentInteraction #Green
         HTTPContentInteraction --|> HTTPInteraction
+        class HTTPReleaseInteraction {
+            - Release_Interaction* StateInteraction
+            --
+            + HTTPReleaseInteraction()
+            + HTTPReleaseInteraction(Release_Interaction* Interactor)
+            + ~HTTPReleaseInteraction()
+
+            + SetInteractor(Release_Interaction* Interactor)
+            + run()
+        }
         class HTTPReleaseInteraction #LightGreen
-        Release_Interaction <|-- HTTPReleaseInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPReleaseInteraction #Green
+        Release_Interaction --o HTTPReleaseInteraction #Green
         HTTPReleaseInteraction --|> HTTPInteraction
+        class HTTPCISInteraction {
+            - CIS_Interaction* StateInteraction
+            --
+            + HTTPCISInteraction()
+            + HTTPCISInteraction(CIS_Interaction* Interactor)
+            + ~HTTPCISInteraction()
+            
+            + SetInteractor(CIS_Interaction* Interactor)
+            + run()
+        }
         class HTTPCISInteraction #LightGreen
-        CIS_Interaction <|-- HTTPCISInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPCISInteraction #Green
+        CIS_Interaction --o HTTPCISInteraction #Green
         HTTPCISInteraction --|> HTTPInteraction
+        class HTTPIdleSyncInteraction {
+            - bool SyncLoop 
+            - IdleSync_Interaction* StateInteraction
+            --
+            + HTTPIdleSyncInteraction()
+            + HTTPIdleSyncInteraction(IdleSync_Interaction* Interactor)
+            + HTTPIdleSyncInteraction(IdleSync_Interaction* Interactor, bool SyncLoop)
+            + ~HTTPIdleSyncInteraction()
+            
+            + SetInteractor(IdleSync_Interaction* Interactor)
+            + SetSyncLoop(bool SyncLoop)
+            + run()
+        }
+        class HTTPIdleSyncInteraction #LightGreen
+        IdleSync_Interaction --o HTTPIdleSyncInteraction #Green
+        HTTPIdleSyncInteraction --|> HTTPInteraction
+        class HTTPCPLInteraction {
+            - CPL_Interaction* StateInteraction
+            --
+            + HTTPCPLInteraction()
+            + HTTPCPLInteraction(CPL_Interaction* Interactor)
+            + ~HTTPCPLInteraction()
+
+            + SetInteractor(CPL_Interaction* Interactor)
+            + run()
+        }
         class HTTPCPLInteraction #LightGreen
-        CPL_Interaction <|-- HTTPCPLInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPCPLInteraction #Green
+        CPL_Interaction --o HTTPCPLInteraction #Green
         HTTPCPLInteraction --|> HTTPInteraction
+        class HTTPSyncInteraction {
+            - Sync_Interaction* StateInteraction
+            --
+            + HTTPSyncInteraction()
+            + HTTPSyncInteraction(Sync_Interaction* Interactor)
+            + ~HTTPSyncInteraction()
+
+            + SetInteractor(Sync_Interaction* Interactor)
+            + run()
+        }
         class HTTPSyncInteraction #LightGreen
-        Sync_Interaction <|-- HTTPSyncInteraction #Green 
-        ' StateMachine_Interaction <|-- HTTPSyncInteraction #Green 
+        Sync_Interaction --o HTTPSyncInteraction #Green 
         HTTPSyncInteraction --|> HTTPInteraction
+        class HTTPSyncLoopInteraction {
+            - SyncLoop_Interaction* StateInteraction
+            --
+            + HTTPSyncLoopInteraction()
+            + HTTPSyncLoopInteraction(SyncLoop_Interaction* Interactor)
+            + ~HTTPSyncLoopInteraction()
+            
+            + SetInteractor(SyncLoop_Interaction* Interactor)
+            + run()
+        }
         class HTTPSyncLoopInteraction #LightGreen
-        SyncLoop_Interaction <|-- HTTPSyncLoopInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPSyncLoopInteraction #Green
+        SyncLoop_Interaction --o HTTPSyncLoopInteraction #Green
         HTTPSyncLoopInteraction --|> HTTPInteraction
-        class HTTPCancelInteraction #LightGreen
-        Cancel_Interaction <|-- HTTPCancelInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPCancelInteraction #Green
-        HTTPCancelInteraction --|> HTTPInteraction
+        class HTTPPublishingInteraction {
+            - Publishing_Interaction* StateInteraction
+            --
+            + HTTPPublishingInteraction()
+            + HTTPPublishingInteraction(Publishing_Interaction* Interactor)
+            + ~HTTPPublishingInteraction()
+
+            + SetInteractor(Publishing_Interaction* Interactor)
+            + run()
+        }
         class HTTPPublishingInteraction #LightGreen
-        Publishing_Interaction <|-- HTTPPublishingInteraction #Green
-        ' StateMachine_Interaction <|-- HTTPPublishingInteraction #Green
+        Publishing_Interaction --o HTTPPublishingInteraction #Green
         HTTPPublishingInteraction --|> HTTPInteraction
+        class HTTPInProdInteraction {
+            - InProd_Interaction* StateInteraction
+            --
+            + HTTPInProdInteraction()
+            + HTTPInProdInteraction(InProd_Interaction* Interactor)
+            + ~HTTPInProdInteraction()
+
+            + SetInteractor(InProd_Interaction* Interactor)
+            + run()
+        }
+        class HTTPInProdInteraction #LightGreen
+        InProd_Interaction --o HTTPInProdInteraction #Green
+        HTTPInProdInteraction --|> HTTPInteraction
+        ' class HTTPCancelInteraction {
+        '     - Cancel_Interaction* StateInteraction
+        '     --
+        '     + run()
+        ' }
+        ' class HTTPCancelInteraction #LightGreen
+        ' Cancel_Interaction --o HTTPCancelInteraction #Green
+        ' HTTPCancelInteraction --|> HTTPInteraction
     }
 }
 @enduml

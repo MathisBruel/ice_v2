@@ -1,8 +1,8 @@
 #pragma once
-#include "ContentRepo.h"
 #include "Release.h"
 #include <iostream>
 
+class ContentRepo;
 class Content
 {
 public:
@@ -12,14 +12,16 @@ public:
 
     void CreateRelease(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie);
     
-    void setDatas(std::string title);
-    void setRelease(Release* release);
+    void setDatas(int id, std::string title);
+    void setRelease(Releases* release);
 
+    int* getId() {return &this->id;}
     std::string getTitle() {return this->title;}
-    Release* getRelease() {return this->release;}
+    Releases* getRelease() {return this->release;}
+    
 private:
     ContentRepo* contentRepo;
-    Release* release;
-
+    Releases* release;
+    int id;
     std::string title;
 };

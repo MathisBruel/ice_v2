@@ -4,6 +4,7 @@ ContextCentralThread::ContextCentralThread()
 {
     stop = false;
     thread = nullptr;
+
 }
     
 ContextCentralThread::~ContextCentralThread()
@@ -69,15 +70,6 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     CentralContext* context = CentralContext::getCurrentContext();
     Poco::Logger::get("ContextCentralThread").debug("Execute cmd type : " + std::to_string(cmd->getType()));
     std::shared_ptr<CommandCentralResponse> response = std::make_shared<CommandCentralResponse>(CommandCentralResponse(cmd->getUuid(), cmd->getType()));
-    // typedef std::map<int, HTTPInteraction> HttpInteraction;
-    // HttpInteraction Interaction;
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::CONTENT_CREATED, new HTTPContentInteraction()));
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::CREATE_RELEASE, new HTTPPublishingInteraction()));
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::RELEASE_CREATED, new HTTPReleaseInteraction()));
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::CIS_CREATED, new HTTPCISInteraction()));
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::CPL_CREATED, new HTTPCPLInteraction()));
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::SYNC_CREATED, new HTTPSyncInteraction()));
-    // Interaction.insert(HttpInteraction::value_type(CommandCentral::SYNCLOOP_CREATED, new HTTPSyncLoopInteraction()));
     // -- GETTERS
     if (cmd->getType() == CommandCentral::GET_GROUPS) {
         
@@ -2244,8 +2236,12 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setDatas(datas);
         }
     }
-    // else { 
-    //     Interaction.at(cmd->getType())->run();
-    // }
+    else if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
+        this->ConetntConfigurator[cmd->getIntParameter("id")] = new Configurator();
+        this->ConetntConfigurator[cmd->getIntParameter("id")]->getHTTPInteractions()[cmd->getType()]->run();
+    }
+    else {
+        this->ConetntConfigurator[cmd->getIntParameter("id")]->getHTTPInteractions()[cmd->getType()]->run();
+    }
     context->getCommandHandler()->addResponse(response);
 }

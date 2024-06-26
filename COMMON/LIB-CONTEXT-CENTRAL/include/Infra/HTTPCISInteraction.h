@@ -2,9 +2,17 @@
 #include "HTTPInteraction.h"
 #include "App/CIS_Interaction.h"
 
-class HTTPCISInteraction : 
-public HTTPInteraction, public CIS_Interaction
+class HTTPCISInteraction : public HTTPInteraction
 {
+private:
+    CIS_Interaction* StateInteraction;
 public:
-    void run() { (this->state->*pfTransition)();}
+    HTTPCISInteraction() {this->StateInteraction = nullptr;}
+    HTTPCISInteraction(CIS_Interaction* Interactor) {this->StateInteraction = Interactor;}
+    ~HTTPCISInteraction() {this->StateInteraction = nullptr;}
+
+    void SetInteractor(CIS_Interaction* Interactor) {this->StateInteraction = Interactor;}
+    void run() override { 
+        (StateInteraction->State->*(StateInteraction->pfTransition))();
+    }
 };

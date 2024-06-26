@@ -19,7 +19,12 @@ file(GLOB SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/Data/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/App/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/Domain/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/Infra/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/Data/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/Domain/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/Infra/*.cpp"
 )
 
 add_library(${project_name} STATIC ${SRC_FILES})

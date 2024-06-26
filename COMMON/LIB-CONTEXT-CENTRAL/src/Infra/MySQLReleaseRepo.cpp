@@ -1,11 +1,11 @@
-#include "MySQLReleaseRepo.h"
+#include "Infra/MySQLReleaseRepo.h"
 
 std::string MySQLReleaseRepo::database = "ice";
 std::string MySQLReleaseRepo::table = "movie";
 
-Query* MySQLReleaseRepo::create(Release* release)
+Query* MySQLReleaseRepo::MySQLcreate(Releases* release)
 {
-    const int* releaseIds = release->getId();
+    int* releaseIds = release->getId();
     if (releaseIds[0] == -1 || releaseIds[1] == -1 || releaseIds[2] == -1) { return nullptr; }
     
     Query* createQuery = new Query(Query::INSERT, database, table);
@@ -16,9 +16,9 @@ Query* MySQLReleaseRepo::create(Release* release)
     return createQuery;
 }
 
-Query* MySQLReleaseRepo::read(Release* release)
+Query* MySQLReleaseRepo::MySQLread(Releases* release)
 {
-    const int* releaseIds = release->getId();
+    int* releaseIds = release->getId();
     Query* readQuery = new Query(Query::SELECT, database, table);
     readQuery->addParameter("id_movie", nullptr, "int");
     readQuery->addParameter("id_type",nullptr, "int");
@@ -31,9 +31,9 @@ Query* MySQLReleaseRepo::read(Release* release)
     return readQuery;
 }
 
-Query* MySQLReleaseRepo::update(Release* release)
+Query* MySQLReleaseRepo::MySQLupdate(Releases* release)
 {
-    const int* releaseIds = release->getId();
+    int* releaseIds = release->getId();
 
     if (releaseIds[0] == -1 || releaseIds[1] == -1 || releaseIds[2] == -1) { return nullptr; }
 
@@ -44,8 +44,10 @@ Query* MySQLReleaseRepo::update(Release* release)
     return updateQuery;
 }
 
-Query* MySQLReleaseRepo::remove(Release* release)
+Query* MySQLReleaseRepo::MySQLremove(Releases* release)
 {
+    int* releaseIds = release->getId();
+    
     if (releaseIds[0] == -1 || releaseIds[1] == -1 || releaseIds[2] == -1) { return nullptr; }
 
     Query* removeQuery = new Query(Query::REMOVE, database, table);

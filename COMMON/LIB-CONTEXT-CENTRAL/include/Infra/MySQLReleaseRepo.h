@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 
-#include "ReleaseRepo.h"
+#include "Domain/ReleaseRepo.h"
 #include "Query.h"
 
 class MySQLReleaseRepo : public ReleaseRepo
@@ -10,10 +10,15 @@ public:
     MySQLReleaseRepo();
     ~MySQLReleaseRepo();
 
-    Query* create(Release* release);
-    Query* read(Release* release);
-    Query* update(Release* release);
-    Query* remove(Release* release);
+    void create(Releases* release) { MySQLcreate(release); }
+    void read(Releases* release) { MySQLread(release); }
+    void update(Releases* release) { MySQLupdate(release); }
+    void remove(Releases* release) { MySQLremove(release); }
+
+    Query* MySQLcreate(Releases* release);
+    Query* MySQLread(Releases* release);
+    Query* MySQLupdate(Releases* release);
+    Query* MySQLremove(Releases* release);
 
 private:
     static std::string database;

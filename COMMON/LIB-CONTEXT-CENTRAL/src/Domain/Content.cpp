@@ -1,5 +1,5 @@
-#include "Content.h"
-
+#include "Domain/Content.h"
+#include "Domain/ContentRepo.h"
 Content::Content()
 {
     title = "";
@@ -15,15 +15,16 @@ Content::Content(std::string title)
     this->title = title;
     release = nullptr;
 }
-Content::setDatas(std::string title)
+void Content::setDatas(int id, std::string title)
 {
+    this->id = id;
     this->title = title;
 }
-Content::setRelease(Release* release)
+void Content::setRelease(Releases* release)
 {
     this->release = release;
 }
-Content::CreateRelease(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie){
-    this->release = new Release();
+void Content::CreateRelease(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie){
+    this->release = new Releases();
     this->release->setId(id_movie, typeMovie, localisationMovie);
 }

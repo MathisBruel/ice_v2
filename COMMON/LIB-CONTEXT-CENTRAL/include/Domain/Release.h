@@ -1,16 +1,15 @@
 #pragma once
-#include "ReleaseRepo.h"
 #include "LocalisationMovie.h"
 #include "TypeMovie.h"
 #include "CIS.h"
 #include "CPL.h"
 #include "SyncLoop.h"
-
-class Release
+class ReleaseRepo;
+class Releases
 {
 public:
-    Release();
-    ~Release();
+    Releases();
+    ~Releases();
 
     void UploadCIS(std::string cisPath);
     void UploadCPL(int id_serv_pair_config, std::string uuid, std::string name, std::string cplPath);
@@ -22,7 +21,7 @@ public:
     void setCPL(CPL* cpl);
     void setSyncLoop(SyncLoop* syncLoop);
 
-    const int* getId() {return this->ids;}
+    int* getId() {return this->ids;}
     std::string getCISPath() {return this->cisPath;}
     CIS* getCIS() {return this->cis;}
     CPL* getCPL() {return this->cpl;}

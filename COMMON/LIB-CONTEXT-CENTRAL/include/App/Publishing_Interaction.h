@@ -2,9 +2,7 @@
 #include "App/State.h"
 class Publishing_Interaction
 {
-// protected:
-//     State_Publishing* state;
-//     Publishing_Interaction(State_Publishing& state) { this->state = &state; }
 public:
+    State_Publishing* State;
     void (State_Publishing::*pfTransition)();
 };

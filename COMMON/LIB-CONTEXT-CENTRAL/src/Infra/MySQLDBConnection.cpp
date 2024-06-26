@@ -1,11 +1,11 @@
-#include "MySQLDBConnection.h"
+#include "Infra/MySQLDBConnection.h"
 
-MysqlDBConnection::MysqlDBConnection()
+MySQLDBConnection::MySQLDBConnection()
 {
     database = nullptr;
 }
 
-MysqlDBConnection::~MysqlDBConnection()
+MySQLDBConnection::~MySQLDBConnection()
 {
     if (database != nullptr)
     {
@@ -13,7 +13,7 @@ MysqlDBConnection::~MysqlDBConnection()
     }
 }
 
-bool MysqlDBConnection::initConnection()
+bool MySQLDBConnection::initConnection()
 {
     database = new DatabaseConnector();
 
@@ -23,4 +23,8 @@ bool MysqlDBConnection::initConnection()
     }
 
     return true;
+}
+
+ResultQuery* MySQLDBConnection::executeQuery(Query* query) {
+    
 }

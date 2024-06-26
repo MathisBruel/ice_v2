@@ -103,15 +103,18 @@ public:
         // ------------------------
         // -- State Machine Interaction
         // ------------------------
+        CREATE_CONTENT,
         CONTENT_CREATED,
-        CREATE_RELEASE,
         RELEASE_CREATED,
+        CREATE_RELEASE,
         CIS_CREATED,
+        CREATE_CPL,
+        CREATE_SYNCLOOP,
         CPL_CREATED,
         SYNC_CREATED,
         SYNCLOOP_CREATED,
-        CANCEL,
-
+        IMPORT_TO_PROD,
+        
         // -- DEFAULT
         UNKNOW_COMMAND
     };

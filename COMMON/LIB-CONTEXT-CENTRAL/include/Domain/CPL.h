@@ -1,8 +1,7 @@
 #pragma once
-#include "CPLRepo.h"
 #include "Sync.h"
 #include <iostream>
-
+class CPLRepo;
 class CPL
 {
 public:
@@ -15,7 +14,7 @@ public:
     void setDatas(std::string uuid, std::string name);
     void setCplInfos(std::string pathCpl);
 
-    const int* getId() {return this->ids;}
+    int* getId() {return this->ids;}
     std::string getUuid() {return this->uuid;}
     std::string getName() {return this->name;}
     std::string getCplPath() {return this->pathCpl;}

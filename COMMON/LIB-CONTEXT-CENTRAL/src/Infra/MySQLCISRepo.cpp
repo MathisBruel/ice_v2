@@ -1,36 +1,42 @@
-#include "MySQLCISRepo.h"
+#include "Infra/MySQLCISRepo.h"
 
 std::string MySQLCISRepo::database = "ice";
 std::string MySQLCISRepo::table = "release";
 
-Query* MySQLCISRepo::create(CIS* cis)
+Query* MySQLCISRepo::MySQLcreate(CIS* cis)
 {
-    update(&cis);
+    return MySQLupdate(cis);
 }
 
-Query* MySQLCISRepo::read(CIS* cis)
+Query* MySQLCISRepo::MySQLread(CIS* cis)
 {
-    const int* CISids = cis->getId();
+    int* CISids = cis->getId();
     Query* readQuery = new Query(Query::SELECT, database, table);
+    readQuery->addParameter("id_movie", nullptr, "int");
+    readQuery->addParameter("id_type", nullptr, "int");
+    readQuery->addParameter("id_localisation", nullptr, "int");
     readQuery->addParameter("release_cis_path", nullptr, "string");
-    if(&CISids[0] != nullptr) { readQuery->addWhereParameter("id_movie", &CISids[0], "int"); };
-    if(&CISids[1] != nullptr) { readQuery->addWhereParameter("id_type", &CISids[1], "int"); };
-    if(&CISids[2] != nullptr) { readQuery->addWhereParameter("id_localisation", &CISids[2], "int"); };
+    if(&CISids[0] != nullptr ) { readQuery->addWhereParameter("id_movie", &CISids[0], "int"); };
+    if(&CISids[1] != nullptr ) { readQuery->addWhereParameter("id_type", &CISids[1], "int"); };
+    if(&CISids[2] != nullptr ) { readQuery->addWhereParameter("id_localisation", &CISids[2], "int"); };
     return readQuery;
 }
 
-Query* MySQLCISRepo::update(CIS* cis)
+Query* MySQLCISRepo::MySQLupdate(CIS* cis)
 {
-    const int* CISids = cis->getId();
-    if(CISids[0] == -1 || CISids[1] == -1 | CISids[2] == -1) { return nullptr; }
+    int* CISids = cis->getId();
+    std::string pathCIS = cis->getCISPath();
+    if(CISids[0] == -1 || CISids[1] == -1 || CISids[2] == -1) { return nullptr; }
     Query* updateQuery = new Query(Query::UPDATE, database, table);
-    updateQuery->addParameter("release_cis_path", cis->getCISPath(), "string");
+
+    updateQuery->addParameter("release_cis_path", &pathCIS , "string");
     updateQuery->addWhereParameter("id_movie", &CISids[0], "int");
     updateQuery->addWhereParameter("id_type", &CISids[1], "int");
     updateQuery->addWhereParameter("id_localisation", &CISids[2], "int");
+    return updateQuery;
 }
-Query* MySQLCISRepo::remove(CIS* cis)
+Query* MySQLCISRepo::MySQLremove(CIS* cis)
 {
     cis->setCISInfos(nullptr);
-    update(&cis);
+    return MySQLupdate(cis);
 }

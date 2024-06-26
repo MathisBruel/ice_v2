@@ -479,6 +479,41 @@ CommandCentral::CommandCentralType CommandCentral::generateFromString(std::strin
         return GET_FILE;
     }
 
+    // -- State Machine Interaction
+    else if (typeStr == "CREATE_CONTENT") { 
+        return CREATE_CONTENT;
+    }
+    else if (typeStr == "CONTENT_CREATED") { 
+        return CONTENT_CREATED;
+    }
+    else if (typeStr == "RELEASE_CREATED") { 
+        return RELEASE_CREATED;
+    }
+    else if (typeStr == "CREATE_RELEASE") { 
+        return CREATE_RELEASE;
+    }
+    else if (typeStr == "CIS_CREATED") { 
+        return CIS_CREATED;
+    }
+    else if (typeStr == "CREATE_CPL") { 
+        return CREATE_CPL;
+    }
+    else if (typeStr == "CREATE_SYNCLOOP") { 
+        return CREATE_SYNCLOOP;
+    }
+    else if (typeStr == "CPL_CREATED") { 
+        return CPL_CREATED;
+    }
+    else if (typeStr == "SYNC_CREATED") { 
+        return SYNC_CREATED;
+    }
+    else if (typeStr == "SYNCLOOP_CREATED") { 
+        return SYNCLOOP_CREATED;
+    }
+    else if (typeStr == "IMPORT_TO_PROD") { 
+        return IMPORT_TO_PROD;
+    }
+
     // -- DEFAULT
     else {
         return UNKNOW_COMMAND;
@@ -665,6 +700,41 @@ std::string CommandCentral::generateToString(CommandCentral::CommandCentralType 
     }
     else if (type == GET_FILE) {
         return "GET_FILE";
+    }
+
+    // -- State Machine Interaction
+    else if (type == CREATE_CONTENT) { 
+        return "CREATE_CONTENT";
+    }
+    else if (type == CONTENT_CREATED) { 
+        return "CONTENT_CREATED";
+    }
+    else if (type == RELEASE_CREATED) { 
+        return "RELEASE_CREATED";
+    }
+    else if (type == CREATE_RELEASE) { 
+        return "CREATE_RELEASE";
+    }
+    else if (type == CIS_CREATED) { 
+        return "CIS_CREATED";
+    }
+    else if (type == CREATE_CPL) { 
+        return "CREATE_CPL";
+    }
+    else if (type == CREATE_SYNCLOOP) { 
+        return "CREATE_SYNCLOOP";
+    }
+    else if (type == CPL_CREATED) { 
+        return "CPL_CREATED";
+    }
+    else if (type == SYNC_CREATED) { 
+        return "SYNC_CREATED";
+    }
+    else if (type == SYNCLOOP_CREATED) { 
+        return "SYNCLOOP_CREATED";
+    }
+    else if (type == IMPORT_TO_PROD) { 
+        return "IMPORT_TO_PROD";
     }
 
     // -- DEFAULT

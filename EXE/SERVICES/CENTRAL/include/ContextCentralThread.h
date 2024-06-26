@@ -10,14 +10,7 @@
 #include "CentralContext.h"
 #include "commandCentral.h"
 #include "commandCentralResponse.h"
-// #include "Infra/HTTPInteraction.h" 
-// #include "Infra/HTTPContentInteraction.h"
-// #include "Infra/HTTPReleaseInteraction.h"
-// #include "Infra/HTTPCISInteraction.h"
-// #include "Infra/HTTPCPLInteraction.h"
-// #include "Infra/HTTPSyncInteraction.h"
-// #include "Infra/HTTPSyncLoopInteraction.h"
-// #include "Infra/HTTPPublishingInteraction.h"
+#include "Configurator.h"
 
 class ContextCentralThread : public Poco::Runnable
 {
@@ -36,8 +29,8 @@ protected:
 
 private:
 
+    std::map<int, Configurator*> ConetntConfigurator;
     // -- for thread control
 	Poco::Thread* thread;
 	bool stop;
-
 };

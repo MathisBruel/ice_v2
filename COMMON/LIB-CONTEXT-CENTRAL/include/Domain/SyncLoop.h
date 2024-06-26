@@ -1,7 +1,6 @@
 #pragma once
-#include "SyncLoopRepo.h"
 #include <iostream>
-
+class SyncLoopRepo;
 class SyncLoop
 {
 public:
@@ -11,7 +10,7 @@ public:
     void setId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
     void setSyncLoopInfos(std::string SyncLoopPath);
 
-    const int* getId() {return this->ids;}
+    int* getId() {return this->ids;}
     std::string getSyncLoopPath() {return this->SyncLoopPath;}
 
 private:

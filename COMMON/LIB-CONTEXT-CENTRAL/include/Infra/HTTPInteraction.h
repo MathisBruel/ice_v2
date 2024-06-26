@@ -2,5 +2,5 @@
 class HTTPInteraction
 {
 public:
-    virtual run();
+    virtual void run() = 0;
 };

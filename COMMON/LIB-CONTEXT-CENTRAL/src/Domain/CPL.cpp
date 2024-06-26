@@ -1,4 +1,5 @@
-#include "CPL.h"
+#include "Domain/CPL.h"
+#include "Domain/CPLRepo.h"
 CPL::CPL()
 {
     this->ids[0] = -1;
@@ -20,7 +21,7 @@ CPL::~CPL()
 void CPL::CreateSync(std::string pathSync)
 {
     this->sync = new Sync();
-    this->sync->setId(id[0], id[1], id[2], id[3]);
+    this->sync->setId(ids[0], ids[1], ids[2], ids[3]);
     this->sync->setSyncInfos(pathSync);
 }
 void CPL::setId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
