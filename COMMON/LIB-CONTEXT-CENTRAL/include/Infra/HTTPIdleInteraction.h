@@ -1,18 +1,10 @@
 #pragma once
 #include "HTTPInteraction.h"
-#include "App/Idle_Interaction.h"
+#include "App/IdleInteraction.h"
 
-class HTTPIdleInteraction : public HTTPInteraction
+class HTTPIdleInteraction : public HTTPInteraction, public IdleInteraction
 {
-private:
-    Idle_Interaction* StateInteraction;
-public:
-    HTTPIdleInteraction() : StateInteraction(nullptr) {}
-    HTTPIdleInteraction(Idle_Interaction* Interactor) : StateInteraction(Interactor) {}
-    ~HTTPIdleInteraction() { StateInteraction = nullptr; }
-
-    void SetInteractor(Idle_Interaction* Interactor) { StateInteraction = Interactor; }
-    void run() override { 
-        (StateInteraction->State->*(StateInteraction->pfTransition))();
+    void Run() override { 
+        IdleInteraction::pfTransition();
     }
 };

@@ -19,20 +19,20 @@ struct ReleaseCreated {};
 struct Stop {};
 
 using FSM = M::PeerRoot<
-    State_Idle,
-    State_ContentInit,
-    M::Orthogonal<State_Publishing,
-        State_UploadCIS,
-        M::Composite<State_SyncCreate,
-        State_IdleSync,
-        State_CPL,
-        State_Sync,
-        State_SyncLoop
+    StateIdle,
+    StateContentInit,
+    M::Orthogonal<StatePublishing,
+        StateUploadCIS,
+        M::Composite<StateSyncCreate,
+        StateIdleSync,
+        StateCPL,
+        StateSync,
+        StateSyncLoop
         >
     >,
-    State_ReleaseCreation,
-    State_Cancel,
-    State_InProd
+    StateReleaseCreation,
+    StateCancel,
+    StateInProd
 >;
 
 struct Logger : M::LoggerInterface
@@ -77,195 +77,162 @@ struct Logger : M::LoggerInterface
 };
 
 struct StateTemplate : FSM::State {
-    FullControl* StateControl;
+    FullControl* stateControl;
 };
 
-struct State_Idle : StateTemplate {
+struct StateIdle : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().idleInteraction->State = this;
-        StateTemplate::StateControl->context().idleInteraction->pfTransition = &State_Idle::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().idleInteraction->pfTransition = std::bind(&StateIdle::Transition,this);
     }
     void enter(Control&)  { std::cout << "Idle\n"; }
     void Transition()  {
-        StateTemplate::StateControl->context().idleInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->changeTo<State_Publishing>();
+        StateTemplate::stateControl->context().idleInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->changeTo<StatePublishing>();
     }
 };
 
-struct State_ContentInit : StateTemplate {
+struct StateContentInit : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().contentInteraction->State = this;
-        StateTemplate::StateControl->context().contentInteraction->pfTransition = &State_ContentInit::Transition;
-        StateTemplate::StateControl->context().CISFinish = false;
-        StateTemplate::StateControl->context().SyncFinish = false;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().contentInteraction->pfTransition = std::bind(&StateContentInit::Transition,this);
+        StateTemplate::stateControl->context().cisFinish = false;
+        StateTemplate::stateControl->context().syncFinish = false;
     }
     void enter(Control&)  { std::cout << "ContentInit\n"; }
     void Transition() {
-        StateTemplate::StateControl->context().contentInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->changeTo<State_Publishing>();    
+        StateTemplate::stateControl->context().contentInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->changeTo<StatePublishing>();    
     }
 };
 
-struct State_ReleaseCreation : StateTemplate {
+struct StateReleaseCreation : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().releaseInteraction->State = this;
-        StateTemplate::StateControl->context().releaseInteraction->pfTransition = &State_ReleaseCreation::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().releaseInteraction->pfTransition = std::bind(&StateReleaseCreation::Transition,this);
     }
     void enter(Control&)  { std::cout << "ReleaseCreated\n"; }   
     void Transition() {
-        StateTemplate::StateControl->context().releaseInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->resume<State_Publishing>();    
+        StateTemplate::stateControl->context().releaseInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->resume<StatePublishing>();    
     }
 };
 
-struct State_Publishing : StateTemplate {
+struct StatePublishing : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().publishingInteraction->State = this;
-        StateTemplate::StateControl->context().publishingInteraction->pfTransition = &State_Publishing::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().publishingInteraction->pfTransition = std::bind(&StatePublishing::Transition,this);
     }
     void enter(Control&)  { std::cout << "Publishing\n"; }
     void update(FullControl& control)  {
-        std::cout << "Etats d'avancement: CIS " << control.context().CISFinish << " Sync " << control.context().SyncFinish << "\n";
+        std::cout << "Etats d'avancement: CIS " << control.context().cisFinish << " Sync " << control.context().syncFinish << "\n";
     }
     void Transition() {
-        StateTemplate::StateControl->context().publishingInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->changeTo<State_ReleaseCreation>();    
+        StateTemplate::stateControl->context().publishingInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->changeTo<StateReleaseCreation>();    
     }
 };
 
-struct State_UploadCIS : StateTemplate {
+struct StateUploadCIS : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().cisInteraction->State = this;
-        StateTemplate::StateControl->context().cisInteraction->pfTransition = &State_UploadCIS::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().cisInteraction->pfTransition = std::bind(&StateUploadCIS::Transition,this);
     }
     void enter(Control&)  { std::cout << "UploadCIS\n"; }
     void Transition() {
-        StateTemplate::StateControl->context().cisInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->context().CISFinish = true;
+        StateTemplate::stateControl->context().cisInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->context().cisFinish = true;
         std::cout << "UploadCIS Finish\n";
-        if (StateTemplate::StateControl->context().CISFinish && StateTemplate::StateControl->context().SyncFinish) {
-            StateTemplate::StateControl->changeTo<State_InProd>();
+        if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
+            StateTemplate::stateControl->changeTo<StateInProd>();
         }
     }
 };
 
-struct State_SyncCreate : StateTemplate {
+struct StateSyncCreate : StateTemplate {
     void enter(Control&)  { std::cout << "SyncCreate\n"; }
 };
 
-struct State_IdleSync : StateTemplate {
+struct StateIdleSync : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().idleSyncInteraction->State = this;
-        StateTemplate::StateControl->context().idleSyncInteraction->pfTransitionToCPL = &State_IdleSync::TransitionToCPL;
-        StateTemplate::StateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = &State_IdleSync::TransitionToSYNCLOOP;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToCPL = std::bind(&StateIdleSync::TransitionToCPL,this);
+        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = std::bind(&StateIdleSync::TransitionToSYNCLOOP,this);
     }
     void enter(Control&)  { std::cout << "IdleSync\n"; }
     void TransitionToSYNCLOOP() {
-        StateTemplate::StateControl->context().idleSyncInteraction->pfTransitionToCPL = nullptr;
-        StateTemplate::StateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = nullptr;
-        StateTemplate::StateControl->changeTo<State_SyncLoop>();    
+        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToCPL = nullptr;
+        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = nullptr;
+        StateTemplate::stateControl->changeTo<StateSyncLoop>();    
     }
     void TransitionToCPL() {
-        StateTemplate::StateControl->context().idleSyncInteraction->pfTransitionToCPL = nullptr;
-        StateTemplate::StateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = nullptr;
-        StateTemplate::StateControl->changeTo<State_CPL>();    
+        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToCPL = nullptr;
+        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = nullptr;
+        StateTemplate::stateControl->changeTo<StateCPL>();    
     }
 };
 
-struct State_CPL : StateTemplate {
+struct StateCPL : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().cplInteraction->State = this;
-        StateTemplate::StateControl->context().cplInteraction->pfTransition = &State_CPL::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().cplInteraction->pfTransition = std::bind(&StateCPL::Transition,this);
     }
     void enter(Control&)  { std::cout << "CPL\n"; }
     void Transition() {
-        StateTemplate::StateControl->context().cplInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->changeTo<State_Sync>();    
+        StateTemplate::stateControl->context().cplInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->changeTo<StateSync>();    
     }
 };
 
-struct State_Sync : StateTemplate {
+struct StateSync : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().syncInteraction->State = this;
-        StateTemplate::StateControl->context().syncInteraction->pfTransition = &State_Sync::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().syncInteraction->pfTransition = std::bind(&StateSync::Transition,this);
     }
     void enter(Control&)  { std::cout << "Sync\n"; }
     void Transition() {
-        StateTemplate::StateControl->context().syncInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->context().SyncFinish = true;
+        StateTemplate::stateControl->context().syncInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->context().syncFinish = true;
         std::cout << "SyncCreated Finish\n";
-        if (StateTemplate::StateControl->context().CISFinish && StateTemplate::StateControl->context().SyncFinish) {
-            StateTemplate::StateControl->changeTo<State_InProd>();
+        if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
+            StateTemplate::stateControl->changeTo<StateInProd>();
         }
     }
 };
 
-struct State_SyncLoop : StateTemplate {
+struct StateSyncLoop : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().syncloopInteraction->State = this;
-        StateTemplate::StateControl->context().syncloopInteraction->pfTransition = &State_SyncLoop::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().syncloopInteraction->pfTransition = std::bind(&StateSyncLoop::Transition,this);
     }
     void enter(Control&)  { std::cout << "SyncLoop\n"; }
     void Transition() {
-        StateTemplate::StateControl->context().syncloopInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->context().SyncFinish = true;
+        StateTemplate::stateControl->context().syncloopInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->context().syncFinish = true;
         std::cout << "SyncCreate Finish\n";
-        if (StateTemplate::StateControl->context().CISFinish && StateTemplate::StateControl->context().SyncFinish) {
-            StateTemplate::StateControl->changeTo<State_InProd>();
+        if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
+            StateTemplate::stateControl->changeTo<StateInProd>();
         }   
     }
 };
 
-struct State_Cancel : StateTemplate {
+struct StateCancel : StateTemplate {
     void enter(Control&)  { std::cout << "Cancel\n"; }
 };
 
-struct State_InProd : StateTemplate {
+struct StateInProd : StateTemplate {
     void entryGuard(FullControl& control)  {
-        StateTemplate::StateControl = &control;
-        StateTemplate::StateControl->context().inProdInteraction->State = this;
-        StateTemplate::StateControl->context().inProdInteraction->pfTransition = &State_InProd::Transition;
+        StateTemplate::stateControl = &control;
+        StateTemplate::stateControl->context().inProdInteraction->pfTransition = std::bind(&StateInProd::Transition,this);
     }
     void enter(Control&)  { std::cout << "InProd\n"; }
     void Transition() {
-        StateTemplate::StateControl->context().inProdInteraction->pfTransition = nullptr;
-        StateTemplate::StateControl->changeTo<State_Idle>();    
+        StateTemplate::stateControl->context().inProdInteraction->pfTransition = nullptr;
+        StateTemplate::stateControl->changeTo<StateIdle>();    
     }
 };
 
 StateMachine::StateMachine(Context context) {
     Logger logger;
     FSM::Instance machine(context, &logger);
-
-    // std::cout << "Start n°1\n";
-    // machine.reset();
-    // machine.react(InitContent{});
-    // machine.react(Publish{});
-    // machine.react(CreateCPL{});
-    // machine.react(Upload{});
-    // machine.react(CreateSync{});
-    // machine.update();
-    // machine.react(CreateRelease{});
-    // machine.react(ReleaseCreated{});
-    // machine.update();
-    // machine.react(SyncCreated{});
-    // machine.react(Stop{});
-
-    // std::cout << "\nStart n°2\n";
-    // machine.reset();
-    // machine.react(InitContent{});
-    // machine.react(Publish{});
-    // machine.react(CreateSyncLoop{});
-    // machine.react(SyncCreated{});
-    // machine.react(Upload{});
-    // machine.react(Stop{});
 }

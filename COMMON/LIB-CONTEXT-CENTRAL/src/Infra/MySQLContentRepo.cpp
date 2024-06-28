@@ -1,25 +1,25 @@
 #include "Infra/MySQLContentRepo.h"
 
-std::string MySQLContentRepo::database = "ice";
-std::string MySQLContentRepo::table = "movie";
+std::string MySQLContentRepo::_database = "ice";
+std::string MySQLContentRepo::_table = "movie";
 
 Query* MySQLContentRepo::MySQLcreate(Content* content)
 {
-    int* id = content->getId();
+    int* id = content->GetContentId();
     if (*id != -1) { return nullptr; }
-    std::string title = content->getTitle();
+    std::string title = content->GetContentTitle();
     
-    Query* createQuery = new Query(Query::INSERT, database, table);
+    Query* createQuery = new Query(Query::INSERT, _database, _table);
     createQuery->addParameter("movie_title", &title, "string");
     return createQuery;
 }
 
 Query* MySQLContentRepo::MySQLread(Content* content)
 {
-    int* id = content->getId();
-    std::string title = content->getTitle();
+    int* id = content->GetContentId();
+    std::string title = content->GetContentTitle();
 
-    Query* readQuery = new Query(Query::SELECT, database, table);
+    Query* readQuery = new Query(Query::SELECT, _database, _table);
     readQuery->addParameter("id", nullptr, "int");
     readQuery->addParameter("movie_title", nullptr, "string");
     if (id != nullptr) {readQuery->addWhereParameter("id", id, "int");}
@@ -28,12 +28,12 @@ Query* MySQLContentRepo::MySQLread(Content* content)
 
 Query* MySQLContentRepo::MySQLupdate(Content* content)
 {
-    int* id = content->getId();
+    int* id = content->GetContentId();
     if (*id == -1) { return nullptr; }
 
-    std::string title = content->getTitle();
+    std::string title = content->GetContentTitle();
 
-    Query* updateQuery = new Query(Query::UPDATE, database, table);
+    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addParameter("movie_title", &id, "string");
     updateQuery->addWhereParameter("id", &title, "int");
     return updateQuery;
@@ -41,10 +41,10 @@ Query* MySQLContentRepo::MySQLupdate(Content* content)
 
 Query* MySQLContentRepo::MySQLremove(Content* content)
 {
-    int* id = content->getId();
+    int* id = content->GetContentId();
     if (*id == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, database, table);
+    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
     removeQuery->addWhereParameter("id", &id, "int");
     return removeQuery;
 }

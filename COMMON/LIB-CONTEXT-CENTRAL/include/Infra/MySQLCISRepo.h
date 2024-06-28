@@ -10,10 +10,10 @@ public:
     MySQLCISRepo();
     ~MySQLCISRepo();
 
-    void create(CIS* cis) { MySQLcreate(cis); }
-    void read(CIS* cis) { MySQLread(cis); }
-    void update(CIS* cis) { MySQLupdate(cis); }
-    void remove(CIS* cis) { MySQLremove(cis); }
+    void Create(CIS* cis) override { MySQLcreate(cis); }
+    void Read(CIS* cis) override { MySQLread(cis); }
+    void Update(CIS* cis) override { MySQLupdate(cis); }
+    void Remove(CIS* cis) override { MySQLremove(cis); }
 
     Query* MySQLcreate(CIS* cis);
     Query* MySQLread(CIS* cis);
@@ -21,6 +21,6 @@ public:
     Query* MySQLremove(CIS* cis);
 
 private:
-    static std::string database;
-    static std::string table;
+    static std::string _database;
+    static std::string _table;
 };

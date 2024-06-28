@@ -7,8 +7,8 @@ public:
     CPLRepo();
     ~CPLRepo();
 
-    virtual void create(CPL* cpl);
-    virtual void read(CPL* cpl);
-    virtual void update(CPL* cpl);
-    virtual void remove(CPL* cpl);
+    virtual void Create(CPL* cpl) = 0;
+    virtual void Read(CPL* cpl) = 0;
+    virtual void Update(CPL* cpl) = 0;
+    virtual void Remove(CPL* cpl) = 0;
 };

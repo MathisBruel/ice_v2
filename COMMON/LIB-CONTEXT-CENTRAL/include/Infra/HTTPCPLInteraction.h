@@ -1,18 +1,10 @@
 #pragma once
 #include "HTTPInteraction.h"
-#include "App/CPL_Interaction.h"
+#include "App/CPLInteraction.h"
 
-class HTTPCPLInteraction : public HTTPInteraction
+class HTTPCPLInteraction : public HTTPInteraction, public CPLInteraction
 {
-private:
-    CPL_Interaction* StateInteraction;
-public:
-    HTTPCPLInteraction() {this->StateInteraction = nullptr;}
-    HTTPCPLInteraction(CPL_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    ~HTTPCPLInteraction() {this->StateInteraction = nullptr;}
-
-    void SetInteractor(CPL_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    void run() override { 
-        (StateInteraction->State->*(StateInteraction->pfTransition))();
+    void Run() override { 
+        CPLInteraction::pfTransition();
     }
 };

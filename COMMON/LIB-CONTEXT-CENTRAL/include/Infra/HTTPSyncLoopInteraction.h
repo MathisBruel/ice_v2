@@ -1,18 +1,11 @@
 #pragma once
 #include "HTTPInteraction.h"
-#include "App/SyncLoop_Interaction.h"
+#include "App/SyncLoopInteraction.h"
 
-class HTTPSyncLoopInteraction : public HTTPInteraction
+class HTTPSyncLoopInteraction : public HTTPInteraction, public SyncLoopInteraction
 {
-private:
-    SyncLoop_Interaction* StateInteraction;
 public:
-    HTTPSyncLoopInteraction() {this->StateInteraction = nullptr;}
-    HTTPSyncLoopInteraction(SyncLoop_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    ~HTTPSyncLoopInteraction() {this->StateInteraction = nullptr;}
-
-    void SetInteractor(SyncLoop_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    void run() override { 
-        (StateInteraction->State->*(StateInteraction->pfTransition))();
+    void Run() override { 
+        SyncLoopInteraction::pfTransition();
     }
 };

@@ -7,8 +7,8 @@ public:
     SyncRepo();
     ~SyncRepo();
 
-    virtual void create(Sync* sync);
-    virtual void read(Sync* sync);
-    virtual void update(Sync* sync);
-    virtual void remove(Sync* sync);
+    virtual void Create(Sync* sync) = 0;
+    virtual void Read(Sync* sync) = 0;
+    virtual void Update(Sync* sync) = 0;
+    virtual void Remove(Sync* sync) = 0;
 };

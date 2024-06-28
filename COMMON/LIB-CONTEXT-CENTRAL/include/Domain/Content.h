@@ -7,21 +7,21 @@ class Content
 {
 public:
     Content();
-    Content(std::string title);
+    Content(std::string contentTitle);
     ~Content();
 
     void CreateRelease(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie);
     
-    void setDatas(int id, std::string title);
-    void setRelease(Releases* release);
+    void SetDatas(int contentId, std::string contentTitle);
+    void SetRelease(Releases* release);
 
-    int* getId() {return &this->id;}
-    std::string getTitle() {return this->title;}
-    Releases* getRelease() {return this->release;}
+    int* GetContentId() {return &this->_contentId;}
+    std::string GetContentTitle() {return this->_contentTitle;}
+    Releases* GetRelease() {return this->_release;}
     
 private:
-    ContentRepo* contentRepo;
-    Releases* release;
-    int id;
-    std::string title;
+    ContentRepo* _contentRepo;
+    Releases* _release;
+    int _contentId;
+    std::string _contentTitle;
 };

@@ -1,15 +1,15 @@
 #include "Infra/MySQLSyncLoopRepo.h"
 
-std::string MySQLSyncLoopRepo::database = "ice";
-std::string MySQLSyncLoopRepo::table = "LoopSync";
+std::string MySQLSyncLoopRepo::_database = "ice";
+std::string MySQLSyncLoopRepo::_table = "LoopSync";
 
 Query* MySQLSyncLoopRepo::MySQLcreate(SyncLoop* syncloop){
-    int* syncloopIds = syncloop->getId();
+    int* syncloopIds = syncloop->GetSyncLoopId();
     if (syncloopIds[0] == -1 || syncloopIds[1] == -1 || syncloopIds[2] == -1 || syncloopIds[3] == -1) { return nullptr; }
 
-    std::string syncLoopPath = syncloop->getSyncLoopPath();
+    std::string syncLoopPath = syncloop->GetSyncLoopPath();
 
-    Query* createQuery = new Query(Query::INSERT, database, table);
+    Query* createQuery = new Query(Query::INSERT, _database, _table);
 
     createQuery->addParameter("id_serv_pair_config", &syncloopIds[0], "int");
     createQuery->addParameter("id_movie", &syncloopIds[1], "int");
@@ -19,8 +19,8 @@ Query* MySQLSyncLoopRepo::MySQLcreate(SyncLoop* syncloop){
     return createQuery;
 }
 Query* MySQLSyncLoopRepo::MySQLread(SyncLoop* syncloop){
-    int* syncloopIds = syncloop->getId();
-    Query* readQuery = new Query(Query::SELECT, database, table);
+    int* syncloopIds = syncloop->GetSyncLoopId();
+    Query* readQuery = new Query(Query::SELECT, _database, _table);
     
     readQuery->addParameter("id_serv_pair_config", nullptr, "int");
     readQuery->addParameter("id_movie", nullptr, "int");
@@ -35,12 +35,12 @@ Query* MySQLSyncLoopRepo::MySQLread(SyncLoop* syncloop){
     return readQuery;
 }
 Query* MySQLSyncLoopRepo::MySQLupdate(SyncLoop* syncloop){
-    int* syncloopIds = syncloop->getId();
+    int* syncloopIds = syncloop->GetSyncLoopId();
     if (syncloopIds[0] == -1 || syncloopIds[1] == -1 || syncloopIds[2] == -1 || syncloopIds[3] == -1) { return nullptr; }
 
-    std::string syncLoopPath = syncloop->getSyncLoopPath();
+    std::string syncLoopPath = syncloop->GetSyncLoopPath();
 
-    Query* updateQuery = new Query(Query::UPDATE, database, table);
+    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addParameter("LoopSync_path", &syncLoopPath, "string");
     updateQuery->addWhereParameter("id_serv_pair_config", &syncloopIds[0], "int");
     updateQuery->addWhereParameter("id_movie", &syncloopIds[1], "int");
@@ -49,10 +49,10 @@ Query* MySQLSyncLoopRepo::MySQLupdate(SyncLoop* syncloop){
     return updateQuery;
 }
 Query* MySQLSyncLoopRepo::MySQLremove(SyncLoop* syncloop){
-    int* syncloopIds = syncloop->getId();
+    int* syncloopIds = syncloop->GetSyncLoopId();
     if (syncloopIds[0] == -1 || syncloopIds[1] == -1 || syncloopIds[2] == -1 || syncloopIds[3] == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, database, table);
+    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
     removeQuery->addWhereParameter("id_serv_pair_config", &syncloopIds[0], "int");
     removeQuery->addWhereParameter("id_movie", &syncloopIds[1], "int");
     removeQuery->addWhereParameter("id_type", &syncloopIds[2], "int");

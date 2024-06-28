@@ -2,20 +2,19 @@
 #include "Domain/CISRepo.h"
 CIS::CIS()
 {
-    ids[0] = -1;
-    ids[1] = -1;
-    ids[2] = -1;
-    ids[3] = -1;
-    pathCIS = "";
+    _CISId[0] = -1;
+    _CISId[1] = -1;
+    _CISId[2] = -1;
+    _CISPath = "";
 }
 CIS::~CIS() {}
-void CIS::setId(int id_movie, int id_type, int id_localisation)
+void CIS::SetCISId(int id_movie, int id_type, int id_localisation)
 {
-    ids[0] = id_movie;
-    ids[1] = id_type;
-    ids[2] = id_localisation;
+    _CISId[0] = id_movie;
+    _CISId[1] = id_type;
+    _CISId[2] = id_localisation;
 }
-void CIS::setCISInfos(std::string pathCIS)
+void CIS::SetCISInfos(std::string _CISPath)
 {
-    this->pathCIS = pathCIS;
+    this->_CISPath = _CISPath;
 }

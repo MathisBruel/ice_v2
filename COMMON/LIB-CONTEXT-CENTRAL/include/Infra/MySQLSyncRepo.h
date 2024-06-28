@@ -10,16 +10,16 @@ public:
     MySQLSyncRepo();
     ~MySQLSyncRepo();
 
-    void create(Sync* sync) { MySQLcreate(sync); }
-    void read(Sync* sync) { MySQLread(sync); }
-    void update(Sync* sync) { MySQLupdate(sync); }
-    void remove(Sync* sync) { MySQLremove(sync); }
+    void Create(Sync* sync) override { MySQLcreate(sync); }
+    void Read(Sync* sync) override { MySQLread(sync); }
+    void Update(Sync* sync) override { MySQLupdate(sync); }
+    void Remove(Sync* sync) override { MySQLremove(sync); }
 
     Query* MySQLcreate(Sync* sync);
     Query* MySQLread(Sync* sync);
     Query* MySQLupdate(Sync* sync);
     Query* MySQLremove(Sync* sync);
 private:
-    static std::string database;
-    static std::string table;
+    static std::string _database;
+    static std::string _table;
 };

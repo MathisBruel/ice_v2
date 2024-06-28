@@ -7,8 +7,8 @@ public:
     SyncLoopRepo();
     ~SyncLoopRepo();
 
-    virtual void create(SyncLoop* syncloop);
-    virtual void read(SyncLoop* syncloop);
-    virtual void update(SyncLoop* syncloop);
-    virtual void remove(SyncLoop* syncloop);
+    virtual void Create(SyncLoop* syncloop) = 0;
+    virtual void Read(SyncLoop* syncloop) = 0;
+    virtual void Update(SyncLoop* syncloop) = 0;
+    virtual void Remove(SyncLoop* syncloop) = 0;
 };

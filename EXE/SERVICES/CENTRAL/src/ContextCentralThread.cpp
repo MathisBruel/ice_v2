@@ -2237,11 +2237,11 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
-        this->ConetntConfigurator[cmd->getIntParameter("id")] = new Configurator();
-        this->ConetntConfigurator[cmd->getIntParameter("id")]->getHTTPInteractions()[cmd->getType()]->run();
+        this->_contentConfigurator[cmd->getIntParameter("id")] = new Configurator();
+        this->_contentConfigurator[cmd->getIntParameter("id")]->GetHTTPInteractions()[cmd->getType()]->Run();
     }
     else {
-        this->ConetntConfigurator[cmd->getIntParameter("id")]->getHTTPInteractions()[cmd->getType()]->run();
+        this->_contentConfigurator[cmd->getIntParameter("id")]->GetHTTPInteractions()[cmd->getType()]->Run();
     }
     context->getCommandHandler()->addResponse(response);
 }

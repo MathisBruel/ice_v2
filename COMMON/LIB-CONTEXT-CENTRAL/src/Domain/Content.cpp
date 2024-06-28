@@ -2,29 +2,29 @@
 #include "Domain/ContentRepo.h"
 Content::Content()
 {
-    title = "";
-    release = nullptr;
+    _contentTitle = "";
+    _release = nullptr;
 }
 Content::~Content() {
-    if (release != nullptr) {
-        delete release;
+    if (_release != nullptr) {
+        delete _release;
     }
 }
-Content::Content(std::string title)
+Content::Content(std::string contentTitle)
 {
-    this->title = title;
-    release = nullptr;
+    this->_contentTitle = contentTitle;
+    _release = nullptr;
 }
-void Content::setDatas(int id, std::string title)
+void Content::SetDatas(int contentId, std::string contentTitle)
 {
-    this->id = id;
-    this->title = title;
+    this->_contentId = contentId;
+    this->_contentTitle = contentTitle;
 }
-void Content::setRelease(Releases* release)
+void Content::SetRelease(Releases* release)
 {
-    this->release = release;
+    this->_release = release;
 }
 void Content::CreateRelease(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie){
-    this->release = new Releases();
-    this->release->setId(id_movie, typeMovie, localisationMovie);
+    this->_release = new Releases();
+    this->_release->SetReleaseId(id_movie, typeMovie, localisationMovie);
 }

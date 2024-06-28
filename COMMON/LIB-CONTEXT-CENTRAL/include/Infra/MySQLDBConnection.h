@@ -2,14 +2,14 @@
 #include "DatabaseConnector.h"
 #include "Query.h"
 #include "ResultQuery.h"
-
+#include "Poco/Logger.h"
 class MySQLDBConnection
 {    
 private:
-    DatabaseConnector* database;
+    DatabaseConnector* _database;
     MySQLDBConnection();
     ~MySQLDBConnection();
 public:
-    bool initConnection();
-    ResultQuery* executeQuery(Query* query);
+    bool InitConnection();
+    ResultQuery* ExecuteQuery(Query* query);
 };

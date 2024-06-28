@@ -10,10 +10,10 @@ public:
     MySQLContentRepo();
     ~MySQLContentRepo();
 
-    void create(Content* content) { MySQLcreate(content); }
-    void read(Content* content) { MySQLread(content); }
-    void update(Content* content) { MySQLupdate(content); }
-    void remove(Content* content) { MySQLremove(content); }
+    void Create(Content* content) override { MySQLcreate(content); }
+    void Read(Content* content) override { MySQLread(content); }
+    void Update(Content* content) override { MySQLupdate(content); }
+    void Remove(Content* content) override { MySQLremove(content); }
 
     Query* MySQLcreate(Content* content);
     Query* MySQLread(Content* content);
@@ -21,6 +21,6 @@ public:
     Query* MySQLremove(Content* content);
 
 private:
-    static std::string database;
-    static std::string table;
+    static std::string _database;
+    static std::string _table;
 };

@@ -10,10 +10,10 @@ public:
     MySQLReleaseRepo();
     ~MySQLReleaseRepo();
 
-    void create(Releases* release) { MySQLcreate(release); }
-    void read(Releases* release) { MySQLread(release); }
-    void update(Releases* release) { MySQLupdate(release); }
-    void remove(Releases* release) { MySQLremove(release); }
+    void Create(Releases* release) override { MySQLcreate(release); }
+    void Read(Releases* release) override { MySQLread(release); }
+    void Update(Releases* release) override { MySQLupdate(release); }
+    void Remove(Releases* release) override { MySQLremove(release); }
 
     Query* MySQLcreate(Releases* release);
     Query* MySQLread(Releases* release);
@@ -21,6 +21,6 @@ public:
     Query* MySQLremove(Releases* release);
 
 private:
-    static std::string database;
-    static std::string table;
+    static std::string _database;
+    static std::string _table;
 };

@@ -1,14 +1,14 @@
-#include "App/Context.hpp"
-#include "App/Content_Interaction.h"
-#include "App/Release_Interaction.h"
-#include "App/Publishing_Interaction.h"
-#include "App/CIS_Interaction.h"
-#include "App/IdleSync_Interaction.h"
-#include "App/CPL_Interaction.h"
-#include "App/Sync_Interaction.h"
-#include "App/SyncLoop_Interaction.h"
-#include "App/InProd_Interaction.h"
-#include "App/Idle_Interaction.h"
+#include "App/Context.h"
+#include "App/ContentInteraction.h"
+#include "App/ReleaseInteraction.h"
+#include "App/PublishingInteraction.h"
+#include "App/CISInteraction.h"
+#include "App/IdleSyncInteraction.h"
+#include "App/CPLInteraction.h"
+#include "App/SyncInteraction.h"
+#include "App/SyncLoopInteraction.h"
+#include "App/InProdInteraction.h"
+#include "App/IdleInteraction.h"
 #include "App/StateMachine.h"
 
 #include "Infra/HTTPInteraction.h"
@@ -30,12 +30,12 @@ public:
     Configurator();
     ~Configurator() {};
 
-    Context* getContext() { return this->context; }
-    StateMachine* getStateMachine() { return this->stateMachine; }
-    std::map<CommandCentral::CommandCentralType, HTTPInteraction*> getHTTPInteractions() { return this->httpInteractions; }
+    Context* GetContext() { return this->_context; }
+    StateMachine* GetStateMachine() { return this->_stateMachine; }
+    std::map<CommandCentral::CommandCentralType, HTTPInteraction*> GetHTTPInteractions() { return this->_httpInteractions; }
 
 private:
-    std::map<CommandCentral::CommandCentralType, HTTPInteraction*> httpInteractions;
-    Context* context;
-    StateMachine* stateMachine;
+    std::map<CommandCentral::CommandCentralType, HTTPInteraction*> _httpInteractions;
+    Context* _context;
+    StateMachine* _stateMachine;
 };

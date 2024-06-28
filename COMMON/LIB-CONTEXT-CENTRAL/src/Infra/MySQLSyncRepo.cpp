@@ -1,14 +1,14 @@
 #include "Infra/MySQLSyncRepo.h"
 
-std::string MySQLSyncRepo::database = "ice";
-std::string MySQLSyncRepo::table = "sync";
+std::string MySQLSyncRepo::_database = "ice";
+std::string MySQLSyncRepo::_table = "sync";
 
 Query* MySQLSyncRepo::MySQLcreate(Sync* sync)
 {
-    int* syncId = sync->getID();
+    int* syncId = sync->GetSyncID();
     if (syncId[0] == -1 || syncId[1] == -1 || syncId[2] == -1 || syncId[3] == -1) { return nullptr; }
-    std::string syncPath = sync->getSyncPath();
-    Query* createQuery = new Query(Query::INSERT, database, table);
+    std::string syncPath = sync->GetSyncPath();
+    Query* createQuery = new Query(Query::INSERT, _database, _table);
     createQuery->addParameter("id_serv_pair_config", &syncId[0], "int");
     createQuery->addParameter("id_movie", &syncId[1], "int");
     createQuery->addParameter("id_type", &syncId[2], "int");
@@ -18,8 +18,8 @@ Query* MySQLSyncRepo::MySQLcreate(Sync* sync)
 }
 Query* MySQLSyncRepo::MySQLread(Sync* sync)
 {
-    int* syncId = sync->getID();
-    Query* readQuery = new Query(Query::SELECT, database, table);
+    int* syncId = sync->GetSyncID();
+    Query* readQuery = new Query(Query::SELECT, _database, _table);
 
     readQuery->addParameter("id_serv_pair_config", nullptr, "int");
     readQuery->addParameter("id_movie", nullptr, "int");
@@ -35,10 +35,10 @@ Query* MySQLSyncRepo::MySQLread(Sync* sync)
 }
 Query* MySQLSyncRepo::MySQLupdate(Sync* sync)
 {
-    int* syncId = sync->getID();
+    int* syncId = sync->GetSyncID();
     if (syncId[0] == -1 || syncId[1] == -1 || syncId[2] == -1 || syncId[3] == -1) { return nullptr; }
-    std::string syncPath = sync->getSyncPath();
-    Query* updateQuery = new Query(Query::UPDATE, database, table);
+    std::string syncPath = sync->GetSyncPath();
+    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addParameter("sync_path", &syncPath, "string");
     updateQuery->addWhereParameter("id_serv_pair_config", &syncId[0], "int");
     updateQuery->addWhereParameter("id_movie", &syncId[1], "int");
@@ -48,10 +48,10 @@ Query* MySQLSyncRepo::MySQLupdate(Sync* sync)
 }
 Query* MySQLSyncRepo::MySQLremove(Sync* sync)
 {
-    int* syncId = sync->getID();
+    int* syncId = sync->GetSyncID();
     if (syncId[0] == -1 || syncId[1] == -1 || syncId[2] == -1 || syncId[3] == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, database, table);
+    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
     removeQuery->addWhereParameter("id_serv_pair_config", &syncId[0], "int");
     removeQuery->addWhereParameter("id_movie", &syncId[1], "int");
     removeQuery->addWhereParameter("id_type", &syncId[2], "int");

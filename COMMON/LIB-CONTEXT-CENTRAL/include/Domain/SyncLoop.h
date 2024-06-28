@@ -7,15 +7,15 @@ public:
     SyncLoop();
     ~SyncLoop();
 
-    void setId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
-    void setSyncLoopInfos(std::string SyncLoopPath);
+    void SetSyncLoopId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
+    void SetSyncLoopInfos(std::string SyncLoopPath);
 
-    int* getId() {return this->ids;}
-    std::string getSyncLoopPath() {return this->SyncLoopPath;}
+    int* GetSyncLoopId() {return this->_syncLoopId;}
+    std::string GetSyncLoopPath() {return this->_SyncLoopPath;}
 
 private:
     SyncLoopRepo* syncLoopRepo;
 
-    int ids[4];
-    std::string SyncLoopPath;
+    int _syncLoopId[4];
+    std::string _SyncLoopPath;
 };

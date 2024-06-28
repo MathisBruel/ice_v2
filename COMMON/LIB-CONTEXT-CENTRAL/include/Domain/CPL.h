@@ -8,24 +8,24 @@ public:
     CPL();
     ~CPL();
 
-    void CreateSync(std::string pathSync);
+    void CreateSync(std::string SyncPath);
 
-    void setId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
-    void setDatas(std::string uuid, std::string name);
-    void setCplInfos(std::string pathCpl);
+    void SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
+    void SetDatas(std::string CPLUUID, std::string CPLName);
+    void SetCplInfos(std::string CPLPath);
 
-    int* getId() {return this->ids;}
-    std::string getUuid() {return this->uuid;}
-    std::string getName() {return this->name;}
-    std::string getCplPath() {return this->pathCpl;}
-    Sync* getSync() {return this->sync;}
+    int* GetCPLId() {return this->_CPLId;}
+    std::string GetCPLUUID() {return this->_CPLUUID;}
+    std::string GetCPLName() {return this->_CPLName;}
+    std::string GetCPLPath() {return this->_CPLPath;}
+    Sync* GetSync() {return this->_sync;}
 
 private:
-    CPLRepo* cplRepo;
-    Sync* sync;
+    CPLRepo* _cplRepo;
+    Sync* _sync;
     
-    int ids[4];
-    std::string uuid;
-    std::string name;
-    std::string pathCpl;
+    int _CPLId[4];
+    std::string _CPLUUID;
+    std::string _CPLName;
+    std::string _CPLPath;
 };

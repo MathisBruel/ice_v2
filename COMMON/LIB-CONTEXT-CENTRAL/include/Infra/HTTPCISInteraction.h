@@ -1,18 +1,10 @@
 #pragma once
 #include "HTTPInteraction.h"
-#include "App/CIS_Interaction.h"
+#include "App/CISInteraction.h"
 
-class HTTPCISInteraction : public HTTPInteraction
+class HTTPCISInteraction : public HTTPInteraction, public CISInteraction
 {
-private:
-    CIS_Interaction* StateInteraction;
-public:
-    HTTPCISInteraction() {this->StateInteraction = nullptr;}
-    HTTPCISInteraction(CIS_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    ~HTTPCISInteraction() {this->StateInteraction = nullptr;}
-
-    void SetInteractor(CIS_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    void run() override { 
-        (StateInteraction->State->*(StateInteraction->pfTransition))();
+    void Run() override { 
+        CISInteraction::pfTransition();
     }
 };

@@ -1,17 +1,17 @@
 #include "Infra/MySQLCPLRepo.h"
 
-std::string MySQLCPLRepo::database = "ice";
-std::string MySQLCPLRepo::table = "cpl";
+std::string MySQLCPLRepo::_database = "ice";
+std::string MySQLCPLRepo::_table = "cpl";
 
 Query* MySQLCPLRepo::MySQLcreate(CPL* cpl){
-    int* cplIds = cpl->getId();
+    int* cplIds = cpl->GetCPLId();
     if (cplIds[0] == -1 || cplIds[1] == -1 || cplIds[2] == -1 || cplIds[3] == -1) { return nullptr; }
     
-    std::string uuid = cpl->getUuid();
-    std::string name = cpl->getName();
-    std::string cplPath = cpl->getCplPath();
+    std::string uuid = cpl->GetCPLUUID();
+    std::string name = cpl->GetCPLName();
+    std::string cplPath = cpl->GetCPLPath();
 
-    Query* createQuery = new Query(Query::INSERT, database, table);
+    Query* createQuery = new Query(Query::INSERT, _database, _table);
     
     createQuery->addParameter("id_serv_pair_config", &cplIds[0], "int");
     createQuery->addParameter("id_movie", &cplIds[1], "int");
@@ -23,8 +23,8 @@ Query* MySQLCPLRepo::MySQLcreate(CPL* cpl){
     return createQuery;
 }
 Query* MySQLCPLRepo::MySQLread(CPL* cpl){
-    int* cplIds = cpl->getId();
-    Query* readQuery = new Query(Query::SELECT, database, table);
+    int* cplIds = cpl->GetCPLId();
+    Query* readQuery = new Query(Query::SELECT, _database, _table);
     
     readQuery->addParameter("id_serv_pair_config", nullptr, "int");
     readQuery->addParameter("id_movie",nullptr, "int");
@@ -41,13 +41,13 @@ Query* MySQLCPLRepo::MySQLread(CPL* cpl){
     return readQuery;
 }
 Query* MySQLCPLRepo::MySQLupdate(CPL* cpl){
-    int* cplIds = cpl->getId();
+    int* cplIds = cpl->GetCPLId();
     if (cplIds[0] == -1 || cplIds[1] == -1 || cplIds[2] == -1 || cplIds[3] == -1) { return nullptr; }
-    std::string uuid = cpl->getUuid();
-    std::string name = cpl->getName();
-    std::string cplPath = cpl->getCplPath();
+    std::string uuid = cpl->GetCPLUUID();
+    std::string name = cpl->GetCPLName();
+    std::string cplPath = cpl->GetCPLPath();
     
-    Query* updateQuery = new Query(Query::UPDATE, database, table);
+    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addParameter("CPL_name", &uuid, "string");
     updateQuery->addParameter("CPL_uuid", &name, "string");
     updateQuery->addParameter("CPL_path", &cplPath, "string");
@@ -58,10 +58,10 @@ Query* MySQLCPLRepo::MySQLupdate(CPL* cpl){
     return updateQuery;
 }
 Query* MySQLCPLRepo::MySQLremove(CPL* cpl){
-    int* cplIds = cpl->getId();
+    int* cplIds = cpl->GetCPLId();
     if (cplIds[0] == -1 || cplIds[1] == -1 || cplIds[2] == -1 || cplIds[3] == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, database, table);
+    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
     removeQuery->addWhereParameter("id_serv_pair_config", &cplIds[0], "int");
     removeQuery->addWhereParameter("id_movie", &cplIds[1], "int");
     removeQuery->addWhereParameter("id_type", &cplIds[2], "int");

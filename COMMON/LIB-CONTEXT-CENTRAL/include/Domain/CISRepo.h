@@ -6,8 +6,8 @@ class CISRepo
 public:
     CISRepo();
     ~CISRepo();
-    virtual void create(CIS* cis);
-    virtual void read(CIS* cis);
-    virtual void update(CIS* cis);
-    virtual void remove(CIS* cis);
+    virtual void Create(CIS* cis) = 0;
+    virtual void Read(CIS* cis) = 0;
+    virtual void Update(CIS* cis) = 0;
+    virtual void Remove(CIS* cis) = 0;
 };

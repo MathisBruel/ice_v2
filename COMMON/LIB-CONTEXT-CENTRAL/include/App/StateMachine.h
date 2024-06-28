@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "machine.hpp"
-#include "Context.hpp"
+#include "Context.h"
 
 class StateMachine {
     public:

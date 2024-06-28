@@ -1,22 +1,15 @@
 #pragma once
 #include "HTTPInteraction.h"
-#include "App/IdleSync_Interaction.h"
+#include "App/IdleSyncInteraction.h"
 
-class HTTPIdleSyncInteraction : public HTTPInteraction
+class HTTPIdleSyncInteraction : public HTTPInteraction, public IdleSyncInteraction
 {
 private:
-    bool SyncLoop;
-    IdleSync_Interaction* StateInteraction;
+    bool _syncLoop;
 public:
-    HTTPIdleSyncInteraction() { StateInteraction = nullptr; SyncLoop = false; }
-    HTTPIdleSyncInteraction(IdleSync_Interaction* Interactor) { this->StateInteraction = Interactor; }
-    HTTPIdleSyncInteraction(IdleSync_Interaction* Interactor, bool SyncLoop) { this->StateInteraction = Interactor; this->SyncLoop = SyncLoop;}
-    ~HTTPIdleSyncInteraction() { StateInteraction = nullptr; }
-
-    void SetInteractor(IdleSync_Interaction* Interactor) { StateInteraction = Interactor; }
-    void SetSyncLoop(bool SyncLoop) { this->SyncLoop = SyncLoop; }
-    void run() override { 
-        if (SyncLoop) { (StateInteraction->State->*(StateInteraction->pfTransitionToSYNCLOOP))(); }
-        else { (StateInteraction->State->*(StateInteraction->pfTransitionToCPL))(); }
+    void SetSyncLoop(bool syncLoop) { this->_syncLoop = syncLoop; }
+    void Run() override { 
+        if (_syncLoop) { IdleSyncInteraction::pfTransitionToSYNCLOOP(); }
+        else { IdleSyncInteraction::pfTransitionToCPL(); }
     }
 };

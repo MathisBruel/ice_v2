@@ -10,10 +10,10 @@ public:
     MySQLCPLRepo();
     ~MySQLCPLRepo();
     
-    void create(CPL* cpl) { MySQLcreate(cpl); }
-    void read(CPL* cpl) { MySQLread(cpl); }
-    void update(CPL* cpl) { MySQLupdate(cpl); }
-    void remove(CPL* cpl) { MySQLremove(cpl); }
+    void Create(CPL* cpl) override { MySQLcreate(cpl); }
+    void Read(CPL* cpl) override { MySQLread(cpl); }
+    void Update(CPL* cpl) override { MySQLupdate(cpl); }
+    void Remove(CPL* cpl) override { MySQLremove(cpl); }
 
     Query* MySQLcreate(CPL* cpl);
     Query* MySQLread(CPL* cpl);
@@ -21,6 +21,6 @@ public:
     Query* MySQLremove(CPL* cpl);
 
 private:
-    static std::string database;
-    static std::string table;
+    static std::string _database;
+    static std::string _table;
 };

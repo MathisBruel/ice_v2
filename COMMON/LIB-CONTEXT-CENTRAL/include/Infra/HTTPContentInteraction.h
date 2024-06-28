@@ -1,18 +1,11 @@
 #pragma once
 #include "HTTPInteraction.h"
-#include "App/Content_Interaction.h"
+#include "App/ContentInteraction.h"
 
-class HTTPContentInteraction : public HTTPInteraction
+class HTTPContentInteraction : public HTTPInteraction , public ContentInteraction
 {
-private:
-    Content_Interaction* StateInteraction;
 public:
-    HTTPContentInteraction() {this->StateInteraction = nullptr;}
-    HTTPContentInteraction(Content_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    ~HTTPContentInteraction() {this->StateInteraction = nullptr;}
-
-    void SetInteractor(Content_Interaction* Interactor) {this->StateInteraction = Interactor;}
-    void run() override { 
-        (StateInteraction->State->*(StateInteraction->pfTransition))();
+    void Run() override { 
+        ContentInteraction::pfTransition();
     }
 };

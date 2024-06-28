@@ -1,14 +1,14 @@
 #include "Infra/MySQLReleaseRepo.h"
 
-std::string MySQLReleaseRepo::database = "ice";
-std::string MySQLReleaseRepo::table = "movie";
+std::string MySQLReleaseRepo::_database = "ice";
+std::string MySQLReleaseRepo::_table = "movie";
 
 Query* MySQLReleaseRepo::MySQLcreate(Releases* release)
 {
-    int* releaseIds = release->getId();
+    int* releaseIds = release->GetReleaseId();
     if (releaseIds[0] == -1 || releaseIds[1] == -1 || releaseIds[2] == -1) { return nullptr; }
     
-    Query* createQuery = new Query(Query::INSERT, database, table);
+    Query* createQuery = new Query(Query::INSERT, _database, _table);
     createQuery->addParameter("id_movie", &releaseIds[0], "int");
     createQuery->addParameter("id_type", &releaseIds[1], "int");
     createQuery->addParameter("id_localisation", &releaseIds[2], "int");
@@ -18,8 +18,8 @@ Query* MySQLReleaseRepo::MySQLcreate(Releases* release)
 
 Query* MySQLReleaseRepo::MySQLread(Releases* release)
 {
-    int* releaseIds = release->getId();
-    Query* readQuery = new Query(Query::SELECT, database, table);
+    int* releaseIds = release->GetReleaseId();
+    Query* readQuery = new Query(Query::SELECT, _database, _table);
     readQuery->addParameter("id_movie", nullptr, "int");
     readQuery->addParameter("id_type",nullptr, "int");
     readQuery->addParameter("id_localisation", nullptr, "int");
@@ -33,11 +33,11 @@ Query* MySQLReleaseRepo::MySQLread(Releases* release)
 
 Query* MySQLReleaseRepo::MySQLupdate(Releases* release)
 {
-    int* releaseIds = release->getId();
+    int* releaseIds = release->GetReleaseId();
 
     if (releaseIds[0] == -1 || releaseIds[1] == -1 || releaseIds[2] == -1) { return nullptr; }
 
-    Query* updateQuery = new Query(Query::UPDATE, database, table);
+    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addWhereParameter("id_movie", &releaseIds[0], "int");
     updateQuery->addWhereParameter("id_type", &releaseIds[1], "int");
     updateQuery->addWhereParameter("id_localisation", &releaseIds[2], "int");
@@ -46,11 +46,11 @@ Query* MySQLReleaseRepo::MySQLupdate(Releases* release)
 
 Query* MySQLReleaseRepo::MySQLremove(Releases* release)
 {
-    int* releaseIds = release->getId();
+    int* releaseIds = release->GetReleaseId();
     
     if (releaseIds[0] == -1 || releaseIds[1] == -1 || releaseIds[2] == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, database, table);
+    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
     removeQuery->addWhereParameter("id_movie", &releaseIds[0], "int");
     removeQuery->addWhereParameter("id_type", &releaseIds[1], "int");
     removeQuery->addWhereParameter("id_localisation", &releaseIds[2], "int");

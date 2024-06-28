@@ -2,41 +2,41 @@
 #include "Domain/CPLRepo.h"
 CPL::CPL()
 {
-    this->ids[0] = -1;
-    this->ids[1] = -1;
-    this->ids[2] = -1;
-    this->ids[3] = -1;
-    this->name = "";
-    this->uuid = "";
-    this->pathCpl = "";
-    this->sync = nullptr;
+    this->_CPLId[0] = -1;
+    this->_CPLId[1] = -1;
+    this->_CPLId[2] = -1;
+    this->_CPLId[3] = -1;
+    this->_CPLName = "";
+    this->_CPLUUID = "";
+    this->_CPLPath = "";
+    this->_sync = nullptr;
 }
 CPL::~CPL()
 {
-    if (this->sync != nullptr)
+    if (this->_sync != nullptr)
     {
-        delete this->sync;
+        delete this->_sync;
     }
 }
-void CPL::CreateSync(std::string pathSync)
+void CPL::CreateSync(std::string SyncPath)
 {
-    this->sync = new Sync();
-    this->sync->setId(ids[0], ids[1], ids[2], ids[3]);
-    this->sync->setSyncInfos(pathSync);
+    this->_sync = new Sync();
+    this->_sync->SetSyncId(_CPLId[0], _CPLId[1], _CPLId[2], _CPLId[3]);
+    this->_sync->SetSyncInfos(SyncPath);
 }
-void CPL::setId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+void CPL::SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
 {
-    this->ids[0] = id_serv_pair_config;
-    this->ids[1] = id_movie;
-    this->ids[2] = id_type;
-    this->ids[3] = id_localisation;
+    this->_CPLId[0] = id_serv_pair_config;
+    this->_CPLId[1] = id_movie;
+    this->_CPLId[2] = id_type;
+    this->_CPLId[3] = id_localisation;
 }
-void CPL::setDatas(std::string uuid, std::string name)
+void CPL::SetDatas(std::string CPLUUID, std::string CPLName)
 {
-    this->uuid = uuid;
-    this->name = name;
+    this->_CPLUUID = CPLUUID;
+    this->_CPLName = CPLName;
 }
-void CPL::setCplInfos(std::string pathCpl)
+void CPL::SetCplInfos(std::string CPLPath)
 {
-    this->pathCpl = pathCpl;
+    this->_CPLPath = CPLPath;
 }

@@ -10,10 +10,10 @@ public:
     MySQLSyncLoopRepo();
     ~MySQLSyncLoopRepo();
 
-    void create(SyncLoop* syncloop) { MySQLcreate(syncloop); }
-    void read(SyncLoop* syncloop) { MySQLread(syncloop); }
-    void update(SyncLoop* syncloop) { MySQLupdate(syncloop); }
-    void remove(SyncLoop* syncloop) { MySQLremove(syncloop); }
+    void Create(SyncLoop* syncloop) override { MySQLcreate(syncloop); }
+    void Read(SyncLoop* syncloop) override { MySQLread(syncloop); }
+    void Update(SyncLoop* syncloop) override { MySQLupdate(syncloop); }
+    void Remove(SyncLoop* syncloop) override { MySQLremove(syncloop); }
 
     Query* MySQLcreate(SyncLoop* syncloop);
     Query* MySQLread(SyncLoop* syncloop);
@@ -21,6 +21,6 @@ public:
     Query* MySQLremove(SyncLoop* syncloop);
 
 private:
-    static std::string database;
-    static std::string table;
+    static std::string _database;
+    static std::string _table;
 };

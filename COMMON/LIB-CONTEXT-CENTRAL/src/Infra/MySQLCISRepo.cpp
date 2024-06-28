@@ -1,7 +1,7 @@
 #include "Infra/MySQLCISRepo.h"
 
-std::string MySQLCISRepo::database = "ice";
-std::string MySQLCISRepo::table = "release";
+std::string MySQLCISRepo::_database = "ice";
+std::string MySQLCISRepo::_table = "release";
 
 Query* MySQLCISRepo::MySQLcreate(CIS* cis)
 {
@@ -10,8 +10,8 @@ Query* MySQLCISRepo::MySQLcreate(CIS* cis)
 
 Query* MySQLCISRepo::MySQLread(CIS* cis)
 {
-    int* CISids = cis->getId();
-    Query* readQuery = new Query(Query::SELECT, database, table);
+    int* CISids = cis->GetCISId();
+    Query* readQuery = new Query(Query::SELECT, _database, _table);
     readQuery->addParameter("id_movie", nullptr, "int");
     readQuery->addParameter("id_type", nullptr, "int");
     readQuery->addParameter("id_localisation", nullptr, "int");
@@ -24,10 +24,10 @@ Query* MySQLCISRepo::MySQLread(CIS* cis)
 
 Query* MySQLCISRepo::MySQLupdate(CIS* cis)
 {
-    int* CISids = cis->getId();
-    std::string pathCIS = cis->getCISPath();
+    int* CISids = cis->GetCISId();
+    std::string pathCIS = cis->GetCISPath();
     if(CISids[0] == -1 || CISids[1] == -1 || CISids[2] == -1) { return nullptr; }
-    Query* updateQuery = new Query(Query::UPDATE, database, table);
+    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
 
     updateQuery->addParameter("release_cis_path", &pathCIS , "string");
     updateQuery->addWhereParameter("id_movie", &CISids[0], "int");
@@ -37,6 +37,6 @@ Query* MySQLCISRepo::MySQLupdate(CIS* cis)
 }
 Query* MySQLCISRepo::MySQLremove(CIS* cis)
 {
-    cis->setCISInfos(nullptr);
+    cis->SetCISInfos(nullptr);
     return MySQLupdate(cis);
 }

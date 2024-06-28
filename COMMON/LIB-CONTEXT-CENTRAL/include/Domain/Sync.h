@@ -7,14 +7,14 @@ public:
     Sync();
     ~Sync();
 
-    void setId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
-    void setSyncInfos(std::string pathSync);
+    void SetSyncId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
+    void SetSyncInfos(std::string SyncPath);
 
-    int* getID() {return this->ids;}
-    std::string getSyncPath() {return this->pathSync;}
+    int* GetSyncID() {return this->_syncId;}
+    std::string GetSyncPath() {return this->_syncPath;}
 private:
-    SyncRepo* syncRepo;
+    SyncRepo* _syncRepo;
 
-    int ids[4];
-    std::string pathSync;
+    int _syncId[4];
+    std::string _syncPath;
 };

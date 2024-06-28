@@ -2,29 +2,25 @@
 
 MySQLDBConnection::MySQLDBConnection()
 {
-    database = nullptr;
+    _database = nullptr;
 }
 
 MySQLDBConnection::~MySQLDBConnection()
 {
-    if (database != nullptr)
+    if (_database != nullptr)
     {
-        delete database;
+        delete _database;
     }
 }
 
-bool MySQLDBConnection::initConnection()
+bool MySQLDBConnection::InitConnection()
 {
-    database = new DatabaseConnector();
+    _database = new DatabaseConnector();
 
-    if (!database->isSessionActive()) {
+    if (!_database->isSessionActive()) {
         Poco::Logger::get("CentralContext").error("Connection to database mySQL in error", __FILE__, __LINE__);
         return false;
     }
 
     return true;
-}
-
-ResultQuery* MySQLDBConnection::executeQuery(Query* query) {
-    
 }

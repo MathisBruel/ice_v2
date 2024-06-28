@@ -8,16 +8,16 @@ public:
     CIS();
     ~CIS();
 
-    void setId(int id_movie, int id_type, int id_localisation);
-    void setCISInfos(std::string pathCIS);
+    void SetCISId(int id_movie, int id_type, int id_localisation);
+    void SetCISInfos(std::string CISPath);
 
-    int* getId() {return this->ids;}
-    std::string getCISPath() {return this->pathCIS;}
+    int* GetCISId() {return this->_CISId;}
+    std::string GetCISPath() {return this->_CISPath;}
 
     
 private:
-    CISRepo* cisRepo;
+    CISRepo* _CISRepo;
 
-    int ids[4];
-    std::string pathCIS;
+    int _CISId[3];
+    std::string _CISPath;
 }; 
