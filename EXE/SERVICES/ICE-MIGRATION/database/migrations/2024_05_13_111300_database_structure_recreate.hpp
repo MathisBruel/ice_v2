@@ -8,6 +8,8 @@ namespace Migrations
 {
     struct RecreateDatabaseStructure : Migration
     {
+		T_MIGRATION
+
         void up() const override
         {
 			Schema::create("groups", [](Blueprint &table)
@@ -31,6 +33,7 @@ namespace Migrations
 			Schema::create("movie", [](Blueprint &table)
 			{
 				table.id("id_movie");
+				table.string("title", 50);
 			});
 			Schema::create("default_server_configuration_hallway", [](Blueprint &table)
 			{
@@ -63,6 +66,7 @@ namespace Migrations
 				table.unsignedBigInteger("id_movie");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
+				table.string("path", 50);
 				table.primary({"id_movie", "id_type", "id_localisation"});
 				table.foreign("id_movie").references("id_movie").on("movie");
 				table.foreign("id_type").references("id_type").on("type");
@@ -132,6 +136,7 @@ namespace Migrations
 				table.unsignedBigInteger("id_movie");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
+				table.string("path", 50);
 				table.primary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
 				table.foreign("id_serv_pair_config").references("id_serv_pair_config").on("server_pair_configuration");
 				table.foreign("id_movie").references("id_movie").on("releases");
@@ -144,6 +149,7 @@ namespace Migrations
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.unsignedBigInteger("id_serv_pair_config");
+				table.string("path", 50);
 				table.primary({"id_movie", "id_type", "id_localisation", "id_serv_pair_config"});
 				table.foreign("id_movie").references("id_movie").on("releases");
 				table.foreign("id_type").references("id_type").on("releases");
