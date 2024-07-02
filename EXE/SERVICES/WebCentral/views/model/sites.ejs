@@ -1,0 +1,127 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="sites">
+    <h1>Sites</h1>
+    <div id="message-box" class="success"></div>
+    <ul class="ul-model">
+        <div class="BlockLabel">
+            <label>Filtre</label>
+            <select id="groupList"></select>
+        </div>
+        <div class="ul-model" id="sitesList"></div>
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const json = { id: -1 };
+        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+        let response = await (await fetch(`/getGroupsFilter`, options)).json();
+        console.log(response);
+        const groupList = document.getElementById("groupList");
+        if (response.ok == true) {
+            const option = createDOM("option", { value: -1, text: "filtre", selected: true, style:"display:none" });
+            groupList.appendChild(option);
+            for (const group of response.data.groups.group) {
+                const option = createDOM("option");
+                option.value = group.$.id_group;
+                option.text = group.$.name;
+                groupList.appendChild(option);
+            }
+        }
+        groupList.addEventListener("change", function () {
+            const id_group = groupList.value;
+            drawSites(id_group);
+        });
+    });
+
+    async function drawSites(id_group) {
+        const containerSites = document.getElementById("sitesList");
+        while (containerSites.firstChild) {
+            containerSites.removeChild(containerSites.firstChild);
+        }
+
+        const json = { id_group: id_group };
+        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+        let response = await (await fetch(`/getSites`, options)).json();
+        if (response.ok == true) {
+            for (const site of response.data.sites.site) {
+                const containerSite = createDOM("div", { class: "ContentDetails" });
+                const title = createDOM("h2");
+                title.innerText = site.$.name;
+                containerSite.appendChild(title);
+
+                const table = createDOM("table");
+                containerSite.appendChild(table);
+
+                const json = { id_site: site.$.id_site };
+                const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                let response = await (await fetch(`/getCplsSite`, options)).json();
+
+                if (response.ok == true) {
+                    const tr = createDOM("tr", { class: "trHeader" });
+                    table.appendChild(tr);
+                    const thUUID = createDOM("th", {align:"center", valign:"center"});
+                    thUUID.innerText = "CPL-UUID";
+                    tr.appendChild(thUUID);
+                    const thIdRelease = createDOM("th", {align:"center", valign:"center"});
+                    thIdRelease.innerText = "Release ID";
+                    tr.appendChild(thIdRelease);
+                    const thLorem = createDOM("th", {align:"center", valign:"center"});
+                    thLorem.innerText = "Lorem ipsum dolor sit amet";
+                    tr.appendChild(thLorem);
+
+                    const tbody = createDOM("tbody");
+                    table.appendChild(tbody);
+                    for (const cpl of response.data.cpls.cpl) {
+                        const tr = createDOM("tr");
+                        tbody.appendChild(tr);
+                        const tdUUID = createDOM("td", {align:"center", valign:"center"});
+                        tdUUID.innerText = cpl.$.CPL_UUID;
+                        tr.appendChild(tdUUID);
+                        const tdIdRelease = createDOM("td", {align:"center", valign:"center"});
+                        tdIdRelease.innerText = [cpl.$.id_movie, cpl.$.id_type, cpl.$.id_localisation].join("_")
+                        tr.appendChild(tdIdRelease);
+                        tdIdRelease.addEventListener("click", function () {
+                            window.location.assign("/movies?id=" + cpl.$.id_movie)
+                        });
+                        const tdLorem = createDOM("td", {align:"center", valign:"center"});
+                        tdLorem.innerText = cpl.$.Lorem;
+                        tr.appendChild(tdLorem);
+                    }
+                }
+
+
+                containerSites.appendChild(containerSite);
+            }
+        }
+    };
+
+    function getGroups(id_group) {
+        const site = []
+        data = [{"$":{"id_site":1, "name":"Site 1", "id_group":1}},
+        {"$":{"id_site":2, "name":"Site 2", "id_group":1}},
+        {"$":{"id_site":3, "name":"Site 3", "id_group":2}},
+        {"$":{"id_site":4, "name":"Site 4", "id_group":2}},
+        {"$":{"id_site":5, "name":"Site 5", "id_group":3}},
+        {"$":{"id_site":6, "name":"Site 6", "id_group":3}},
+        {"$":{"id_site":7, "name":"Site 7", "id_group":4}},
+        {"$":{"id_site":8, "name":"Site 8", "id_group":4}},
+        {"$":{"id_site":9, "name":"Site 9", "id_group":5}},
+        {"$":{"id_site":10, "name":"Site 10", "id_group":5}},
+        {"$":{"id_site":11, "name":"Site 11", "id_group":6}},
+        {"$":{"id_site":12, "name":"Site 12", "id_group":6}},
+        {"$":{"id_site":13, "name":"Site 13", "id_group":7}},
+        {"$":{"id_site":14, "name":"Site 14", "id_group":7}}];
+        for (const d of data) {
+            if (d.$.id_group == id_group) {
+                site.push(d);
+            }
+        }
+        return {"ok":true,"data":{"sites":{"site":site}}};
+    }
+
+</script>
+
+<%- include ("../foot") %>

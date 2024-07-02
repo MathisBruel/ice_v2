@@ -1,3 +1,4 @@
+const { randomInt } = require("crypto");
 const HttpClient = require("./httpClient");
 
 class IceAPI {
@@ -36,7 +37,30 @@ class IceAPI {
     async getCpls(values) {
         return await this.client.sendGetCommands(this.token, 'GET_CPLS', values);
     }
-
+    async getSites(values) {
+        const id_group = parseInt(values.id_group);
+        const site = [randomInt(0,10), randomInt(0,10)];
+        return {"ok":true,"data":{"sites":{"site":[{"$":{"id_site":site[0], "name":"Site " + site[0].toString(), "id_group":id_group}},
+                                                   {"$":{"id_site":site[1], "name":"Site " + site[1].toString(), "id_group":id_group}}]}}};
+    }
+    async getCplsSite(values) {
+        return {"ok":true,"data":{"cpls":{"cpl":[
+            {"$":{"CPL_UUID":"2b79b259-384d-478c-adec-f19f01bbc574", "id_movie":randomInt(0,5), "id_type":randomInt(0,15), "id_localisation":randomInt(0,6), "Lorem": "Lorem ipsum dolor sit amet"}},
+            {"$":{"CPL_UUID":"2b79b259-384d-478c-adec-f19f01bbc574", "id_movie":randomInt(0,5), "id_type":randomInt(0,15), "id_localisation":randomInt(0,6), "Lorem": "Lorem ipsum dolor sit amet"}},
+            {"$":{"CPL_UUID":"2b79b259-384d-478c-adec-f19f01bbc574", "id_movie":randomInt(0,5), "id_type":randomInt(0,15), "id_localisation":randomInt(0,6), "Lorem": "Lorem ipsum dolor sit amet"}}]}}};
+        return await this.client.sendGetCommands(this.token, 'GET_CPLS_SITE', values);
+    }
+    async getGroupsFilter(values) {
+        return {"ok":true,"data":{"groups":{"group":[
+                {"$":{"id_group":1, "id_group_parent":"","name":"France"}},
+                {"$":{"id_group":2, "id_group_parent":"","name":"USA"}},
+                {"$":{"id_group":3, "id_group_parent": 1,"name":"Espagne"}},
+                {"$":{"id_group":4, "id_group_parent":"","name":"Estonie"}},
+                {"$":{"id_group":5, "id_group_parent": 2,"name":"Inde"}},
+                {"$":{"id_group":6, "id_group_parent": 4,"name":"Teaser"}},
+                {"$":{"id_group":7, "id_group_parent":"","name":"Promo"}}]}}};
+        return await this.client.sendGetCommands(this.token, 'GET_GROUPS_FILTER', values);
+    }
 
     async createGroup(values) {
         return await this.client.sendPostCommands(this.token, 'INSERT_GROUP', values);
@@ -172,6 +196,34 @@ class IceAPI {
     async deleteCut(values) {
         return await this.client.sendPostCommands(this.token, 'DELETE_CUT', values);
     }
+
+    // -- CONTENT
+
+    async createContent (values) { 
+        // return {"ok":true, code:200, message:"Content created", data:{"contentId":values.id_movie}};
+        await this.client.sendPostCommands(this.token, 'CREATE_CONTENT', values);
+        return await this.client.sendPostCommands(this.token, 'CONTENT_CREATED', values);
+    }
+    async getContents (values) { 
+        return {"ok":true,"data":{"contents":{"content":[{"$":{"id_movie":1,"content":"Furiosa","State":"Publishing","Locked":true}},
+        {"$":{"id_movie":2,"content":"Apes","State":"createMovie","Locked":false}},{"$":{"id_movie":3,"content":"Apes","State":"createMovie","Locked":true}},
+        {"$":{"id_movie":4,"content":"Apes","State":"createMovie","Locked":false}},{"$":{"id_movie":5,"content":"Apes","State":"createMovie","Locked":false}}]}}};
+        return await this.client.sendPostCommands(this.token, 'GET_CONTENT', values);
+    }
+    async createRelease (values) { 
+        return {"ok":true, code:200, message:"Release created", data:{"id_movie": values.id_movie, "id_type": values.id_type,"id_localisation": values.id_localisation}};
+        return await this.client.sendPostCommands(this.token, 'INSERT_RELEASE', values);
+    }
+    async getRelease (values) { 
+        return {"ok":true,"data":{"releases":{"release":[{"$":{"id_movie": values.id_movie ,"id_type":randomInt(0,15),"id_localisation":randomInt(0,6)}},
+        {"$":{"id_movie": values.id_movie ,"id_type":randomInt(0,15),"id_localisation":randomInt(0,6),"release_path":"/bin"}}]}}}
+        return await this.client.sendPostCommands(this.token, 'GET_RELEASE', values);
+    }
+    async deleteRelease (values) { 
+        return {"ok":true, code:200, message:"Release deleted", data:{}};
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE', values);
+    }
+
 }
 
 module.exports = IceAPI;

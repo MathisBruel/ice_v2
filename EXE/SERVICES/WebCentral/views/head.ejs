@@ -310,6 +310,126 @@
                 height:20%;
                 vertical-align: middle;
             }
+            #ul-content {
+                display : flex;
+                column-gap: 2%;
+                height: 100%;
+            }
+            .contentContainer {
+                width: 47%;
+                margin: 2px;
+                height: 80%;
+                overflow-y: auto;
+                position: relative;
+                padding-right: 5px;
+            }
+            th, td {
+                user-select: none;
+                background-clip: padding-box;
+            }
+            table th {
+                border-top: 2px solid;
+                border-bottom: 2px solid;
+                border-right: 2px solid;
+            }
+            table td {
+                border-bottom: 2px solid;
+                border-right: 2px solid;
+            }
+
+            table th:first-child,
+            table td:first-child {
+                border-left: 2px solid;
+            }
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .trHeader {
+                font-size: large;
+                position: sticky; 
+                top: 0; 
+                z-index: 1; 
+                background-color: rgb(49, 73, 122);
+            }
+            #content-liste th:nth-child(1), #content-liste td:nth-child(1) { width: 34px;  height: 34px; padding: 0;}
+            #content-liste th:nth-child(2), #content-liste td:nth-child(2) { display: none;}
+            #content-liste th:nth-child(3), #content-liste td:nth-child(3) { width: 235px; height: 34px;}
+            #content-liste th:nth-child(4), #content-liste td:nth-child(4) { width: 300px; height: 34px;}
+            #content-liste th:nth-child(5), #content-liste td:nth-child(5) { width: 100px; height: 34px;}
+            table input[type="checkbox"] {
+                width: 30px;
+                height: 30px;
+                margin: 0;
+            }
+            table .image-line-add {
+                width: 30px; 
+                height: 30px; 
+                margin:0; 
+                cursor: pointer;
+            }
+            .check-column {
+                border-right: 2px transparent;
+                border-top: 2px transparent;
+            }
+            #content-details {
+                border: 2px solid black;
+                padding: 5px;
+            }
+            .ContentDetails {
+                margin: 10px 0px;
+
+                /* border: 1px solid black; */
+            }
+            .BlockTop {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+            }
+            .contentContainer .ContentDetails h2 {
+                margin: 5px;
+                padding: 5px;
+                background-color: transparent;
+                text-align: left;
+                font-weight: bolder;
+                text-decoration: underline;
+            }
+            .TableContainer {
+                overflow-y: auto;
+                padding-right: 5px;
+                width: 98%;
+                margin : 5px;
+            }
+            .TableContainer th:nth-child(1), .TableContainer td:nth-child(1) { width: 90px;  height: 34px;}
+            .TableContainer th:nth-child(2), .TableContainer td:nth-child(2) { width: 170px;  height: 34px;}
+            .TableContainer th:nth-child(3), .TableContainer td:nth-child(3) { width: 105px;  height: 34px;}
+            .TableContainer th:nth-child(4), .TableContainer td:nth-child(4) { height: 34px;}
+            .TableContainer th:nth-child(5), .TableContainer td:nth-child(5) { width: 34px; height: 34px;}
+            .BlockLabel {
+                display: flex;
+                width: 100%;
+            }
+            .BlockLabel label {
+                margin-right: 5px;
+                padding: 5px;
+                font-size: large;
+                background-color: transparent;
+                text-align: left;
+            }
+            #sitesList .ContentDetails {
+                padding: 10px 0;
+                margin-right: 25px;
+            }
+            #sitesList .ContentDetails th:nth-child(1), 
+            #sitesList .ContentDetails td:nth-child(1)
+            { width: 330px;  height: 34px;}
+            #sitesList .ContentDetails th:nth-child(2), 
+            #sitesList .ContentDetails td:nth-child(2)
+            { width: 100px;  height: 34px;}
+            #sitesList .ContentDetails th:nth-child(3), 
+            #sitesList .ContentDetails td:nth-child(3)
+            { width: 1000px;  height: 34px;}
         </style>
     </head>
     <body>

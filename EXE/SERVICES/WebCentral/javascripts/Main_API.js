@@ -222,6 +222,8 @@ class Main_API {
         this.app.get('/cut', this.restrictPage.bind(this), function(request, response){ response.render('model/cut'); }.bind(this));
         this.app.get('/delivery', this.restrictPage.bind(this), function(request, response){ response.render('model/delivery'); }.bind(this));
         this.app.get('/synchro', this.restrictPage.bind(this), function(request, response){ response.render('model/synchro'); }.bind(this));
+        this.app.get('/sites', this.restrictPage.bind(this), function(request, response){ response.render('model/sites'); }.bind(this));
+        this.app.get('/movies', this.restrictPage.bind(this), function(request, response){ response.render('model/movies'); }.bind(this));
 
         // -- GET API
         this.app.post('/getGroups', this.restrictPage.bind(this), function(request, response){ this.giveGroups(request, response); }.bind(this));
@@ -232,6 +234,9 @@ class Main_API {
         this.app.post('/getReleases', this.restrictPage.bind(this), function(request, response){ this.giveReleases(request, response); }.bind(this));
         this.app.post('/getScripts', this.restrictPage.bind(this), function(request, response){ this.giveScripts(request, response); }.bind(this));
         this.app.post('/getCpls', this.restrictPage.bind(this), function(request, response){ this.giveCpls(request, response); }.bind(this));
+        this.app.post('/getSites', this.restrictPage.bind(this), function(request, response){ this.giveSites(request, response); }.bind(this));
+        this.app.post('/getCplsSite', this.restrictPage.bind(this), function(request, response){ this.giveCplsSite(request, response); }.bind(this));
+        this.app.post('/getGroupsFilter', this.restrictPage.bind(this), function(request, response){ this.giveGroupsFilter(request, response); }.bind(this));
 
         // -- GROUPS
         this.app.post('/createGroup', this.restrictPage.bind(this), function(request, response){ this.createGroup(request, response); }.bind(this));
@@ -277,6 +282,13 @@ class Main_API {
         this.app.post('/updateCut', this.restrictPage.bind(this), function(request, response){ this.updateCut(request, response); }.bind(this));
         this.app.post('/deleteCut', this.restrictPage.bind(this), function(request, response){ this.deleteCut(request, response); }.bind(this));
         
+        // -- CONTENT
+        this.app.post('/createContent', this.restrictPage.bind(this), function(request, response){ this.createContent(request, response); }.bind(this));
+        this.app.post('/getContents', this.restrictPage.bind(this), function(request, response){ this.getContents(request, response); }.bind(this));
+        this.app.post('/createRelease', this.restrictPage.bind(this), function(request, response){ this.createRelease(request, response); }.bind(this));
+        this.app.post('/getRelease', this.restrictPage.bind(this), function(request, response){ this.getRelease(request, response); }.bind(this));
+        this.app.post('/deleteRelease', this.restrictPage.bind(this), function(request, response){ this.deleteRelease(request, response); }.bind(this));
+
         // -- LINKS
         this.app.post('/linkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.linkCinemaToGroup(request, response); }.bind(this));
         this.app.post('/unlinkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.unlinkCinemaToGroup(request, response); }.bind(this));
@@ -420,6 +432,33 @@ class Main_API {
         }
         catch(err){
             this.onError(response, err, 'giveCpls');
+        }
+    }
+    async giveSites(request, response) {
+        try {
+            const result = await this.client.getSites(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveSites');
+        }
+    }
+    async giveCplsSite(request, response) {
+        try {
+            const result = await this.client.getCplsSite(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveCplsSite');
+        }
+    }
+    async giveGroupsFilter(request, response) {
+        try {
+            const result = await this.client.getGroupsFilter(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveGroupsFilter');
         }
     }
 
@@ -721,7 +760,53 @@ class Main_API {
             this.onError(response, err, 'deleteCut');
         }
     }
-
+    // -- CONTENT
+    async createContent(request, response) {
+        try {
+            const result = await this.client.createContent(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'createContent');
+        }
+    }
+    async getContents(request, response) {
+        try {
+            const result = await this.client.getContents(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getContents');
+        }
+    }
+    async createRelease(request, response) {
+        try {
+            const result = await this.client.createRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'createRelease');
+        }
+    }
+    async getRelease(request, response) {
+        console.log(request.body);
+        try {
+            const result = await this.client.getRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getRelease');
+        }
+    }
+    async deleteRelease(request, response) {
+        try {
+            const result = await this.client.deleteRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteRelease');
+        }
+    }
     // -- LINKS
     async linkCinemaToGroup(request, response) {
         try {
