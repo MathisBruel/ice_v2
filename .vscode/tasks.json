@@ -111,7 +111,7 @@
             "group": "build"
         },
         {   "label": "Docker container build and run",
-            "command": "docker build -t ice-server-v2 . ; docker build -t ice-server-central-v2 -f dockerfileCentral . ; docker compose up -d ;",
+            "command": "docker compose up -d; while ! docker exec ice-server-container-central-v2 sh -c '[ -f /migration/migration-done ]'; do sleep 1; done && docker exec ice-server-container-central-v2 rm -r migration; ",
             "type": "shell",
             "args": [],
             "problemMatcher": [
