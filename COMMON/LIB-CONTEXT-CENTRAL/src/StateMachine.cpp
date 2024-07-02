@@ -78,17 +78,18 @@ struct Logger : M::LoggerInterface
 
 struct StateTemplate : FSM::State {
     FullControl* stateControl;
+    std::map<std::string, std::string> params;
 };
 
 struct StateIdle : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().idleInteraction->pfTransition = std::bind(&StateIdle::Transition,this);
+        StateTemplate::stateControl->context().idleInteraction->pfTransition = std::bind(&StateIdle::Transition, this);
     }
     void enter(Control&)  { std::cout << "Idle\n"; }
     void Transition()  {
         StateTemplate::stateControl->context().idleInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->changeTo<StatePublishing>();
+        StateTemplate::stateControl->changeTo<StateContentInit>();
     }
 };
 

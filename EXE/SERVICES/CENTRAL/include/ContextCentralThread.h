@@ -29,7 +29,7 @@ protected:
 
 private:
 
-    std::map<int, Configurator*> _contentConfigurator;
+    std::unordered_map<int, Configurator*> _contentConfigurator;
     // -- for thread control
 	Poco::Thread* thread;
 	bool stop;

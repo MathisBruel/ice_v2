@@ -24,12 +24,12 @@ struct Context
     bool cisFinish = false;
     bool syncFinish = false;
 
-    Content content;
-    Releases release;
-    CIS cis;
-    CPL cpl;
-    Sync sync;
-    SyncLoop syncLoop;
+    Content* content = nullptr;
+    Releases* release = nullptr;
+    CIS* cis = nullptr;
+    CPL* cpl = nullptr;
+    Sync* sync = nullptr;
+    SyncLoop* syncLoop = nullptr;
 
     IdleInteraction* idleInteraction;
     ContentInteraction* contentInteraction;

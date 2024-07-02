@@ -1,5 +1,7 @@
 #pragma once
 #include <functional>
+#include <map>
+#include <string>
 struct StateIdle;
 struct StateContentInit;
 struct StateReleaseCreation;
