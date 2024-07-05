@@ -3,5 +3,5 @@
 class ContentInteraction
 {
 public:
-    std::function<void()> pfTransition;
+    std::function<TransitionResponse(std::string, std::string)> pfTransitionToPublishing;
 };

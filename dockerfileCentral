@@ -1,4 +1,4 @@
-FROM ubuntu/mysql:8.0-22.04_edge
+FROM ubuntu/mysql:8.0-22.04_edge as centralbaselayout
 SHELL ["/bin/bash", "-c"]
 ENV MYSQL_ROOT_PASSWORD=admin
 RUN mkdir migration
@@ -12,8 +12,13 @@ COPY BUILD/PACKAGE/CENTRAL/install-central.sh /install-central.sh
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb && dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
 RUN mkdir /data && chmod 777 /data
 RUN chmod 777 /install-central.sh
-RUN /install-central.sh
+RUN /bin/bash -c '/install-central.sh'
 RUN apt-get install gdb -y
 COPY EXE/SERVICES/Launcher/init-database.sql /docker-entrypoint-initdb.d/
 COPY EXE/SERVICES/Launcher/init-migration.sh /docker-entrypoint-initdb.d/init-migration.sh
+
+FROM centralbaselayout as central
+COPY BUILD/BIN/ICE-CENTRAL /data/ICE2/
+COPY BUILD/BIN/ICE-MIGRATION /data/ICE2/
+COPY EXE/SERVICES/WebCentral /data/ICE2/
 CMD ["mysqld"]

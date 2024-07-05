@@ -54,15 +54,15 @@
 
                     CreateContent_tdcreate.addEventListener('click', async function(){
                         const content = document.getElementById("contentTitle");
-                        console.log(content);
                         if (content.value == ""){
                             content.style.backgroundColor = "red";
                             showErrorMessage("message-box", "Content is empty");
                         }
                         else {
-                            const json = {content:content.value};
+                            const json = {contentTitle:content.value};
                             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
                             const result = await fetch(`/createContent`, options);
+                            console.log(result);
                             if (result.ok == true) {
                                 const body = await result.json();
                                 if (body.code == 200) {

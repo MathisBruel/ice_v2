@@ -2237,11 +2237,36 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else {
+        int cmdId = cmd->getIntParameter("id");
         if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
-            this->_contentConfigurator[cmd->getIntParameter("id")] = new Configurator();
+            this->_contentConfigurator[cmdId] = new Configurator();
         }
-        // this->_contentConfigurator[cmd->getIntParameter("id")]->GetHTTPInteractions()[cmd->getType()]->SetDatas(cmd->getParameters());
-        this->_contentConfigurator[cmd->getIntParameter("id")]->GetHTTPInteractions()[cmd->getType()]->Run();
+        HTTPInteraction* HTTPInteractor = this->_contentConfigurator[cmdId]->GetHTTPInteractions()[cmd->getType()];
+        HTTPInteractor->SetDatas(cmd->getUuid(), cmd->getParameters());
+        HTTPInteractor->Run();
+        std::string cmduuid = HTTPInteractor->GetUUID();
+        if ( cmduuid != cmd->getUuid()) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("UUID mismatch !");
+        }
+        else {
+            if (HTTPInteractor->GetStatus() == "OK") {
+                response->setStatus(CommandCentralResponse::OK);
+            }
+            else if (HTTPInteractor->GetStatus() == "KO") {
+                response->setStatus(CommandCentralResponse::KO);
+            }
+            else {
+                response->setStatus(CommandCentralResponse::UNKNOWN);
+            }
+            response->setComments(HTTPInteractor->GetComments());
+            response->setDatas(HTTPInteractor->GetDatasXML());
+            if (cmd->getType() == CommandCentral::CONTENT_CREATED) { 
+                int id = HTTPInteractor->GetContentId();
+                this->_contentConfigurator[id] = this->_contentConfigurator[cmdId];
+                this->_contentConfigurator[cmdId] = nullptr;
+            }
+        }
     }
     context->getCommandHandler()->addResponse(response);
 }

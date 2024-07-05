@@ -3,5 +3,5 @@
 class IdleInteraction
 {
 public:
-    std::function<void()> pfTransition;
+    std::function<void()> pfTransitionToContentInit;
 };

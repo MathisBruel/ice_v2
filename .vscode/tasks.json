@@ -18,6 +18,7 @@
             "dependsOn": [
                 // "Container Stop",
                 // "Container Start",
+                "Build WebCentral executable",
                 "Container-Image Remove",
                 "Docker container build and run",
                 "Start ICE-SERVICE and ICE-Panel",
@@ -99,7 +100,7 @@
             "group": "build"
         },
         {   "label": "Container-Image Remove",
-            "command": "docker container stop ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; docker container rm ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; docker rmi -f ice_v2-ice-server-central-v2 ice_v2-ice-server-v2 gitlab.cgrcinemas.fr:5050/martin.lagrange/icedeviceemulator;",
+            "command": "docker container stop ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; docker container rm ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; docker rmi -f ice_v2-ice-server-central-v2 ice_v2-ice-server-v2;",
             "type": "shell",
             "args": [],
             "problemMatcher": [
@@ -126,6 +127,19 @@
             "label": "Restart Container & Start ICE-Central & NodeJS Central",
             "type": "shell",
             "command": "docker restart ice-server-container-central-v2; docker cp EXE/SERVICES/WebCentral ice-server-container-central-v2:/data/ICE2/ ; docker exec -d ice-server-container-central-v2 /data/ICE2/ICE-CENTRAL; docker exec -d -w /data/ICE2/WebCentral ice-server-container-central-v2 /usr/bin/nodejs --inspect=0.0.0.0:9229 javascripts/Main_API.js javascripts/config.json;",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build WebCentral executable",
+            "type": "shell",
+            "command": "rm BUILD/BIN/ICE-CENTRAL; cd CMAKE/EXE/SERVICES/CENTRAL; make ICE-CENTRAL; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
             "args": [],
             "problemMatcher": [
                 "$tsc"

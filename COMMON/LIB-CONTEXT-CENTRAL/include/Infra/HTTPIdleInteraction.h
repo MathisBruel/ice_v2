@@ -4,7 +4,8 @@
 
 class HTTPIdleInteraction : public HTTPInteraction, public IdleInteraction
 {
+public:
     void Run() override { 
-        IdleInteraction::pfTransition();
+        IdleInteraction::pfTransitionToContentInit();
     }
 };

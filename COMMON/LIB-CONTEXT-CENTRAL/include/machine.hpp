@@ -6998,7 +6998,7 @@ FullControlBaseT<TArgs>::changeTo(const StateID stateId_) noexcept {
 		if (stateId_ < _regionStateId || _regionStateId + _regionSize <= stateId_)
 			_taskStatus.outerTransition = true;
 
-		HFSM2_LOG_TRANSITION(context(), _originId, TransitionType::CHANGE, stateId_);
+		// HFSM2_LOG_TRANSITION(context(), _originId, TransitionType::CHANGE, stateId_);
 	}
 }
 
