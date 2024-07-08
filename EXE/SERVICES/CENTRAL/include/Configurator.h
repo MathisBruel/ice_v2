@@ -10,7 +10,7 @@
 #include "App/InProdInteraction.h"
 #include "App/IdleInteraction.h"
 #include "App/StateMachine.h"
-
+ 
 #include "Infra/HTTPInteraction.h"
 #include "Infra/HTTPIdleInteraction.h"
 #include "Infra/HTTPCISInteraction.h"
@@ -22,20 +22,20 @@
 #include "Infra/HTTPSyncInteraction.h"
 #include "Infra/HTTPSyncLoopInteraction.h"
 #include "Infra/HTTPInProdInteraction.h"
-
+ 
 #include "commandCentral.h"
-
+ 
 class Configurator {
 public:
     Configurator();
     ~Configurator() {};
-
-    Context* GetContext() { return this->_context; }
-    StateMachine* GetStateMachine() { return this->_stateMachine; }
+    
+    FSM::Instance * fsmMachine = nullptr;
     std::map<CommandCentral::CommandCentralType, HTTPInteraction*> GetHTTPInteractions() { return this->_httpInteractions; }
-
+    StateMachine* GetStateMachine() { return this->_stateMachine; }
 private:
     std::map<CommandCentral::CommandCentralType, HTTPInteraction*> _httpInteractions;
     Context* _context;
     StateMachine* _stateMachine;
 };
+ 

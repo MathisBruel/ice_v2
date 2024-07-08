@@ -2240,7 +2240,9 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int cmdId = cmd->getIntParameter("id");
         if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
             this->_contentConfigurator[cmdId] = new Configurator();
+            this->_contentConfigurator[cmdId]->GetStateMachine()->Transition("ContentCreatedEvent");
         }
+        /*
         HTTPInteraction* HTTPInteractor = this->_contentConfigurator[cmdId]->GetHTTPInteractions()[cmd->getType()];
         HTTPInteractor->SetDatas(cmd->getUuid(), cmd->getParameters());
         HTTPInteractor->Run();
@@ -2266,7 +2268,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 this->_contentConfigurator[id] = this->_contentConfigurator[cmdId];
                 this->_contentConfigurator[cmdId] = nullptr;
             }
-        }
+        }*/
     }
     context->getCommandHandler()->addResponse(response);
 }

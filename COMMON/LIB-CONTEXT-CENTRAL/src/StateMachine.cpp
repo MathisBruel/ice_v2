@@ -1,51 +1,37 @@
 #define HFSM2_ENABLE_STRUCTURE_REPORT
 #define HFSM2_ENABLE_TRANSITION_HISTORY
-
+ 
 #include "App/StateMachine.h"
-
-using M = hfsm2::MachineT<hfsm2::Config::ContextT<Context>>;
-
-using FSM = M::PeerRoot<
-    StateIdle,
-    StateContentInit,
-    M::Orthogonal<StatePublishing,
-        StateUploadCIS,
-        M::Composite<StateSyncCreate,
-        StateIdleSync,
-        StateCPL,
-        StateSync,
-        StateSyncLoop
-        >
-    >,
-    StateReleaseCreation,
-    StateCancel,
-    StateInProd
->;
-
+ 
 struct StateTemplate : FSM::State {
     FullControl* stateControl;
 };
-
+ 
 struct StateIdle : StateTemplate {
+    using FSM::State::react;
     void entryGuard(FullControl& control)  {
-        control.context().idleInteraction->pfTransitionToContentInit = [control](){
+        /*control.context().idleInteraction->pfTransitionToContentInit = [control](){
             FullControl changeControl = control; // cast FullControlT to FullControl for using the methode changeTo
             changeControl.changeTo<StateContentInit>();
-        };
+        };*/
+    }
+    void react(ContentCreatedEvent& event, EventControl& control) {
+        std::cout << "ContentCreatedEvent\n";
+        control.changeTo<StateContentInit>();
     }
 };
-
+ 
 struct StateContentInit : StateTemplate {
     void entryGuard(FullControl& control)  {
-        control.context().cisFinish = true;
+        /*
         control.context().syncFinish = false;
-        
+       
         control.context().contentInteraction->pfTransitionToPublishing = [this,control](std::string UUID, std::string contentTitle){
             FullControl changeControl = control; // cast FullControlT to FullControl for using the methode changeTo
             changeControl.changeTo<StatePublishing>();
-
+ 
             NewContent(changeControl, contentTitle);
-
+ 
             TransitionResponse response;
             response.cmdUUID = UUID;
             response.cmdStatus = "OK";
@@ -53,24 +39,26 @@ struct StateContentInit : StateTemplate {
             response.cmdDatasXML = changeControl.context().content->toXmlString();
             return response;
         };
+            */
+        std::cout << "ContentInit\n";
     }
     void NewContent(FullControl changeControl, std::string contentTitle) {
         changeControl.context().content = new Content(contentTitle);
     }
 };
-
+ 
 struct StateReleaseCreation : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
         StateTemplate::stateControl->context().releaseInteraction->pfTransition = std::bind(&StateReleaseCreation::Transition, this);
     }
-    void enter(Control&)  { std::cout << "ReleaseCreated\n"; }   
+    void enter(Control&)  { std::cout << "ReleaseCreated\n"; }  
     void Transition() {        
         StateTemplate::stateControl->context().releaseInteraction->pfTransition = nullptr;
         StateTemplate::stateControl->resume<StatePublishing>();
     }
 };
-
+ 
 struct StatePublishing : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -85,7 +73,7 @@ struct StatePublishing : StateTemplate {
         StateTemplate::stateControl->changeTo<StateReleaseCreation>();    
     }
 };
-
+ 
 struct StateUploadCIS : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -93,7 +81,7 @@ struct StateUploadCIS : StateTemplate {
     }
     void enter(Control&)  { std::cout << "UploadCIS\n"; }
     void Transition() {
-
+ 
         StateTemplate::stateControl->context().cisInteraction->pfTransition = nullptr;
         StateTemplate::stateControl->context().cisFinish = true;
         std::cout << "UploadCIS Finish\n";
@@ -102,11 +90,11 @@ struct StateUploadCIS : StateTemplate {
         }
     }
 };
-
+ 
 struct StateSyncCreate : StateTemplate {
     void enter(Control&)  { std::cout << "SyncCreate\n"; }
 };
-
+ 
 struct StateIdleSync : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -125,7 +113,7 @@ struct StateIdleSync : StateTemplate {
         StateTemplate::stateControl->changeTo<StateCPL>();    
     }
 };
-
+ 
 struct StateCPL : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -133,12 +121,12 @@ struct StateCPL : StateTemplate {
     }
     void enter(Control&)  { std::cout << "CPL\n"; }
     void Transition() {
-
+ 
         StateTemplate::stateControl->context().cplInteraction->pfTransition = nullptr;
         StateTemplate::stateControl->changeTo<StateSync>();    
     }
 };
-
+ 
 struct StateSync : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -146,7 +134,7 @@ struct StateSync : StateTemplate {
     }
     void enter(Control&)  { std::cout << "Sync\n"; }
     void Transition() {
-
+ 
         StateTemplate::stateControl->context().syncInteraction->pfTransition = nullptr;
         StateTemplate::stateControl->context().syncFinish = true;
         std::cout << "SyncCreated Finish\n";
@@ -155,7 +143,7 @@ struct StateSync : StateTemplate {
         }
     }
 };
-
+ 
 struct StateSyncLoop : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -163,20 +151,20 @@ struct StateSyncLoop : StateTemplate {
     }
     void enter(Control&)  { std::cout << "SyncLoop\n"; }
     void Transition() {
-        
+       
         StateTemplate::stateControl->context().syncloopInteraction->pfTransition = nullptr;
         StateTemplate::stateControl->context().syncFinish = true;
         std::cout << "SyncCreate Finish\n";
         if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
             StateTemplate::stateControl->changeTo<StateInProd>();
-        }   
+        }  
     }
 };
-
+ 
 struct StateCancel : StateTemplate {
     void enter(Control&)  { std::cout << "Cancel\n"; }
 };
-
+ 
 struct StateInProd : StateTemplate {
     void entryGuard(FullControl& control)  {
         StateTemplate::stateControl = &control;
@@ -188,7 +176,18 @@ struct StateInProd : StateTemplate {
         StateTemplate::stateControl->changeTo<StateIdle>();    
     }
 };
-
-StateMachine::StateMachine(Context context) {
-    FSM::Instance machine(context);
+ 
+StateMachine::StateMachine(Context* context) {
+    FSM::Instance machine(*context);
+    this->_fsmInstance = &machine;
+}
+ 
+FSM::Instance * StateMachine::GetFSM() {
+    return this->_fsmInstance;
+}
+ 
+void StateMachine::Transition(std::string eventTrigger) {
+    if (eventTrigger == "ContentCreatedEvent") {
+        this->_fsmInstance->react(ContentCreatedEvent{});
+    } 
 }

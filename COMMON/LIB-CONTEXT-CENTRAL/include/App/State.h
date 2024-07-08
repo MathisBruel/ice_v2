@@ -14,6 +14,8 @@ struct StateSync;
 struct StateSyncLoop;
 struct StateCancel;
 struct StateInProd;
+// Event
+struct ContentCreatedEvent {};
 struct TransitionResponse {
     std::string cmdUUID;
     std::string cmdComment;

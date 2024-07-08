@@ -1,7 +1,7 @@
 #include "Configurator.h"
-
+#include "App/StateMachine.h"
 Configurator::Configurator() {
-
+ 
     HTTPIdleInteraction* pfHTTPIdleInteraction = new HTTPIdleInteraction();
     HTTPContentInteraction* pfHTTPContentInteraction = new HTTPContentInteraction();
     HTTPReleaseInteraction* pfHTTPReleaseInteraction = new HTTPReleaseInteraction();
@@ -22,7 +22,8 @@ Configurator::Configurator() {
                                 pfHTTPSyncInteraction, 
                                 pfHTTPSyncLoopInteraction, 
                                 pfHTTPInProdInteraction);
-    this->_stateMachine = new StateMachine(*this->_context);
+    this->_stateMachine = new StateMachine(this->_context);
+    this->fsmMachine = this->_stateMachine->GetFSM();
     this->_httpInteractions [CommandCentral::CREATE_CONTENT] = pfHTTPIdleInteraction;
     this->_httpInteractions [CommandCentral::CONTENT_CREATED] = pfHTTPContentInteraction;
     this->_httpInteractions [CommandCentral::RELEASE_CREATED] = pfHTTPReleaseInteraction;
@@ -35,3 +36,4 @@ Configurator::Configurator() {
     this->_httpInteractions [CommandCentral::SYNCLOOP_CREATED] = pfHTTPSyncLoopInteraction;
     this->_httpInteractions [CommandCentral::IMPORT_TO_PROD] = pfHTTPInProdInteraction;
 }
+ 
