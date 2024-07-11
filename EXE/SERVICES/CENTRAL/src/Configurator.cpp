@@ -1,33 +1,31 @@
 #include "Configurator.h"
 #include "App/StateMachine.h"
-Configurator::Configurator() {
- 
-    HTTPIdleInteraction* pfHTTPIdleInteraction = new HTTPIdleInteraction();
+Configurator::Configurator(MySQLDBConnection* DBconnection) {
+    this->_dbConnection = DBconnection;
     HTTPContentInteraction* pfHTTPContentInteraction = new HTTPContentInteraction();
-    HTTPReleaseInteraction* pfHTTPReleaseInteraction = new HTTPReleaseInteraction();
     HTTPPublishingInteraction* pfHTTPPublishingInteraction = new HTTPPublishingInteraction();
+    HTTPReleaseInteraction* pfHTTPReleaseInteraction = new HTTPReleaseInteraction();
     HTTPCISInteraction* pfHTTPCISInteraction = new HTTPCISInteraction();
     HTTPIdleSyncInteraction* pfHTTPIdleSyncInteraction = new HTTPIdleSyncInteraction();
     HTTPCPLInteraction* pfHTTPCPLInteraction = new HTTPCPLInteraction();
     HTTPSyncInteraction* pfHTTPSyncInteraction = new HTTPSyncInteraction();
     HTTPSyncLoopInteraction* pfHTTPSyncLoopInteraction = new HTTPSyncLoopInteraction();
     HTTPInProdInteraction* pfHTTPInProdInteraction = new HTTPInProdInteraction();
-    this->_context = new Context(pfHTTPIdleInteraction, 
-                                pfHTTPContentInteraction, 
-                                pfHTTPReleaseInteraction, 
-                                pfHTTPPublishingInteraction, 
-                                pfHTTPCISInteraction, 
-                                pfHTTPIdleSyncInteraction, 
-                                pfHTTPCPLInteraction, 
-                                pfHTTPSyncInteraction, 
-                                pfHTTPSyncLoopInteraction, 
-                                pfHTTPInProdInteraction);
+    this->_context = new Context(pfHTTPContentInteraction,
+                                pfHTTPPublishingInteraction,
+                                pfHTTPReleaseInteraction,
+                                pfHTTPCISInteraction,
+                                pfHTTPIdleSyncInteraction,
+                                pfHTTPCPLInteraction,
+                                pfHTTPSyncInteraction,
+                                pfHTTPSyncLoopInteraction,
+                                pfHTTPInProdInteraction,
+                                this->_dbConnection);
     this->_stateMachine = new StateMachine(this->_context);
     this->fsmMachine = this->_stateMachine->GetFSM();
-    this->_httpInteractions [CommandCentral::CREATE_CONTENT] = pfHTTPIdleInteraction;
-    this->_httpInteractions [CommandCentral::CONTENT_CREATED] = pfHTTPContentInteraction;
-    this->_httpInteractions [CommandCentral::RELEASE_CREATED] = pfHTTPReleaseInteraction;
+    this->_httpInteractions [CommandCentral::CREATE_CONTENT] = pfHTTPContentInteraction;
     this->_httpInteractions [CommandCentral::CREATE_RELEASE] = pfHTTPPublishingInteraction;
+    this->_httpInteractions [CommandCentral::RELEASE_CREATED] = pfHTTPReleaseInteraction;
     this->_httpInteractions [CommandCentral::CIS_CREATED] = pfHTTPCISInteraction;
     this->_httpInteractions [CommandCentral::CREATE_CPL] = pfHTTPIdleSyncInteraction;
     this->_httpInteractions [CommandCentral::CREATE_SYNCLOOP] = pfHTTPIdleSyncInteraction;
@@ -36,4 +34,3 @@ Configurator::Configurator() {
     this->_httpInteractions [CommandCentral::SYNCLOOP_CREATED] = pfHTTPSyncLoopInteraction;
     this->_httpInteractions [CommandCentral::IMPORT_TO_PROD] = pfHTTPInProdInteraction;
 }
- 

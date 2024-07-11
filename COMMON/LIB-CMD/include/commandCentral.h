@@ -104,9 +104,8 @@ public:
         // -- State Machine Interaction
         // ------------------------
         CREATE_CONTENT,
-        CONTENT_CREATED,
-        RELEASE_CREATED,
         CREATE_RELEASE,
+        RELEASE_CREATED,
         CIS_CREATED,
         CREATE_CPL,
         CREATE_SYNCLOOP,
@@ -114,6 +113,7 @@ public:
         SYNC_CREATED,
         SYNCLOOP_CREATED,
         IMPORT_TO_PROD,
+        CANCEL,
         
         // -- DEFAULT
         UNKNOW_COMMAND

@@ -3,5 +3,5 @@
 class PublishingInteraction
 {
 public:
-    std::function<void()> pfTransition;
+    std::function<TransitionResponse(std::string, std::map<std::string, std::string>)> pfStatePublishing;
 };

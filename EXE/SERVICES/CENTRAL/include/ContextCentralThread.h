@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <queue>
+#include <regex>
 
 #include "unistd.h"
 
@@ -11,6 +12,7 @@
 #include "commandCentral.h"
 #include "commandCentralResponse.h"
 #include "Configurator.h"
+#include "Infra/MySQLDBConnection.h"
 
 class ContextCentralThread : public Poco::Runnable
 {
@@ -33,4 +35,5 @@ private:
     // -- for thread control
 	Poco::Thread* thread;
 	bool stop;
+    MySQLDBConnection * _dbConnection;
 };

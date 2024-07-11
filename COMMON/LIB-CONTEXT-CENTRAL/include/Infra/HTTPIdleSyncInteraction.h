@@ -4,12 +4,8 @@
 
 class HTTPIdleSyncInteraction : public HTTPInteraction, public IdleSyncInteraction
 {
-private:
-    bool _syncLoop;
 public:
-    void SetSyncLoop(bool syncLoop) { this->_syncLoop = syncLoop; }
-    void Run() override { 
-        if (_syncLoop) { IdleSyncInteraction::pfTransitionToSYNCLOOP(); }
-        else { IdleSyncInteraction::pfTransitionToCPL(); }
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return IdleSyncInteraction::pfStateIdleSync(cmdUUID, Params);
     }
 };

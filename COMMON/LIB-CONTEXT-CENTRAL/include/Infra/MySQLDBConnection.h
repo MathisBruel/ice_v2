@@ -7,9 +7,10 @@ class MySQLDBConnection
 {    
 private:
     DatabaseConnector* _database;
-    MySQLDBConnection();
-    ~MySQLDBConnection();
 public:
+    MySQLDBConnection();
+    MySQLDBConnection(DatabaseConnector* database);
+    ~MySQLDBConnection();
     bool InitConnection();
     ResultQuery* ExecuteQuery(Query* query);
 };

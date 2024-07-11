@@ -7,9 +7,6 @@
 class MySQLCISRepo : public CISRepo
 {
 public:
-    MySQLCISRepo();
-    ~MySQLCISRepo();
-
     void Create(CIS* cis) override { MySQLcreate(cis); }
     void Read(CIS* cis) override { MySQLread(cis); }
     void Update(CIS* cis) override { MySQLupdate(cis); }

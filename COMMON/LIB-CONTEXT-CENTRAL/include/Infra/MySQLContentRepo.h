@@ -7,9 +7,6 @@
 class MySQLContentRepo : public ContentRepo
 {
 public:
-    MySQLContentRepo();
-    ~MySQLContentRepo();
-
     void Create(Content* content) override { MySQLcreate(content); }
     void Read(Content* content) override { MySQLread(content); }
     void Update(Content* content) override { MySQLupdate(content); }

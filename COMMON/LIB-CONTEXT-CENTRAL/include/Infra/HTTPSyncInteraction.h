@@ -4,7 +4,7 @@
 
 class HTTPSyncInteraction : public HTTPInteraction, public SyncInteraction
 {
-    void Run() override { 
-        SyncInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return SyncInteraction::pfStateSync(cmdUUID, Params);
     }
 };

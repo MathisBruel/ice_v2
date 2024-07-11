@@ -5,6 +5,10 @@ MySQLDBConnection::MySQLDBConnection()
     _database = nullptr;
 }
 
+MySQLDBConnection::MySQLDBConnection(DatabaseConnector* database) {
+    _database = database;
+}
+
 MySQLDBConnection::~MySQLDBConnection()
 {
     if (_database != nullptr)
@@ -23,4 +27,15 @@ bool MySQLDBConnection::InitConnection()
     }
 
     return true;
+}
+
+ResultQuery* MySQLDBConnection::ExecuteQuery(Query* query)
+{
+    if (_database == nullptr)
+    {
+        Poco::Logger::get("CentralContext").error("Database not initialized", __FILE__, __LINE__);
+        return nullptr;
+    }
+
+    return _database->executeQuery(query);
 }

@@ -4,7 +4,7 @@
 
 class HTTPCISInteraction : public HTTPInteraction, public CISInteraction
 {
-    void Run() override { 
-        CISInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return CISInteraction::pfStateUploadCIS(cmdUUID, Params);
     }
 };

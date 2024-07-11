@@ -7,9 +7,6 @@
 class MySQLSyncRepo : public SyncRepo
 {
 public:
-    MySQLSyncRepo();
-    ~MySQLSyncRepo();
-
     void Create(Sync* sync) override { MySQLcreate(sync); }
     void Read(Sync* sync) override { MySQLread(sync); }
     void Update(Sync* sync) override { MySQLupdate(sync); }

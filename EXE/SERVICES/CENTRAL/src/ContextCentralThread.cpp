@@ -27,6 +27,7 @@ void ContextCentralThread::run() {
 
     Poco::Stopwatch watch;
     CentralContext* context = CentralContext::getCurrentContext();
+    this->_dbConnection = new MySQLDBConnection(context->getDatabaseConnector());
 
     // -- works at 50 ms rate
     int waitTime = 50;
@@ -2238,11 +2239,66 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else {
         int cmdId = cmd->getIntParameter("id");
-        if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
-            this->_contentConfigurator[cmdId] = new Configurator();
-            this->_contentConfigurator[cmdId]->GetStateMachine()->Transition("ContentCreatedEvent");
+        Configurator* configurator = nullptr; 
+        int configuratorId;
+        std::regex id_regex(R"(id=\"(\d+)\")"); 
+        std::smatch match;
+
+        if (cmd->getType() == CommandCentral::CREATE_CONTENT) { configurator = new Configurator(this->_dbConnection); }
+        else { configurator = this->_contentConfigurator[cmdId]; }
+        TransitionResponse stateResponse = configurator->GetHTTPInteractions()[cmd->getType()]->Run(cmd->getUuid(), cmd->getParameters());
+        response->setComments(stateResponse.cmdComment);
+        response->setDatas(stateResponse.cmdDatasXML);
+        if (stateResponse.cmdStatus == "OK") {
+            response->setStatus(CommandCentralResponse::OK);
         }
-        /*
+        else if (stateResponse.cmdStatus == "KO") {
+            response->setStatus(CommandCentralResponse::KO);
+        }
+        else {
+            response->setStatus(CommandCentralResponse::UNKNOWN);
+        }
+        switch (cmd->getType()) {
+            case CommandCentral::CREATE_CONTENT:
+                configurator->GetStateMachine()->Transition(StateEvent::ContentInit);
+                if (std::regex_search(stateResponse.cmdDatasXML, match, id_regex)) {
+                    configuratorId = std::stoi(match[1]);
+                    this->_contentConfigurator[configuratorId] = configurator;
+                    delete configurator;
+                    configurator = nullptr;
+                }
+                break;
+            case CommandCentral::CREATE_RELEASE :
+                configurator->GetStateMachine()->Transition(StateEvent::CreateRelease);
+                break;
+            case CommandCentral::RELEASE_CREATED :
+                configurator->GetStateMachine()->Transition(StateEvent::ReleaseCreated);
+                break;
+            case CommandCentral::CIS_CREATED :
+                configurator->GetStateMachine()->Transition(StateEvent::PushCIS);
+                break;
+            case CommandCentral::CREATE_CPL :
+                configurator->GetStateMachine()->Transition(StateEvent::CreateCPL);
+                break;
+            case CommandCentral::CREATE_SYNCLOOP :
+                configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
+                break;
+            case CommandCentral::CPL_CREATED :
+                configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
+                break;
+            case CommandCentral::SYNC_CREATED :
+                configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
+                break;
+            case CommandCentral::SYNCLOOP_CREATED :
+                configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
+                break;
+            case CommandCentral::IMPORT_TO_PROD :
+                configurator->GetStateMachine()->Transition(StateEvent::Publish);
+                break;
+            case CommandCentral::CANCEL:
+                configurator->GetStateMachine()->Transition(StateEvent::Cancel);
+                break;
+        /*  
         HTTPInteraction* HTTPInteractor = this->_contentConfigurator[cmdId]->GetHTTPInteractions()[cmd->getType()];
         HTTPInteractor->SetDatas(cmd->getUuid(), cmd->getParameters());
         HTTPInteractor->Run();
@@ -2252,15 +2308,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setComments("UUID mismatch !");
         }
         else {
-            if (HTTPInteractor->GetStatus() == "OK") {
-                response->setStatus(CommandCentralResponse::OK);
-            }
-            else if (HTTPInteractor->GetStatus() == "KO") {
-                response->setStatus(CommandCentralResponse::KO);
-            }
-            else {
-                response->setStatus(CommandCentralResponse::UNKNOWN);
-            }
+
             response->setComments(HTTPInteractor->GetComments());
             response->setDatas(HTTPInteractor->GetDatasXML());
             if (cmd->getType() == CommandCentral::CONTENT_CREATED) { 
@@ -2269,6 +2317,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 this->_contentConfigurator[cmdId] = nullptr;
             }
         }*/
+        }
     }
     context->getCommandHandler()->addResponse(response);
-}
+}       

@@ -7,9 +7,6 @@
 class MySQLReleaseRepo : public ReleaseRepo
 {
 public:
-    MySQLReleaseRepo();
-    ~MySQLReleaseRepo();
-
     void Create(Releases* release) override { MySQLcreate(release); }
     void Read(Releases* release) override { MySQLread(release); }
     void Update(Releases* release) override { MySQLupdate(release); }

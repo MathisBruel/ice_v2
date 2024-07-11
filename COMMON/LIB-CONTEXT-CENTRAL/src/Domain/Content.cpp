@@ -10,6 +10,7 @@ Content::~Content() {
 }
 Content::Content(std::string contentTitle)
 {
+    _contentId = -1;
     this->_contentTitle = contentTitle;
 }
 void Content::SetContentId(int contentId)
@@ -42,7 +43,7 @@ std::string Content::toXmlString()
 {
     std::string xml = "<Content";
     xml += " id=\"" + std::to_string(this->_contentId) + "\"";
-    xml += " id=\"" + this->_contentTitle + "\"";
+    xml += " contentTitle=\"" + this->_contentTitle + "\"";
     xml += "/>";
     return xml;
 }

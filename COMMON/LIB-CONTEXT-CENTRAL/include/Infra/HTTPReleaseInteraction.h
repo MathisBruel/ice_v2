@@ -4,7 +4,7 @@
 
 class HTTPReleaseInteraction : public HTTPInteraction, public ReleaseInteraction
 {
-    void Run() override { 
-        ReleaseInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return ReleaseInteraction::pfStateReleaseCreation(cmdUUID, Params);
     }
 };

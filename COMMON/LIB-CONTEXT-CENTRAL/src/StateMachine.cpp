@@ -1,162 +1,175 @@
 #define HFSM2_ENABLE_STRUCTURE_REPORT
-#define HFSM2_ENABLE_TRANSITION_HISTORY
  
 #include "App/StateMachine.h"
  
 struct StateTemplate : FSM::State {
-    FullControl* stateControl;
-};
- 
-struct StateIdle : StateTemplate {
-    using FSM::State::react;
-    void entryGuard(FullControl& control)  {
-        /*control.context().idleInteraction->pfTransitionToContentInit = [control](){
-            FullControl changeControl = control; // cast FullControlT to FullControl for using the methode changeTo
-            changeControl.changeTo<StateContentInit>();
-        };*/
-    }
-    void react(ContentCreatedEvent& event, EventControl& control) {
-        std::cout << "ContentCreatedEvent\n";
-        control.changeTo<StateContentInit>();
-    }
+    template <typename Event>
+    void react(const Event&, EventControl&) {}
+    TransitionResponse response;
 };
  
 struct StateContentInit : StateTemplate {
-    void entryGuard(FullControl& control)  {
-        /*
-        control.context().syncFinish = false;
-       
-        control.context().contentInteraction->pfTransitionToPublishing = [this,control](std::string UUID, std::string contentTitle){
-            FullControl changeControl = control; // cast FullControlT to FullControl for using the methode changeTo
-            changeControl.changeTo<StatePublishing>();
- 
-            NewContent(changeControl, contentTitle);
- 
-            TransitionResponse response;
-            response.cmdUUID = UUID;
-            response.cmdStatus = "OK";
-            response.cmdComment = "Content Created";
-            response.cmdDatasXML = changeControl.context().content->toXmlString();
-            return response;
+    using StateTemplate::react;
+    void entryGuard(FullControl& control)  {       
+        control.context().contentInteraction->pfStateContentInit = [control,this](std::string UUID, std::map<std::string, std::string> Params){
+            this->response.cmdUUID = UUID;
+            newContent(control, Params["contentTitle"]);
+            if (control.context().content) {
+                this->response.cmdStatus = "OK";
+                this->response.cmdComment = "Content created";
+                this->response.cmdDatasXML = control.context().content->toXmlString();
+                return this->response;
+            }
+            this->response.cmdStatus = "KO";
+            this->response.cmdComment = "Failed Content create";
+            return this->response;
         };
-            */
-        std::cout << "ContentInit\n";
     }
-    void NewContent(FullControl changeControl, std::string contentTitle) {
-        changeControl.context().content = new Content(contentTitle);
+    void newContent(Control control, std::string contentTitle) {
+        control.context().content = new Content(contentTitle);
+        MySQLContentRepo* contentRepo = new MySQLContentRepo() ;
+        ResultQuery* result = control.context().dbConnection->ExecuteQuery(contentRepo->MySQLcreate(control.context().content));
+        control.context().content->SetContentId(42);
+    }
+    void react(const ContentInitEvent&, EventControl& control) {
+        control.changeTo<StatePublishing>();
+    }
+
+};
+struct StatePublishing : StateTemplate {
+    using StateTemplate::react;
+    FullControl* stateControl;
+    void entryGuard(FullControl& control)  {
+        control.context().publishingInteraction->pfStatePublishing = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "Publishing";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
+    }
+    void update(FullControl& control)  {
+        std::cout << "Etats d'avancement: CIS " << control.context().cisFinish << " Sync " << control.context().syncFinish << "\n";
+    }
+    void react(const CancelEvent&, EventControl& control) {
+        control.changeTo<StateCancel>();
+    }
+    void react(const CreateReleaseEvent&, EventControl& control) {
+        control.changeTo<StateReleaseCreation>();
     }
 };
  
 struct StateReleaseCreation : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().releaseInteraction->pfTransition = std::bind(&StateReleaseCreation::Transition, this);
+        control.context().releaseInteraction->pfStateReleaseCreation = [control,this](std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "Release created";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
-    void enter(Control&)  { std::cout << "ReleaseCreated\n"; }  
-    void Transition() {        
-        StateTemplate::stateControl->context().releaseInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->resume<StatePublishing>();
+    void react(const ReleaseCreatedEvent&, EventControl& control) {
+        control.resume<StatePublishing>();
     }
-};
- 
-struct StatePublishing : StateTemplate {
-    void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().publishingInteraction->pfTransition = std::bind(&StatePublishing::Transition, this);
-    }
-    void enter(Control&)  { std::cout << "Publishing\n"; }
-    void update(FullControl& control)  {
-        std::cout << "Etats d'avancement: CIS " << control.context().cisFinish << " Sync " << control.context().syncFinish << "\n";
-    }
-    void Transition() {
-        StateTemplate::stateControl->context().publishingInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->changeTo<StateReleaseCreation>();    
-    }
-};
- 
+}; 
+
 struct StateUploadCIS : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().cisInteraction->pfTransition = std::bind(&StateUploadCIS::Transition, this);
+        control.context().cisInteraction->pfStateUploadCIS = [control, this] (std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "CIS uploaded";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
-    void enter(Control&)  { std::cout << "UploadCIS\n"; }
-    void Transition() {
- 
-        StateTemplate::stateControl->context().cisInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->context().cisFinish = true;
+    void react(const PushCISEvent&, EventControl& control) {
+        control.context().cisFinish = true;
         std::cout << "UploadCIS Finish\n";
-        if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
-            StateTemplate::stateControl->changeTo<StateInProd>();
+        if (control.context().cisFinish && control.context().syncFinish) {
+            control.changeTo<StateInProd>();
         }
     }
-};
- 
+}; 
+
 struct StateSyncCreate : StateTemplate {
     void enter(Control&)  { std::cout << "SyncCreate\n"; }
 };
  
 struct StateIdleSync : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToCPL = std::bind(&StateIdleSync::TransitionToCPL,this);
-        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = std::bind(&StateIdleSync::TransitionToSYNCLOOP,this);
+        control.context().idleSyncInteraction->pfStateIdleSync = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "IdleSync";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
-    void enter(Control&)  { std::cout << "IdleSync\n"; }
-    void TransitionToSYNCLOOP() {
-        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToCPL = nullptr;
-        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = nullptr;
-        StateTemplate::stateControl->changeTo<StateSyncLoop>();    
+    void react(const CreateSyncEvent&, EventControl& control) {
+        control.changeTo<StateSyncLoop>();    
     }
-    void TransitionToCPL() {
-        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToCPL = nullptr;
-        StateTemplate::stateControl->context().idleSyncInteraction->pfTransitionToSYNCLOOP = nullptr;
-        StateTemplate::stateControl->changeTo<StateCPL>();    
+    void react(const CreateCPLEvent&, EventControl& control) {
+        control.changeTo<StateCPL>();    
     }
 };
  
 struct StateCPL : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().cplInteraction->pfTransition = std::bind(&StateCPL::Transition, this);
+        control.context().cplInteraction->pfStateCPL = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "CPL";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
-    void enter(Control&)  { std::cout << "CPL\n"; }
-    void Transition() {
- 
-        StateTemplate::stateControl->context().cplInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->changeTo<StateSync>();    
+    void react (const CreateSyncEvent&, EventControl& control) {
+        control.changeTo<StateSync>();
     }
 };
  
 struct StateSync : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().syncInteraction->pfTransition = std::bind(&StateSync::Transition, this);
+        control.context().syncInteraction->pfStateSync = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "Sync";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
-    void enter(Control&)  { std::cout << "Sync\n"; }
-    void Transition() {
- 
-        StateTemplate::stateControl->context().syncInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->context().syncFinish = true;
+    void react (const SyncCreatedEvent&, EventControl& control) {
+        control.context().syncFinish = true;
         std::cout << "SyncCreated Finish\n";
-        if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
-            StateTemplate::stateControl->changeTo<StateInProd>();
+        if (control.context().cisFinish && control.context().syncFinish) {
+            control.changeTo<StateInProd>();
         }
     }
 };
  
 struct StateSyncLoop : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().syncloopInteraction->pfTransition = std::bind(&StateSyncLoop::Transition, this);
+        control.context().syncLoopInteraction->pfStateSyncLoop = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "SyncLoop";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
-    void enter(Control&)  { std::cout << "SyncLoop\n"; }
-    void Transition() {
-       
-        StateTemplate::stateControl->context().syncloopInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->context().syncFinish = true;
+    void react (const SyncCreatedEvent&, EventControl& control) {
+        control.context().syncFinish = true;
         std::cout << "SyncCreate Finish\n";
-        if (StateTemplate::stateControl->context().cisFinish && StateTemplate::stateControl->context().syncFinish) {
-            StateTemplate::stateControl->changeTo<StateInProd>();
+        if (control.context().cisFinish && control.context().syncFinish) {
+            control.changeTo<StateInProd>();
         }  
     }
 };
@@ -166,28 +179,55 @@ struct StateCancel : StateTemplate {
 };
  
 struct StateInProd : StateTemplate {
+    using StateTemplate::react;
     void entryGuard(FullControl& control)  {
-        StateTemplate::stateControl = &control;
-        StateTemplate::stateControl->context().inProdInteraction->pfTransition = std::bind(&StateInProd::Transition,this);
-    }
-    void enter(Control&)  { std::cout << "InProd\n"; }
-    void Transition() {
-        StateTemplate::stateControl->context().inProdInteraction->pfTransition = nullptr;
-        StateTemplate::stateControl->changeTo<StateIdle>();    
+        control.context().inProdInteraction->pfStateInProd = [control, this] (std::string UUID, std::map<std::string, std::string> Params) {
+            this->response.cmdUUID = UUID;
+            this->response.cmdStatus = "OK";
+            this->response.cmdComment = "InProd";
+            this->response.cmdDatasXML = control.context().content->toXmlString();
+            return this->response;
+        };
     }
 };
- 
+
 StateMachine::StateMachine(Context* context) {
-    FSM::Instance machine(*context);
-    this->_fsmInstance = &machine;
+    this->_fsmInstance = new FSM::Instance (*context);
 }
  
 FSM::Instance * StateMachine::GetFSM() {
     return this->_fsmInstance;
 }
  
-void StateMachine::Transition(std::string eventTrigger) {
-    if (eventTrigger == "ContentCreatedEvent") {
-        this->_fsmInstance->react(ContentCreatedEvent{});
-    } 
+void StateMachine::Transition(StateEvent eventTrigger) {
+    switch (eventTrigger)
+    {
+    case StateEvent::ContentInit:
+        this->_fsmInstance->react(ContentInitEvent{});
+        break;
+    case StateEvent::CreateCPL:
+        this->_fsmInstance->react(CreateCPLEvent{});
+        break;
+    case StateEvent::CreateSync:
+        this->_fsmInstance->react(CreateSyncEvent{});
+        break;
+    case StateEvent::SyncCreated:
+        this->_fsmInstance->react(SyncCreatedEvent{});
+        break;
+    case StateEvent::PushCIS:
+        this->_fsmInstance->react(PushCISEvent{});
+        break;
+    case StateEvent::Publish:
+        this->_fsmInstance->react(PublishEvent{});
+        break;
+    case StateEvent::CreateRelease:
+        this->_fsmInstance->react(CreateReleaseEvent{});
+        break;
+    case StateEvent::ReleaseCreated:
+        this->_fsmInstance->react(ReleaseCreatedEvent{});
+        break;
+    case StateEvent::Cancel:
+        this->_fsmInstance->react(CancelEvent{});
+        break; 
+    }
 }

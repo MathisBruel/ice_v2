@@ -7,9 +7,6 @@
 class MySQLCPLRepo : public CPLRepo
 {
 public:
-    MySQLCPLRepo();
-    ~MySQLCPLRepo();
-    
     void Create(CPL* cpl) override { MySQLcreate(cpl); }
     void Read(CPL* cpl) override { MySQLread(cpl); }
     void Update(CPL* cpl) override { MySQLupdate(cpl); }

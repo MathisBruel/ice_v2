@@ -4,7 +4,7 @@
 
 class HTTPPublishingInteraction : public HTTPInteraction, public PublishingInteraction
 {
-    void Run() override { 
-        PublishingInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override { 
+        return PublishingInteraction::pfStatePublishing(cmdUUID, Params);
     }
 };

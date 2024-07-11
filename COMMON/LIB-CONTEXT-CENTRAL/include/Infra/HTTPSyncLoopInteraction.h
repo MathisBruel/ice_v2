@@ -5,7 +5,7 @@
 class HTTPSyncLoopInteraction : public HTTPInteraction, public SyncLoopInteraction
 {
 public:
-    void Run() override { 
-        SyncLoopInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return SyncLoopInteraction::pfStateSyncLoop(cmdUUID, Params);
     }
 };

@@ -4,7 +4,7 @@
 
 class HTTPInProdInteraction : public HTTPInteraction, public InProdInteraction
 {
-    void Run() override { 
-        InProdInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return InProdInteraction::pfStateInProd(cmdUUID, Params);
     }
 };

@@ -201,8 +201,7 @@ class IceAPI {
 
     async createContent (values) { 
         // return {"ok":true, code:200, message:"Content created", data:{"contentId":values.id_movie}};
-        await this.client.sendPostCommands(this.token, 'CREATE_CONTENT', null);
-        return await this.client.sendPostCommands(this.token, 'CONTENT_CREATED', values);
+        return await this.client.sendPostCommands(this.token, 'CREATE_CONTENT', values);
     }
     async getContents (values) { 
         return {"ok":true,"data":{"contents":{"content":[{"$":{"id_movie":1,"content":"Furiosa","State":"Publishing","Locked":true}},

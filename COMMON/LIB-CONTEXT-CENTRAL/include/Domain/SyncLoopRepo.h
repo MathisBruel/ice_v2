@@ -4,9 +4,6 @@
 class SyncLoopRepo
 {
 public:
-    SyncLoopRepo();
-    ~SyncLoopRepo();
-
     virtual void Create(SyncLoop* syncloop) = 0;
     virtual void Read(SyncLoop* syncloop) = 0;
     virtual void Update(SyncLoop* syncloop) = 0;

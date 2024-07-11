@@ -1,8 +1,9 @@
 #pragma once
-#include <functional>
 #include <map>
 #include <string>
-struct StateIdle;
+#include <functional>
+#include "App/TransitionResponse.h"
+
 struct StateContentInit;
 struct StateReleaseCreation;
 struct StatePublishing;
@@ -14,11 +15,25 @@ struct StateSync;
 struct StateSyncLoop;
 struct StateCancel;
 struct StateInProd;
-// Event
-struct ContentCreatedEvent {};
-struct TransitionResponse {
-    std::string cmdUUID;
-    std::string cmdComment;
-    std::string cmdStatus;
-    std::string cmdDatasXML;
+
+enum StateEvent {
+    ContentInit,
+    CreateCPL,
+    CreateSync,
+    SyncCreated,
+    PushCIS,
+    Publish,
+    CreateRelease,
+    ReleaseCreated,
+    Cancel
 };
+// Event
+struct ContentInitEvent {};
+struct CreateCPLEvent {};
+struct CreateSyncEvent {};
+struct SyncCreatedEvent {};
+struct PushCISEvent {};
+struct PublishEvent {};
+struct CreateReleaseEvent {};
+struct ReleaseCreatedEvent {};
+struct CancelEvent {};

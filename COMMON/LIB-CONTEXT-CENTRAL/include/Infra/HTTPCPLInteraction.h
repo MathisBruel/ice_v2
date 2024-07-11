@@ -4,7 +4,7 @@
 
 class HTTPCPLInteraction : public HTTPInteraction, public CPLInteraction
 {
-    void Run() override { 
-        CPLInteraction::pfTransition();
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return CPLInteraction::pfStateCPL(cmdUUID, Params);
     }
 };

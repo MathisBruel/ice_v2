@@ -3,6 +3,5 @@
 class IdleSyncInteraction
 {
 public:
-    std::function<void()> pfTransitionToCPL;
-    std::function<void()> pfTransitionToSYNCLOOP;
+    std::function<TransitionResponse(std::string, std::map<std::string,std::string>)> pfStateIdleSync;
 };
