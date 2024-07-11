@@ -5,9 +5,9 @@ std::string MySQLContentRepo::_table = "movie";
 
 Query* MySQLContentRepo::MySQLcreate(Content* content)
 {
-    int* id = content->GetContentId();
+    id = content->GetContentId();
     if (*id != -1) { return nullptr; }
-    std::string title = content->GetContentTitle();
+    title = content->GetContentTitle();
     
     Query* createQuery = new Query(Query::INSERT, _database, _table);
     createQuery->addParameter("title", &title, "string");
@@ -16,8 +16,7 @@ Query* MySQLContentRepo::MySQLcreate(Content* content)
 
 Query* MySQLContentRepo::MySQLread(Content* content)
 {
-    int* id = content->GetContentId();
-    std::string title = content->GetContentTitle();
+    id = content->GetContentId();
 
     Query* readQuery = new Query(Query::SELECT, _database, _table);
     readQuery->addParameter("id_movie", nullptr, "int");
@@ -28,10 +27,10 @@ Query* MySQLContentRepo::MySQLread(Content* content)
 
 Query* MySQLContentRepo::MySQLupdate(Content* content)
 {
-    int* id = content->GetContentId();
+    id = content->GetContentId();
     if (*id == -1) { return nullptr; }
 
-    std::string title = content->GetContentTitle();
+    title = content->GetContentTitle();
 
     Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addParameter("title", &id, "string");
@@ -41,7 +40,7 @@ Query* MySQLContentRepo::MySQLupdate(Content* content)
 
 Query* MySQLContentRepo::MySQLremove(Content* content)
 {
-    int* id = content->GetContentId();
+    id = content->GetContentId();
     if (*id == -1) { return nullptr; }
 
     Query* removeQuery = new Query(Query::REMOVE, _database, _table);

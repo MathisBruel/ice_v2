@@ -13,6 +13,7 @@
 #include "commandCentralResponse.h"
 #include "Configurator.h"
 #include "Infra/MySQLDBConnection.h"
+#include "App/StateMachineManager.h"
 
 class ContextCentralThread : public Poco::Runnable
 {

@@ -20,4 +20,7 @@ public:
 private:
     static std::string _database;
     static std::string _table;
+
+    int* id;
+    std::string title;
 };

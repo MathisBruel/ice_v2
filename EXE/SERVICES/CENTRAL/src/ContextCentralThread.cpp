@@ -2237,10 +2237,24 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setDatas(datas);
         }
     }
+    // -- Getters State Machine
+    // else if (cmd->getType() == CommandCentral::GET_CONTENT) {
+    //     MySQLContentRepo* contentRepo = new MySQLContentRepo();
+        
+    //     int id = cmd->getIntParameter("id");
+    //     if (id == -1) {
+    //         ResultQuery *result = this->_dbConnection->executeQuery(contentRepo->MySQLread(new Content()));
+    //     }
+    //     else {
+    //         Content* content = new Content();
+    //         content->setId(id);
+    //         ResultQuery *result = this->_dbConnection->executeQuery(contentRepo->MySQLread(content));
+    //     }
+    // } 
     else {
         int cmdId = cmd->getIntParameter("id");
         Configurator* configurator = nullptr; 
-        int configuratorId;
+        int contentId;
         std::regex id_regex(R"(id=\"(\d+)\")"); 
         std::smatch match;
 
@@ -2258,66 +2272,50 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         else {
             response->setStatus(CommandCentralResponse::UNKNOWN);
         }
-        switch (cmd->getType()) {
-            case CommandCentral::CREATE_CONTENT:
-                configurator->GetStateMachine()->Transition(StateEvent::ContentInit);
-                if (std::regex_search(stateResponse.cmdDatasXML, match, id_regex)) {
-                    configuratorId = std::stoi(match[1]);
-                    this->_contentConfigurator[configuratorId] = configurator;
-                    delete configurator;
-                    configurator = nullptr;
-                }
-                break;
-            case CommandCentral::CREATE_RELEASE :
-                configurator->GetStateMachine()->Transition(StateEvent::CreateRelease);
-                break;
-            case CommandCentral::RELEASE_CREATED :
-                configurator->GetStateMachine()->Transition(StateEvent::ReleaseCreated);
-                break;
-            case CommandCentral::CIS_CREATED :
-                configurator->GetStateMachine()->Transition(StateEvent::PushCIS);
-                break;
-            case CommandCentral::CREATE_CPL :
-                configurator->GetStateMachine()->Transition(StateEvent::CreateCPL);
-                break;
-            case CommandCentral::CREATE_SYNCLOOP :
-                configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
-                break;
-            case CommandCentral::CPL_CREATED :
-                configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
-                break;
-            case CommandCentral::SYNC_CREATED :
-                configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
-                break;
-            case CommandCentral::SYNCLOOP_CREATED :
-                configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
-                break;
-            case CommandCentral::IMPORT_TO_PROD :
-                configurator->GetStateMachine()->Transition(StateEvent::Publish);
-                break;
-            case CommandCentral::CANCEL:
-                configurator->GetStateMachine()->Transition(StateEvent::Cancel);
-                break;
-        /*  
-        HTTPInteraction* HTTPInteractor = this->_contentConfigurator[cmdId]->GetHTTPInteractions()[cmd->getType()];
-        HTTPInteractor->SetDatas(cmd->getUuid(), cmd->getParameters());
-        HTTPInteractor->Run();
-        std::string cmduuid = HTTPInteractor->GetUUID();
-        if ( cmduuid != cmd->getUuid()) {
-            response->setStatus(CommandCentralResponse::KO);
-            response->setComments("UUID mismatch !");
-        }
-        else {
-
-            response->setComments(HTTPInteractor->GetComments());
-            response->setDatas(HTTPInteractor->GetDatasXML());
-            if (cmd->getType() == CommandCentral::CONTENT_CREATED) { 
-                int id = HTTPInteractor->GetContentId();
-                this->_contentConfigurator[id] = this->_contentConfigurator[cmdId];
-                this->_contentConfigurator[cmdId] = nullptr;
+        if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
+            if (std::regex_search(stateResponse.cmdDatasXML, match, id_regex)) {
+                contentId = std::stoi(match[1]);
+                this->_contentConfigurator[contentId] = configurator;
+                StateMachineMannager::GetInstance()->AddStateMachine(contentId, configurator->GetStateMachine());
             }
-        }*/
         }
+        configurator->GetHTTPInteractions()[cmd->getType()]->Run();
+        // switch (cmd->getType()) {
+        //     case CommandCentral::CREATE_CONTENT:
+        //         configurator->GetStateMachine()->Transition(StateEvent::ContentInit);
+        //         break;
+        //     case CommandCentral::CREATE_RELEASE :
+        //         configurator->GetStateMachine()->Transition(StateEvent::CreateRelease);
+        //         break;
+        //     case CommandCentral::RELEASE_CREATED :
+        //         configurator->GetStateMachine()->Transition(StateEvent::ReleaseCreated);
+        //         break;
+        //     case CommandCentral::CIS_CREATED :
+        //         configurator->GetStateMachine()->Transition(StateEvent::PushCIS);
+        //         break;
+        //     case CommandCentral::CREATE_CPL :
+        //         configurator->GetStateMachine()->Transition(StateEvent::CreateCPL);
+        //         break;
+        //     case CommandCentral::CREATE_SYNCLOOP :
+        //         configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
+        //         break;
+        //     case CommandCentral::CPL_CREATED :
+        //         configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
+        //         break;
+        //     case CommandCentral::SYNC_CREATED :
+        //         configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
+        //         break;
+        //     case CommandCentral::SYNCLOOP_CREATED :
+        //         configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
+        //         break;
+        //     case CommandCentral::IMPORT_TO_PROD :
+        //         configurator->GetStateMachine()->Transition(StateEvent::Publish);
+        //         break;
+        //     case CommandCentral::CANCEL:
+        //         configurator->GetStateMachine()->Transition(StateEvent::Cancel);
+        //         break;
+        // }
+        configurator = nullptr;
     }
     context->getCommandHandler()->addResponse(response);
 }       

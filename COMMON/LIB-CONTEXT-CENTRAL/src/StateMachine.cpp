@@ -1,6 +1,7 @@
 #define HFSM2_ENABLE_STRUCTURE_REPORT
  
 #include "App/StateMachine.h"
+#include "App/StateMachineManager.h"
  
 struct StateTemplate : FSM::State {
     template <typename Event>
@@ -24,12 +25,16 @@ struct StateContentInit : StateTemplate {
             this->response.cmdComment = "Failed Content create";
             return this->response;
         };
+        
+        control.context().contentInteraction->pfTransitionToPublishing = [control](){
+            StateMachineMannager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::Publish);
+        };
     }
     void newContent(Control control, std::string contentTitle) {
         control.context().content = new Content(contentTitle);
         MySQLContentRepo* contentRepo = new MySQLContentRepo() ;
         ResultQuery* result = control.context().dbConnection->ExecuteQuery(contentRepo->MySQLcreate(control.context().content));
-        control.context().content->SetContentId(42);
+        control.context().content->SetContentId(result->getLastInsertedId());
     }
     void react(const ContentInitEvent&, EventControl& control) {
         control.changeTo<StatePublishing>();
