@@ -4,8 +4,8 @@
 <div class="block" id="content" style="overflow-y: hidden;">
     <h1>Contents</h1>
     <div class="BlockTop">
-        <img class="image-line-add" src="/add.png" alt="add" style="margin-left: 46%; display: none;">
         <div id="message-box" class="success"></div>
+        <img class="image-line-add" src="/add.png" alt="add" style="margin-left: 46%; display: none;">
     </div>
     <ul class="ul-model" id="ul-content">
         <div class="contentContainer" id="content-liste"></div>
@@ -14,10 +14,10 @@
 </div>
 
 <script>
-    const contentLocalisation = {0:"France", 1:"USA", 2:"Espagne", 3:"Estonie", 4:"Inde", 5:"AR-KSA", 6:"AR-AE"}
-    const contentType = {0:"Long Métrage", 1:"Court Métrage", 2:"Trailer", 3:"Test", 4:"Transitionnel", 5:"Classification",
-                         6:"Teaser", 7:"Code de conduite", 8:"Annonce d'intérêt public", 9:"Publicité", 10:"Clip", 
-                         11:"Promo", 12:"Carte stéréo 3D", 13:"Episode", 14:"Points forts", 15:"Evenements"};
+    const contentLocalisation = {1:"France", 2:"USA", 3:"Espagne", 4:"Estonie", 5:"Inde", 6:"AR-KSA", 7:"AR-AE"}
+    const contentType = {1:"Long Métrage", 2:"Court Métrage", 3:"Trailer", 4:"Test", 5:"Transitionnel", 6:"Classification",
+                         7:"Teaser", 8:"Code de conduite", 9:"Annonce d'intérêt public", 10:"Publicité", 11:"Clip", 
+                         12:"Promo", 13:"Carte stéréo 3D", 14:"Episode", 15:"Points forts", 16:"Evenements"};
     
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -25,7 +25,7 @@
     document.addEventListener('DOMContentLoaded', async function(){
         let response = await ( getContents(id_movie) );
         if (response.ok == true) {
-            drawContentslist(response.data.contents.content);
+            drawContentslist(response.data.contents); 
             const imgAdd = document.querySelector(".image-line-add");
             imgAdd.style.display = "block";
             imgAdd.addEventListener('click', async function(){
@@ -62,11 +62,10 @@
                             const json = {contentTitle:content.value};
                             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
                             const result = await fetch(`/createContent`, options);
-                            console.log(result);
                             if (result.ok == true) {
                                 const body = await result.json();
-                                if (body.code == 200) {
-                                    window.location.assign("/movies");
+                                if (body.code == 200) { 
+                                    window.location.assign("/movies?id=" + body.data.content.$.id_movie);
                                 }
                                 else {
                                     showErrorMessage("message-box", body.message);
@@ -81,6 +80,9 @@
                 const contentContainer = document.getElementById("content-liste");
                 contentContainer.scrollTop = contentContainer.scrollHeight;
             });
+            if (response.data.contents == "") {
+                imgAdd.dispatchEvent(new Event('click'));
+            }
             if (id_movie != null) {
                 const inputCheck = document.getElementById("Check_" + id_movie);
                 inputCheck.checked = true;
@@ -99,7 +101,7 @@
             idContent = parseInt(idContent);
         }
         try {
-            const json = JSON.stringify({ id:idContent });
+            const json = JSON.stringify({ id: -1 });
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
             response = await ( await fetch(`/getContents`, options) ).json();
         }
@@ -120,9 +122,13 @@
         const CheckInput = createDOM("input", {type:"checkbox"});
         CheckInput.addEventListener('change', function(){
             let tbody = document.getElementById("tbody-content-liste");
-            for (let i = 0; i < tbody.children.length; i++) {
-                tbody.children[i].children[0].children[0].checked = CheckInput.checked;
-                tbody.children[i].children[0].children[0].dispatchEvent(new Event('change'));
+            for (let i = 0; i < tbody.children.length; i++) {   
+                CheckboxContent = tbody.children[i].children[0].children[0];
+                State = CheckboxContent.checked;
+                CheckboxContent.checked = CheckInput.checked;
+                if (State == !CheckInput.checked) {
+                    CheckboxContent.dispatchEvent(new Event('change'));
+                }
             }
         });
         thCheck.appendChild(CheckInput);
@@ -142,85 +148,82 @@
         TableContents.appendChild(tr);
 
         const tbody = createDOM("tbody", {id:"tbody-content-liste"});
-        for (const content of contents) {
-            const tr = createDOM("tr");
-            tbody.appendChild(tr);
+        if (contents != "") {
+            for (const content of contents.content) {
+                const tr = createDOM("tr");
+                tbody.appendChild(tr);
 
-            const tdCheck = createDOM("td", {align:"center", valign:"center"});
-            const inputCheck = createDOM("input", {type:"checkbox", id:"Check_" + content.$.id_movie});
-            inputCheck.addEventListener('change', contentDetails);
-            tdCheck.appendChild(inputCheck);
-            tr.appendChild(tdCheck);
-            
-            const tdId = createDOM("td", {align:"center", valign:"center"});
-            tdId.innerHTML = content.$.id_movie;
-            tr.appendChild(tdId);
+                const tdCheck = createDOM("td", {align:"center", valign:"center"});
+                const inputCheck = createDOM("input", {type:"checkbox", id:"Check_" + content.$.id_movie});
+                inputCheck.addEventListener('change', function(){
+                    if (inputCheck.checked == false) { CheckInput.checked = false; }
+                    contentDetailsTest(content.$.id_movie);
+                });
+                tdCheck.appendChild(inputCheck);
+                tr.appendChild(tdCheck);
+                
+                const tdId = createDOM("td", {align:"center", valign:"center"});
+                tdId.innerHTML = content.$.id_movie;
+                tr.appendChild(tdId);
 
-            const tdContent = createDOM("td", {align:"center", valign:"center"});
-            tdContent.innerHTML = content.$.content;
+                const tdContent = createDOM("td", {align:"center", valign:"center", id:"contentTitle_" + content.$.id_movie});
+                tdContent.innerHTML = content.$.title;
 
-            tdContent.addEventListener('click', function(event){
-                inputCheck.checked = !inputCheck.checked;
-                const event_change = new Event('change');
-                inputCheck.dispatchEvent(event_change);
-            });
-            tr.appendChild(tdContent);
-            
-            const tdState = createDOM("td", {align:"center", valign:"center"});
-            tdState.innerHTML = content.$.State;
-            tdState.addEventListener('click', function(event){
-                inputCheck.checked = !inputCheck.checked;
-                const event_change = new Event('change');
-                inputCheck.dispatchEvent(event_change);
-            });
-            tr.appendChild(tdState);
-            
-            const tdLock = createDOM("td", {align:"center", valign:"center"});
-            const inputLock = createDOM("input", {type:"checkbox"});
-            inputLock.checked = content.$.Locked;
-            tdLock.appendChild(inputLock);
-            tr.appendChild(tdLock);
+                tdContent.addEventListener('click', function(event){
+                    inputCheck.checked = !inputCheck.checked;
+                    const event_change = new Event('change');
+                    inputCheck.dispatchEvent(event_change);
+                });
+                tr.appendChild(tdContent);
+                
+                const tdState = createDOM("td", {align:"center", valign:"center"});
+                // tdState.innerHTML = content.$.state == null ? "createMovie": content.$.state;
+                tdState.addEventListener('click', function(event){
+                    inputCheck.checked = !inputCheck.checked;
+                    const event_change = new Event('change');
+                    inputCheck.dispatchEvent(event_change);
+                });
+                tr.appendChild(tdState);
+                
+                const tdLock = createDOM("td", {align:"center", valign:"center"});
+                const inputLock = createDOM("input", {type:"checkbox"});
+                inputLock.checked = content.$.Locked;
+                tdLock.appendChild(inputLock);
+                tr.appendChild(tdLock);
 
+            }
         }
         TableContents.appendChild(tbody);
     }
 
-    async function contentDetails() {
-        const contentsContainer = document.getElementById("content-details");
-        let child = contentsContainer.lastChild;
-        while(child){
-            contentsContainer.removeChild(child);
-            child = contentsContainer.lastChild;
-        }
-        const tbody = document.getElementById("tbody-content-liste");
-        let checkedId_movie = [];
-        for (let i = 0; i < tbody.children.length; i++) {
-            if (tbody.children[i].children[0].children[0].checked) {
-                    checkedId_movie.push([parseInt(tbody.children[i].children[1].innerText), tbody.children[i].children[2].innerText]);
-                }
-        }
-        for (contentDetail of checkedId_movie) {
-            
-            const json = {"id_movie":contentDetail[0]};
+    async function contentDetailsTest(id_movie) {
+        const inputCheckbox = document.getElementById("Check_" + id_movie);
+        const contentTitle = document.getElementById("contentTitle_" + id_movie);
+        const contentDetails = document.getElementById("content_" + id_movie);
+        if (inputCheckbox.checked && contentDetails == null) {
+            const json = {"id_movie":id_movie};
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
-            const response = await ( await fetch(`/getRelease`, options) ).json();
-            if (response.ok == true) {
+            const response = await ( await fetch(`/getReleasesContent`, options) ).json();
 
-                const releasesdetails = []
+            const releasesdetails = []
+
+            if (response.data.releases != "") {
                 for (const release of response.data.releases.release) {
-                    releasesdetails.push({"id_release": [contentDetail[0], release.$.id_type, release.$.id_localisation].join("_"), 
+                    releasesdetails.push({"id_release": [id_movie, release.$.id_type, release.$.id_localisation].join("_"), 
                                           "localisation": contentLocalisation[release.$.id_localisation], 
                                           "type":contentType[release.$.id_type], 
-                                          "ref":release.$.release_path});
+                                          "ref":release.$.release_cpl_ref_path});
                 }
-                const content = {"title":contentDetail[1], "id_movie":contentDetail[0], "releases":releasesdetails};
-                drawContentDetails(content,contentsContainer);
             }
-            else {
-                showErrorMessage("message-box", response.message);
-            }
+            const content = {"title":contentTitle.innerText, "id_movie":id_movie, "releases":releasesdetails};
+            drawContentDetails(content, document.getElementById("content-details"));
         }
-    } 
+        else {
+            if (contentDetails != null) {
+                contentDetails.remove();
+            }
+        }   
+    }
 
     function drawContentDetails(content, contentsContainer) {
 
@@ -289,6 +292,8 @@
                 const CreateRelease_tdActionImg = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createRelease"});
                 CreateRelease_tdAction.appendChild(CreateRelease_tdActionImg);
                 CreateRelease_tr.appendChild(CreateRelease_tdAction);
+                const check_column = document.getElementById("Add_" + content.id_movie);
+                check_column.className = "check-column";
                 
                 CreateRelease_tdActionImg.addEventListener('click', async function() {
                     const Ids = document.getElementById("createReleaseId_" + content.id_movie).innerText.split("_");
@@ -311,10 +316,9 @@
                         showErrorMessage("message-box", "Ref is empty");
                     }
                     else {
-                        const json = {"id_movie":content.id_movie, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "release_path":Refpath.value};
+                        const json = {"id_movie":content.id_movie, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "cplRefPath":Refpath.value};
                         const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
-                        const result = await fetch(`/createRelease`, options);
-
+                        const result = await fetch(`/createReleases`, options);
                         if (result.ok == true) {
                             const body = await result.json();
                             if (body.code == 200) {
@@ -347,7 +351,7 @@
         thLocalisation.innerHTML = "Localisation";
         const thRef = createDOM("th");
         thRef.innerHTML = "Ref";
-        const thAction = createDOM("th", {class:"check-column"});
+        const thAction = createDOM("th", {id: "Add_" + content.id_movie, class:"check-column" + (content.releases == "" ? " check-column-first" : "")});
         tr.appendChild(thId);
         tr.appendChild(thType);
         tr.appendChild(thLocalisation);
@@ -372,26 +376,31 @@
             const tdAction = createDOM("td", {align:"center", valign:"center"});
             const tdActionImg = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"delete"});
             tdActionImg.addEventListener('click', async function(){
-                const Ids = release.id_release.split("_");
-                const json = {"id_movie":Ids[0], "id_type":Ids[1], "id_localisation":Ids[2]};
-                const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
-                const result = await fetch(`/deleteRelease`, options);
-                if (result.ok == true) {
-                    const body = await result.json();
-                    if (body.code == 200) {
-                        window.location.assign("/movies?id=" + content.id_movie);
+                if (confirm("Confirme la supreesion de la release : " + release.id_release + " ?")) {
+                    const Ids = release.id_release.split("_");
+                    const json = {"id_movie":Ids[0], "id_type":Ids[1], "id_localisation":Ids[2]};
+                    const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+                    const result = await fetch(`/deleteReleases`, options);
+                    if (result.ok == true) {
+                        const body = await result.json();
+                        if (body.code == 200) {
+                            window.location.assign("/movies?id=" + content.id_movie);
+                        }
+                        else {
+                            showErrorMessage("message-box", body.message);
+                        }
                     }
                     else {
-                        showErrorMessage("message-box", body.message);
+                        showErrorMessage("message-box", result.message);
                     }
-                }
-                else {
-                    showErrorMessage("message-box", result.message);
                 }
             });
             tdAction.appendChild(tdActionImg);
             tr.appendChild(tdAction);
             createTable.appendChild(tr);
+        }
+        if (content.releases == "") {
+            ReleaseAdd.dispatchEvent(new Event('click'));
         }
     }
     

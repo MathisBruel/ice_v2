@@ -5,9 +5,6 @@ Content::Content()
     _contentId = -1;
     _contentTitle = "";
 }
-Content::~Content() {
-
-}
 Content::Content(std::string contentTitle)
 {
     _contentId = -1;
@@ -28,6 +25,11 @@ void Content::AddRelease(Releases* release)
                             std::to_string(release->GetReleaseId()[2]);
     this->_release[releaseId] = release;
 }
+void Content::DeleteRelease(std::string releaseId)
+{
+    delete this->_release[releaseId];
+    this->_release[releaseId] = nullptr;
+}
 void Content::CreateRelease(int id_movie, int typeMovie, int localisationMovie){
     TypeMovie idTypeMovie = static_cast<TypeMovie>(typeMovie);
     LocalisationMovie idLocalisationMovie = static_cast<LocalisationMovie>(localisationMovie);
@@ -39,11 +41,19 @@ void Content::CreateRelease(int id_movie, int typeMovie, int localisationMovie){
     this->_release[releaseId]->SetReleaseId(id_movie, idTypeMovie, idLocalisationMovie);
 }
 
-std::string Content::toXmlString()
+std::string Content::toXmlString(bool printChild)
 {
-    std::string xml = "<Content";
-    xml += " id=\"" + std::to_string(this->_contentId) + "\"";
-    xml += " contentTitle=\"" + this->_contentTitle + "\"";
-    xml += "/>";
+    std::string xml = "<content";
+    xml += " id_movie=\"" + std::to_string(this->_contentId) + "\"";
+    xml += " title=\"" + this->_contentTitle + "\"";
+    if (printChild) {
+        xml += ">"; 
+        for (auto const& release : this->_release) {
+            xml += release.second->toXmlString();
+        }
+    }
+    else {
+        xml += "/>";
+    }
     return xml;
 }

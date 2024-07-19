@@ -285,9 +285,12 @@ class Main_API {
         // -- CONTENT
         this.app.post('/createContent', this.restrictPage.bind(this), function(request, response){ this.createContent(request, response); }.bind(this));
         this.app.post('/getContents', this.restrictPage.bind(this), function(request, response){ this.getContents(request, response); }.bind(this));
-        this.app.post('/createRelease', this.restrictPage.bind(this), function(request, response){ this.createRelease(request, response); }.bind(this));
-        this.app.post('/getRelease', this.restrictPage.bind(this), function(request, response){ this.getRelease(request, response); }.bind(this));
-        this.app.post('/deleteRelease', this.restrictPage.bind(this), function(request, response){ this.deleteRelease(request, response); }.bind(this));
+        this.app.post('/createReleases', this.restrictPage.bind(this), function(request, response){ this.createReleases(request, response); }.bind(this));
+        this.app.post('/getReleasesContent', this.restrictPage.bind(this), function(request, response){ this.getReleasesContent(request, response); }.bind(this));
+        this.app.post('/deleteReleases', this.restrictPage.bind(this), function(request, response){ this.deleteReleases(request, response); }.bind(this));
+        this.app.post('/createSyncLoop', this.restrictPage.bind(this), function(request, response){ this.addSyncLoop(request, response); }.bind(this));
+        this.app.post('/createCPL', this.restrictPage.bind(this), function(request, response){ alert("test"); this.addCpl(request, response); }.bind(this));
+        this.app.post('/createSync', this.restrictPage.bind(this), function(request, response){ this.addSync(request, response); }.bind(this));
 
         // -- LINKS
         this.app.post('/linkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.linkCinemaToGroup(request, response); }.bind(this));
@@ -364,7 +367,7 @@ class Main_API {
     async giveGroups(request, response) {
         try {
             const result = await this.client.getGroups(request.body);
-            console.log(request.body);
+            console.log(result);
             response.json(result);
         }
         catch(err){
@@ -779,32 +782,59 @@ class Main_API {
             this.onError(response, err, 'getContents');
         }
     }
-    async createRelease(request, response) {
+    async createReleases(request, response) {
         try {
-            const result = await this.client.createRelease(request.body);
+            const result = await this.client.createReleases(request.body);
             response.json(result);
         }
         catch(err){
-            this.onError(response, err, 'createRelease');
+            this.onError(response, err, 'createReleases');
         }
     }
-    async getRelease(request, response) {
+    async getReleasesContent(request, response) {
         console.log(request.body);
         try {
-            const result = await this.client.getRelease(request.body);
+            const result = await this.client.getReleasesContent(request.body);
             response.json(result);
         }
         catch(err){
-            this.onError(response, err, 'getRelease');
+            this.onError(response, err, 'getReleasesContent');
         }
     }
-    async deleteRelease(request, response) {
+    async deleteReleases(request, response) {
         try {
-            const result = await this.client.deleteRelease(request.body);
+            const result = await this.client.deleteReleases(request.body);
             response.json(result);
         }
         catch(err){
-            this.onError(response, err, 'deleteRelease');
+            this.onError(response, err, 'deleteReleases');
+        }
+    }
+    async addSyncLoop(request, response) {
+        try {
+            const result = await this.client.addSyncLoopToRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'addSyncLoopToRelease');
+        }
+    }
+    async addCpl(request, response) {
+        try {
+            const result = await this.client.addCplToRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'addCplToRelease');
+        }
+    }
+    async addSync(request, response) {
+        try {
+            const result = await this.client.addSyncToCpl(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'addSyncToCpl');
         }
     }
     // -- LINKS

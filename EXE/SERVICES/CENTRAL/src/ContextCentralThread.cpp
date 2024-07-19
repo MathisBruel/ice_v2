@@ -2238,29 +2238,158 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     // -- Getters State Machine
-    // else if (cmd->getType() == CommandCentral::GET_CONTENT) {
-    //     MySQLContentRepo* contentRepo = new MySQLContentRepo();
-        
-    //     int id = cmd->getIntParameter("id");
-    //     if (id == -1) {
-    //         ResultQuery *result = this->_dbConnection->executeQuery(contentRepo->MySQLread(new Content()));
-    //     }
-    //     else {
-    //         Content* content = new Content();
-    //         content->setId(id);
-    //         ResultQuery *result = this->_dbConnection->executeQuery(contentRepo->MySQLread(content));
-    //     }
-    // } 
-    else {
-        int cmdId = cmd->getIntParameter("id");
-        Configurator* configurator = nullptr; 
-        int contentId;
-        std::regex id_regex(R"(id=\"(\d+)\")"); 
-        std::smatch match;
+    else if (cmd->getType() == CommandCentral::GET_CONTENT) {
+        MySQLContentRepo* contentRepo = new MySQLContentRepo();
+        int cmdId;
+        if (cmd->getIntParameter("id_movie") != -1) { cmdId = cmd->getIntParameter("id_movie"); }
+        else { cmdId = cmd->getIntParameter("id"); }
+        Content* content = new Content();
+        if (cmdId == -1) {
+            contentRepo->Read(content);
+            Query* query = contentRepo->GetQuery();
+            ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
 
-        if (cmd->getType() == CommandCentral::CREATE_CONTENT) { configurator = new Configurator(this->_dbConnection); }
+            if (result != nullptr && result->isValid()) {
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Contents get success");
+                std::string datas = "<contents>";
+                for (int i = 0; i < result->getNbRows(); i++) {
+                    content->SetContentId(*result->getIntValue(i, "id_movie"));
+                    content->SetDatas(*result->getStringValue(i, "title"));
+                    datas += content->toXmlString(false);
+                }
+                datas += "</contents>";
+                response->setDatas(datas);
+            }
+            else {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Contents get failed");
+                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            }
+            delete query;
+            delete result;
+        }
+        else {
+            content->SetContentId(cmdId);
+            contentRepo->Read(content);
+            Query* query = contentRepo->GetQuery();
+            ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+            
+            if (result != nullptr && result->isValid()) {
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Content get success");
+                content->SetContentId(*result->getIntValue(0, "id_movie"));
+                content->SetDatas(*result->getStringValue(0, "title"));
+                response->setDatas(content->toXmlString(true));
+            }
+            else {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Content get failed");
+                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            }
+            delete query;
+            delete result;
+        }
+
+        delete contentRepo;
+        delete content;
+    } 
+    else if (cmd->getType() == CommandCentral::GET_RELEASES_CONTENT) {
+        MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
+        int cmdId;
+        if (cmd->getIntParameter("id_movie") != -1) { cmdId = cmd->getIntParameter("id_movie"); }
+        else { cmdId = cmd->getIntParameter("id"); }
+        Releases* release = new Releases();
+        release->SetReleaseId(cmdId, TypeMovie::UNKNOW_TYPE, LocalisationMovie::UNKNOW_LOCALISATION);
+        releaseRepo->Read(release);
+        Query* query = releaseRepo->GetQuery();
+        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+
+        if (result != nullptr && result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Releases get success");
+            std::string datas = "<releases>";
+            for (int i = 0; i < result->getNbRows(); i++) {
+                release->SetReleaseId(*result->getIntValue(i, "id_movie"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
+                release->SetReleaseInfos(*result->getStringValue(i, "release_cpl_ref_path"));
+                datas += release->toXmlString();
+            }
+            datas += "</releases>";
+            response->setDatas(datas);
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Releases get failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
+        delete query;
+        delete result;
+        delete releaseRepo;
+        delete release; 
+    }
+    else if (cmd->getType() == CommandCentral::GET_CPLS_SITE) {
+        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        int cmdId;
+        if (cmd->getIntParameter("id_serv_pair_config") != -1) { cmdId = cmd->getIntParameter("id_serv_pair_config"); }
+        else { cmdId = cmd->getIntParameter("id"); }
+        CPLRelease* cpl = new CPLRelease();
+        if (cmdId != -1) {
+            cpl->SetCPLId(cmdId, -1, -1, -1);
+        }
+        cplRepo->Read(cpl);
+        Query* query = cplRepo->GetQuery();
+        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+        if (result != nullptr && result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CPLs get success");
+            std::string datas = "<cpls>";
+            for (int i = 0; i < result->getNbRows(); i++) {
+                cpl->SetCPLId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
+                cpl->SetDatas(*result->getStringValue(i, "CPL_uuid"), *result->getStringValue(i, "CPL_name"));
+                cpl->SetCplInfos(*result->getStringValue(i, "CPL_path"));
+                datas += cpl->toXmlString();
+            }
+            datas += "</cpls>";
+            response->setDatas(datas);
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CPLs get failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
+        delete cplRepo;
+        delete cpl;
+    }
+    else {
+        int cmdId;
+        if (cmd->getIntParameter("id_movie") != -1) { cmdId = cmd->getIntParameter("id_movie"); }
+        else { cmdId = cmd->getIntParameter("id"); }
+        Configurator* configurator = nullptr; 
+        int contentId = -1;
+        std::regex id_regex(R"(id_movie=\"(\d+)\")"); 
+        std::smatch match;
+        CommandCentral::CommandCentralType cmdType = cmd->getType();
+
+        if (cmdType == CommandCentral::CREATE_CONTENT) { configurator = new Configurator(this->_dbConnection); }
         else { configurator = this->_contentConfigurator[cmdId]; }
-        TransitionResponse stateResponse = configurator->GetHTTPInteractions()[cmd->getType()]->Run(cmd->getUuid(), cmd->getParameters());
+
+        if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) { 
+            configurator->GetHTTPInteractions()[cmdType]->Run();
+            switch (cmdType)
+            {
+            case CommandCentral::CREATE_RELEASE:
+                cmdType = CommandCentral::RELEASE_CREATED;
+                break;
+            case CommandCentral::CREATE_SYNCLOOP:
+                cmdType = CommandCentral::SYNCLOOP_CREATED;
+                break;
+            case CommandCentral::CREATE_CPL:
+                cmdType = CommandCentral::CPL_CREATED;
+                break;
+            }
+        }
+    
+        TransitionResponse stateResponse = configurator->GetHTTPInteractions()[cmdType]->Run(cmd->getUuid(), cmd->getParameters());
         response->setComments(stateResponse.cmdComment);
         response->setDatas(stateResponse.cmdDatasXML);
         if (stateResponse.cmdStatus == "OK") {
@@ -2272,49 +2401,21 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         else {
             response->setStatus(CommandCentralResponse::UNKNOWN);
         }
-        if (cmd->getType() == CommandCentral::CREATE_CONTENT) {
-            if (std::regex_search(stateResponse.cmdDatasXML, match, id_regex)) {
+
+        if (cmdType == CommandCentral::CREATE_CONTENT) {
+            std::regex_search(stateResponse.cmdDatasXML, match, id_regex);
+            if (match.size() > 1) {
                 contentId = std::stoi(match[1]);
                 this->_contentConfigurator[contentId] = configurator;
-                StateMachineMannager::GetInstance()->AddStateMachine(contentId, configurator->GetStateMachine());
+                StateMachineManager::GetInstance()->AddStateMachine(contentId, configurator->GetStateMachine());
             }
         }
-        configurator->GetHTTPInteractions()[cmd->getType()]->Run();
-        // switch (cmd->getType()) {
-        //     case CommandCentral::CREATE_CONTENT:
-        //         configurator->GetStateMachine()->Transition(StateEvent::ContentInit);
-        //         break;
-        //     case CommandCentral::CREATE_RELEASE :
-        //         configurator->GetStateMachine()->Transition(StateEvent::CreateRelease);
-        //         break;
-        //     case CommandCentral::RELEASE_CREATED :
-        //         configurator->GetStateMachine()->Transition(StateEvent::ReleaseCreated);
-        //         break;
-        //     case CommandCentral::CIS_CREATED :
-        //         configurator->GetStateMachine()->Transition(StateEvent::PushCIS);
-        //         break;
-        //     case CommandCentral::CREATE_CPL :
-        //         configurator->GetStateMachine()->Transition(StateEvent::CreateCPL);
-        //         break;
-        //     case CommandCentral::CREATE_SYNCLOOP :
-        //         configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
-        //         break;
-        //     case CommandCentral::CPL_CREATED :
-        //         configurator->GetStateMachine()->Transition(StateEvent::CreateSync);
-        //         break;
-        //     case CommandCentral::SYNC_CREATED :
-        //         configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
-        //         break;
-        //     case CommandCentral::SYNCLOOP_CREATED :
-        //         configurator->GetStateMachine()->Transition(StateEvent::SyncCreated);
-        //         break;
-        //     case CommandCentral::IMPORT_TO_PROD :
-        //         configurator->GetStateMachine()->Transition(StateEvent::Publish);
-        //         break;
-        //     case CommandCentral::CANCEL:
-        //         configurator->GetStateMachine()->Transition(StateEvent::Cancel);
-        //         break;
-        // }
+
+        if (cmdType == CommandCentral::CANCEL || cmdType == CommandCentral::CREATE_SYNCLOOP) {
+            configurator->GetHTTPInteractions()[cmdType]->Run(true);
+        }
+        else if (cmdType == CommandCentral::DELETE_RELEASE_CONTENT) {} //Pas de Transition à effectuer lors d'une suppression de release
+        else { configurator->GetHTTPInteractions()[cmdType]->Run(); }
         configurator = nullptr;
     }
     context->getCommandHandler()->addResponse(response);

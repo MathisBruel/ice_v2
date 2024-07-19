@@ -200,27 +200,30 @@ class IceAPI {
     // -- CONTENT
 
     async createContent (values) { 
-        // return {"ok":true, code:200, message:"Content created", data:{"contentId":values.id_movie}};
         return await this.client.sendPostCommands(this.token, 'CREATE_CONTENT', values);
     }
     async getContents (values) { 
-        return {"ok":true,"data":{"contents":{"content":[{"$":{"id_movie":1,"content":"Furiosa","State":"Publishing","Locked":true}},
-        {"$":{"id_movie":2,"content":"Apes","State":"createMovie","Locked":false}},{"$":{"id_movie":3,"content":"Apes","State":"createMovie","Locked":true}},
-        {"$":{"id_movie":4,"content":"Apes","State":"createMovie","Locked":false}},{"$":{"id_movie":5,"content":"Apes","State":"createMovie","Locked":false}}]}}};
-        return await this.client.sendPostCommands(this.token, 'GET_CONTENT', values);
+        return await this.client.sendGetCommands(this.token, 'GET_CONTENT', values);
     }
-    async createRelease (values) { 
-        return {"ok":true, code:200, message:"Release created", data:{"id_movie": values.id_movie, "id_type": values.id_type,"id_localisation": values.id_localisation}};
-        return await this.client.sendPostCommands(this.token, 'INSERT_RELEASE', values);
+    async createReleases (values) { 
+        return await this.client.sendPostCommands(this.token, 'CREATE_RELEASE', values);    
     }
-    async getRelease (values) { 
-        return {"ok":true,"data":{"releases":{"release":[{"$":{"id_movie": values.id_movie ,"id_type":randomInt(0,15),"id_localisation":randomInt(0,6)}},
-        {"$":{"id_movie": values.id_movie ,"id_type":randomInt(0,15),"id_localisation":randomInt(0,6),"release_path":"/bin"}}]}}}
-        return await this.client.sendPostCommands(this.token, 'GET_RELEASE', values);
+    async getReleasesContent (values) { 
+
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASES_CONTENT', values);
     }
-    async deleteRelease (values) { 
-        return {"ok":true, code:200, message:"Release deleted", data:{}};
-        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE', values);
+    async deleteReleases (values) { 
+        
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_CONTENT', values);
+    }
+    async addSyncLoopToRelease (values) {
+        return await this.client.sendPostCommands(this.token, 'CREATE_SYNCLOOP', values);
+    }
+    async addCplToRelease (values) {
+        return await this.client.sendPostCommands(this.token, 'CREATE_CPL', values);
+    }
+    async addSyncToCpl (values) {
+        return await this.client.sendPostCommands(this.token, 'SYNC_CREATED', values);
     }
 
 }

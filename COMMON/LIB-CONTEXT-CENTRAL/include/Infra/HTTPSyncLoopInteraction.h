@@ -8,4 +8,5 @@ public:
     TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
         return SyncLoopInteraction::pfStateSyncLoop(cmdUUID, Params);
     }
+    void Run() override { SyncLoopInteraction::pfTransitionToInProduction(); }
 };

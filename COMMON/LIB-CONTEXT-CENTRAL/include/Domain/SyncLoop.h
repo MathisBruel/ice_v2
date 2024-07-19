@@ -14,7 +14,7 @@ public:
     std::string GetSyncLoopPath() {return this->_SyncLoopPath;}
 
 private:
-    SyncLoopRepo* syncLoopRepo;
+    SyncLoopRepo* _syncLoopRepo;
 
     int _syncLoopId[4];
     std::string _SyncLoopPath;

@@ -17,15 +17,15 @@ struct StateCancel;
 struct StateInProd;
 
 enum StateEvent {
-    ContentInit,
-    CreateCPL,
-    CreateSync,
-    SyncCreated,
-    PushCIS,
-    Publish,
-    CreateRelease,
-    ReleaseCreated,
-    Cancel
+    CONTENT_INIT,
+    CREATE_CPL,
+    CREATE_SYNC,
+    SYNC_CREATED,
+    PUSH_CIS,
+    PUBLISH,
+    CREATE_RELEASE,
+    RELEASE_CREATED,
+    CANCEL
 };
 // Event
 struct ContentInitEvent {};

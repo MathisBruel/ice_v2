@@ -16,6 +16,7 @@ RUN /bin/bash -c '/install-central.sh'
 RUN apt-get install gdb -y
 COPY EXE/SERVICES/Launcher/init-database.sql /docker-entrypoint-initdb.d/
 COPY EXE/SERVICES/Launcher/init-migration.sh /docker-entrypoint-initdb.d/init-migration.sh
+COPY EXE/SERVICES/Launcher/init-datas.sql /docker-entrypoint-initdb.d/push-new-datas.sql
 
 FROM centralbaselayout as central
 COPY BUILD/BIN/ICE-CENTRAL /data/ICE2/

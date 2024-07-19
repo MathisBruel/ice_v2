@@ -15,5 +15,6 @@ enum TypeMovie {
     STEREO_3D_CARD,
     EPISODE,
     STRONG_POINT,
-    EVENT
+    EVENT,
+    UNKNOW_TYPE = -1
 };

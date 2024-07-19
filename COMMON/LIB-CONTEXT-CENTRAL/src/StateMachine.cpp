@@ -7,6 +7,9 @@ struct StateTemplate : FSM::State {
     template <typename Event>
     void react(const Event&, EventControl&) {}
     TransitionResponse response;
+    void changeRelease(Control control, std::string compositeId) {
+        control.context().release = control.context().content->GetRelease(compositeId); 
+    }
 };
  
 struct StateContentInit : StateTemplate {
@@ -18,7 +21,7 @@ struct StateContentInit : StateTemplate {
             if (control.context().content) {
                 this->response.cmdStatus = "OK";
                 this->response.cmdComment = "Content created";
-                this->response.cmdDatasXML = control.context().content->toXmlString();
+                this->response.cmdDatasXML = control.context().content->toXmlString(false);
                 return this->response;
             }
             this->response.cmdStatus = "KO";
@@ -27,31 +30,49 @@ struct StateContentInit : StateTemplate {
         };
         
         control.context().contentInteraction->pfTransitionToPublishing = [control](){
-            StateMachineMannager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::Publish);
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CONTENT_INIT);
         };
     }
     void newContent(Control control, std::string contentTitle) {
         control.context().content = new Content(contentTitle);
         MySQLContentRepo* contentRepo = new MySQLContentRepo() ;
-        ResultQuery* result = control.context().dbConnection->ExecuteQuery(contentRepo->MySQLcreate(control.context().content));
+        contentRepo->Create(control.context().content);
+        ResultQuery* result = control.context().dbConnection->ExecuteQuery(contentRepo->GetQuery());
         control.context().content->SetContentId(result->getLastInsertedId());
+        delete result;
+        delete contentRepo;
     }
     void react(const ContentInitEvent&, EventControl& control) {
         control.changeTo<StatePublishing>();
     }
-
 };
+
 struct StatePublishing : StateTemplate {
     using StateTemplate::react;
     FullControl* stateControl;
     void entryGuard(FullControl& control)  {
         control.context().publishingInteraction->pfStatePublishing = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
+            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            deleteRelease(control, Params["id_movie"], Params["id_type"], Params["id_localisation"]);
             this->response.cmdStatus = "OK";
-            this->response.cmdComment = "Publishing";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
+            this->response.cmdComment = "Release deleted";
             return this->response;
         };
+        control.context().publishingInteraction->pfTransitionToReleaseCreation = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_RELEASE);
+        };
+        control.context().publishingInteraction->pfTransitionToCancel = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CANCEL);
+        };
+    }
+    void deleteRelease(Control control, std::string id_movie, std::string id_type, std::string id_localisation) {
+        MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
+        releaseRepo->Remove(control.context().release);
+        control.context().dbConnection->ExecuteQuery(releaseRepo->GetQuery());
+        control.context().content->DeleteRelease(id_movie + "_" + id_type + "_" + id_localisation);
+        control.context().release = nullptr;
+        delete releaseRepo;
     }
     void update(FullControl& control)  {
         std::cout << "Etats d'avancement: CIS " << control.context().cisFinish << " Sync " << control.context().syncFinish << "\n";
@@ -69,11 +90,23 @@ struct StateReleaseCreation : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().releaseInteraction->pfStateReleaseCreation = [control,this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
+            newRelease(control, std::stoi(Params["id_movie"]), std::stoi(Params["id_type"]), std::stoi(Params["id_localisation"]), Params["cplRefPath"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "Release created";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
         };
+        control.context().releaseInteraction->pfTransitionToPublishing = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::PUBLISH);
+        };
+    }
+    void newRelease(Control control, int id_movie, int id_type, int id_localisation, std::string cplRefPath) {
+        control.context().content->CreateRelease(id_movie, id_type, id_localisation);
+        changeRelease(control, std::to_string(id_movie) + "_" + std::to_string(id_type) + "_" + std::to_string(id_localisation));
+        control.context().release->SetReleaseInfos(cplRefPath);
+        MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
+        releaseRepo->Create(control.context().release);
+        control.context().dbConnection->ExecuteQuery(releaseRepo->GetQuery());
+        delete releaseRepo;
     }
     void react(const ReleaseCreatedEvent&, EventControl& control) {
         control.resume<StatePublishing>();
@@ -85,11 +118,22 @@ struct StateUploadCIS : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().cisInteraction->pfStateUploadCIS = [control, this] (std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
+            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            newCISFile(control, Params["cisPath"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "CIS uploaded";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
         };
+        control.context().cisInteraction->pfTransitionToInProduction = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_SYNC);
+        };
+    }
+    void newCISFile(Control control, std::string cisPath) {
+        control.context().release->UploadCIS(cisPath);
+        MySQLCISRepo* cisRepo = new MySQLCISRepo();
+        cisRepo->Create(control.context().release->GetCIS());
+        control.context().dbConnection->ExecuteQuery(cisRepo->GetQuery());
+        delete cisRepo;
     }
     void react(const PushCISEvent&, EventControl& control) {
         control.context().cisFinish = true;
@@ -111,8 +155,13 @@ struct StateIdleSync : StateTemplate {
             this->response.cmdUUID = UUID;
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "IdleSync";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
+        };
+        control.context().idleSyncInteraction->pfTransitionToSyncLoop = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_SYNC);
+        };
+        control.context().idleSyncInteraction->pfTransitionToCPL = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_CPL);
         };
     }
     void react(const CreateSyncEvent&, EventControl& control) {
@@ -128,11 +177,27 @@ struct StateCPL : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().cplInteraction->pfStateCPL = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
+            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            newCPLFile(control, std::stoi(Params["id_serv_pair_config"]), Params["CPL_name"], Params["CPL_uuid"], Params["CPL_path"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "CPL";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
         };
+        control.context().cplInteraction->pfTransitionToSync = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_SYNC);
+        };
+    }
+    void newCPLFile(Control control, int id_serv_pair_config, std::string CPL_name, std::string CPL_uuid, std::string CPL_path) {
+        control.context().release->UploadCPL(id_serv_pair_config, CPL_name, CPL_uuid, CPL_path);
+        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        int* releaseId = control.context().release->GetReleaseId();
+        std::string compositeId = id_serv_pair_config + "_" 
+                                + std::to_string(releaseId[0]) + "_" 
+                                + std::to_string(releaseId[1]) + "_" 
+                                + std::to_string(releaseId[2]);
+        cplRepo->Create(control.context().release->GetCPL(compositeId));
+        control.context().dbConnection->ExecuteQuery(cplRepo->GetQuery());
+        delete cplRepo;
     }
     void react (const CreateSyncEvent&, EventControl& control) {
         control.changeTo<StateSync>();
@@ -144,11 +209,22 @@ struct StateSync : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().syncInteraction->pfStateSync = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
+            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            newSyncFile(control, Params["id_serv_pair_config"] + "_" + Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"], Params["syncPath"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "Sync";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
         };
+        control.context().syncInteraction->pfTransitionToInProduction = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_SYNC);
+        };
+    }
+    void newSyncFile(Control control, std::string compositeId, std::string syncPath) {
+        control.context().release->GetCPL(compositeId)->CreateSync(syncPath);
+        MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
+        syncRepo->Create(control.context().release->GetCPL(compositeId)->GetSync());
+        control.context().dbConnection->ExecuteQuery(syncRepo->GetQuery());
+        delete syncRepo;
     }
     void react (const SyncCreatedEvent&, EventControl& control) {
         control.context().syncFinish = true;
@@ -164,11 +240,27 @@ struct StateSyncLoop : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().syncLoopInteraction->pfStateSyncLoop = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
+            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            newSyncLoop(control, Params["id_serv_pair_config"], Params["syncLoopPath"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "SyncLoop";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
         };
+        control.context().syncLoopInteraction->pfTransitionToInProduction = [control](){
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::PUBLISH);
+        };
+    }
+    void newSyncLoop(Control control, std::string id_serv_pair_config, std::string syncLoopPath) {
+        control.context().release->UploadSyncLoop(std::stoi(id_serv_pair_config), syncLoopPath);
+        MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
+        int* releaseId = control.context().release->GetReleaseId();
+        std::string compositeId = id_serv_pair_config + "_" 
+                                + std::to_string(releaseId[0]) + "_" 
+                                + std::to_string(releaseId[1]) + "_" 
+                                + std::to_string(releaseId[2]);
+        syncLoopRepo->Create(control.context().release->GetSyncLoop(compositeId));
+        control.context().dbConnection->ExecuteQuery(syncLoopRepo->GetQuery());
+        delete syncLoopRepo;
     }
     void react (const SyncCreatedEvent&, EventControl& control) {
         control.context().syncFinish = true;
@@ -190,7 +282,6 @@ struct StateInProd : StateTemplate {
             this->response.cmdUUID = UUID;
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "InProd";
-            this->response.cmdDatasXML = control.context().content->toXmlString();
             return this->response;
         };
     }
@@ -207,31 +298,31 @@ FSM::Instance * StateMachine::GetFSM() {
 void StateMachine::Transition(StateEvent eventTrigger) {
     switch (eventTrigger)
     {
-    case StateEvent::ContentInit:
+    case StateEvent::CONTENT_INIT:
         this->_fsmInstance->react(ContentInitEvent{});
         break;
-    case StateEvent::CreateCPL:
+    case StateEvent::CREATE_CPL:
         this->_fsmInstance->react(CreateCPLEvent{});
         break;
-    case StateEvent::CreateSync:
+    case StateEvent::CREATE_SYNC:
         this->_fsmInstance->react(CreateSyncEvent{});
         break;
-    case StateEvent::SyncCreated:
+    case StateEvent::SYNC_CREATED:
         this->_fsmInstance->react(SyncCreatedEvent{});
         break;
-    case StateEvent::PushCIS:
+    case StateEvent::PUSH_CIS:
         this->_fsmInstance->react(PushCISEvent{});
         break;
-    case StateEvent::Publish:
+    case StateEvent::PUBLISH:
         this->_fsmInstance->react(PublishEvent{});
         break;
-    case StateEvent::CreateRelease:
+    case StateEvent::CREATE_RELEASE:
         this->_fsmInstance->react(CreateReleaseEvent{});
         break;
-    case StateEvent::ReleaseCreated:
+    case StateEvent::RELEASE_CREATED:
         this->_fsmInstance->react(ReleaseCreatedEvent{});
         break;
-    case StateEvent::Cancel:
+    case StateEvent::CANCEL:
         this->_fsmInstance->react(CancelEvent{});
         break; 
     }

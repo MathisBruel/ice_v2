@@ -4,514 +4,578 @@ skinparam linetype polyline
 skinparam linetype ortho
 hide empty members
 
-package Domain {
-    class Content {
-        - int _contentId
-        - string _contentTitle
-        - Releases* _release
-        - ContentRepo* _contentRepo
-        --
-        + Content(string contentTitle)
+package LIB-CONTEXT-CENTRAL {
+    class HSFM2<<LibHeaderOnly>> #B5CFE2
+    package Domain #FFEEA9 {
+        class Content #FBA834    {
+            - ContentRepo* _contentRepo
+            - map<string, Releases*> _release
+            - int _contentId
+            - string _contentTitle
+            --
+            + Content(string contentTitle)
+            + CreateRelease(int id_movie, int typeMovie, int localisationMovie)
+    
+            + SetContentId(int contentId)
+            + SetDatas(string contentTitle)
+            + AddRelease(Releases* release)
+            + DeleteRelease(string releaseId)
+            + string toXmlString(bool printChild)   
 
-        + CreateRelease(int id_movie, TypeMovie typeMovie, 
-        LocalisationMovie localisationMovie)
+            + int* GetContentId() {return &this->_contentId}
+            + string GetContentTitle() {return this->_contentTitle}
+            + sap<string, Releases*> GetReleases() {return this->_release}
+            + Releases* GetRelease(string releaseId) {return this->_release[releaseId]}
+        }
+        class ContentRepo #LightYellow {
+            + Create(Content* content)
+            + Read(Content* content)
+            + Update(Content* content)
+            + Remove(Content* content)
+        }
+        ContentRepo --o Content
 
-        + SetDatas(int contentId, string _contentTitle)
-        + SetRelease(Releases* release)
+        class Releases #FBA834   {
+            - ReleaseRepo* _releaseRepo
+            - CIS* _cis
+            - CPL* _cpl
+            - SyncLoop* _syncLoop
 
-        + int* GetId()
-        + string GetTitle()
-        + Releases* GetRelease()
-    }
-    class ContentRepo {
-        --
-        + Create(Content* content)
-        + Read(Content* content)
-        + Update(Content* content)
-        + Remove(Content* content)
-    }
-    class ContentRepo #LightYellow
-    Content o-- ContentRepo #DarkGoldenRod
-        class Releases {
-        - int _releaseId[3]
-        - string _CISPath
-        - CIS* _cis
-        - CPL* _cpl
-        - SyncLoop* _syncLoop
-        - ReleaseRepo* _releaseRepo
-        --
-        + UploadCIS(string cisPath)
-        + UploadCPL(int id_serv_pair_config,
-        string uuid, string name, string cplPath)
-        + UploadSyncLoop(int id_serv_pair_config, 
-        string syncLoopPath)
+            - int _releaseId[3]
+            - string _CPLRefPath
+            --
+            + UploadCIS(string CISPath)
+            + UploadCPL(int id_serv_pair_config, string uuid, string name, string cplPath)
+            + UploadSyncLoop(int id_serv_pair_config, string SyncLoopPath)
+            + string toXmlString()
 
-        + SetReleaseId(int id_movie, TypeMovie typeMovie, 
-        LocalisationMovie localisationMovie)
-        + SetReleaseInfos(string cisPath)
-        + SetCIS(CIS* cis)
-        + SetCPL(CPL* cpl)
-        + SetSyncLoop(SyncLoop* syncLoop)
+            + SetReleaseId(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie)
+            + SetReleaseInfos(string CPLRefPath)
+            + SetCIS(CIS* cis)
+            + SetCPL(CPL* cpl)
+            + SetSyncLoop(SyncLoop* syncLoop)
 
-        + int* GetReleaseId()
-        + string GetCISPath()
-        + CIS* GetCIS()
-        + CPL* GetCPL()
-        + SyncLoop* GetSyncLoop()
-    }
-    Content o-- Releases #DarkGrey
-    class ReleaseRepo {
-        --
-        + Create(Releases* release)
-        + Read(Releases* release)
-        + Update(Releases* release)
-        + Remove(Releases* release)
-    }
-    class ReleaseRepo #LightYellow
-    Releases o-- ReleaseRepo #DarkGoldenRod
-    class CIS {
-        - int _CISId[3]
-        - string _CISPath
-        - CISRepo* _CISRepo
-        --
-        + SetCISId(int id_movie, int id_type, 
-        int id_localisation)
-        + SetCISInfos(string CISPath)
+            + int* GetReleaseId()
+            + string GetCPLRefPath()
+            + CIS* GetCIS()
+            + CPL* GetCPL()
+            + SyncLoop* GetSyncLoop()
+        }
+        Releases --o Content
+        class ReleaseRepo #LightYellow {
+            + Create(Releases* release)
+            + Read(Releases* release)
+            + Update(Releases* release)
+            + Remove(Releases* release)
+        }
+        ReleaseRepo --o Releases
 
-        + int* GetCISId()
-        + string GetCISPath()
-    }
-    Releases o-- CIS #DarkGrey
-    class CISRepo {
-        --
-        + Create(CIS* cis)
-        + Read(CIS* cis)
-        + Update(CIS* cis)
-        + Remove(CIS* cis)
-    }
-    class CISRepo #LightYellow
-    CIS o-- CISRepo #DarkGoldenRod
-    class CPL {
-        - int _CPLId[4]
-        - string _CPLUUID
-        - string _CPLName
-        - string _CPLPath
-        - CPLRepo* _cplRepo
-        - Sync* _sync
-        --
-        + CreateSync(string SyncPath)
+        class CIS #FBA834    {
+            - CISRepo* _CISRepo
+            - int _CISid[3]
+            - string _CISPath
+            --
+            + SetCISId(int cisId)
+            + SetCISPath(string cisPath)
+            + string toXmlString()
 
-        + SetCPLId(int id_serv_pair_config, int id_movie, 
-        int id_type, int id_localisation)
-        + SetDatas(string CPLUUID, string CPLName)
-        + SetCplInfos(string CPLPath)
+            + int* GetCISId()
+            + string GetCISPath()
+        }
+        CIS --o Releases
+        class CISRepo #LightYellow {
+            + Create(CIS* cis)
+            + Read(CIS* cis)
+            + Update(CIS* cis)
+            + Remove(CIS* cis)
+        }
+        CISRepo --o CIS
 
-        + int* GetCPLId()
-        + string GetCPLUUID()
-        + string GetCPL_CPLName()
-        + string GetCPLPath()
-        + Sync* GetSync()
-    }
-    Releases o-- CPL #DarkGrey
-    class CPLRepo {
-        --
-        + Create(CPL* cpl)
-        + Read(CPL* cpl)
-        + Update(CPL* cpl)
-        + Remove(CPL* cpl)
-    }
-    class CPLRepo #LightYellow
-    CPL o-- CPLRepo #DarkGoldenRod 
-    class Sync {
-        - int _syncId[4]
-        - string _syncPath
-        - SyncRepo* _syncRepo
-        --
-        + SetSyncId(int id_serv_pair_config, int id_movie, 
-        int id_type, int id_localisation)
-        + SetSyncInfos(string SyncPath)
+        class CPL #FBA834    {
+            - CPLRepo* _cplRepo
+            - Sync* _sync
 
-        + int* GetSyncID()
-        + string GetSyncPath()
-    }
-    CPL o-- Sync #DarkGrey
-    class SyncRepo {
-        --
-        + Create(Sync* sync)
-        + Read(Sync* sync)
-        + Update(Sync* sync)
-        + Remove(Sync* sync)
-    }
-    class SyncRepo #LightYellow
-    Sync o-- SyncRepo #DarkGoldenRod 
-    class SyncLoop {
-        - int _syncLoopId[4]
-        - string _SyncLoopPath
-        - SyncLoopRepo* syncLoopRepo
-        --
-        + SetID(int id_serv_pair_config, int id_movie,
-        int id_type, int id_localisation)
-        + SetSyncLoopInfos(string SyncLoopPath)
+            - int _CPLId[4]
+            - string _CPLUUID
+            - string _CPLName
+            - string _CPLPath
+            --
+            + CreateSync(string SyncPath)
 
-        + int* getID()
-        + string getSyncLoopPath()
+            + SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+            + SetDatas(string CPLUUID, string CPLName)
+            + SetCplInfos(string CPLPath)
+
+            + int* GetCPLId()
+            + string GetCPLUUID()
+            + string GetCPLName()
+            + string GetCPLPath()
+            + Sync* GetSync()
+        }
+        CPL --o Releases
+        class CPLRepo #LightYellow {
+            + Create(CPL* cpl)
+            + Read(CPL* cpl)
+            + Update(CPL* cpl)
+            + Remove(CPL* cpl)
+        }
+        CPLRepo --o CPL
+
+        class Sync #FBA834   {
+            - SyncRepo* _syncRepo
+
+            - int _syncId[4]
+            - string _syncPath
+            --
+            + SetSyncId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+            + SetSyncInfos(string SyncPath)
+
+            + int* GetSyncID()
+            + string GetSyncPath()
+        }
+        Sync --o CPL
+        class SyncRepo #LightYellow {
+            + Create(Sync* sync)
+            + Read(Sync* sync)
+            + Update(Sync* sync)
+            + Remove(Sync* sync)
+        }
+        SyncRepo --o Sync
+
+        class SyncLoop #FBA834   {
+            SyncLoopRepo* _syncLoopRepo
+
+            int _syncLoopId[4]
+            string _SyncLoopPath
+            --
+            SetSyncLoopId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+            SetSyncLoopInfos(string SyncLoopPath)
+
+            int* GetSyncLoopId()
+            string GetSyncLoopPath()
+        }
+        SyncLoop --o Releases
+        class SyncLoopRepo #LightYellow {
+            + Create(SyncLoop* syncLoop)
+            + Read(SyncLoop* syncLoop)
+            + Update(SyncLoop* syncLoop)
+            + Remove(SyncLoop* syncLoop)
+        }
+        SyncLoopRepo --o SyncLoop
+        enum TypeMovie #FBA834  
+        TypeMovie --o Releases
+        enum LocalisationMovie #FBA834  
+        LocalisationMovie --o Releases
     }
-    Releases o-- SyncLoop #DarkGrey
-    class SyncLoopRepo {
-        --
-        + Create(SyncLoop* syncloop)
-        + Read(SyncLoop* syncloop)
-        + Update(SyncLoop* syncloop)
-        + Remove(SyncLoop* syncloop)
+    package App #AAD7D9 {
+        class ContentInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStateContentInit
+            function<void()> pfTransitionToPublishing
+        }
+        class PublishingInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStatePublishing
+            function<void()> pfTransitionToReleaseCreation
+            function<void()> pfTransitionToCancel
+        }
+        class ReleaseInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStateReleaseCreation
+            function<void()> pfTransitionToPublishing
+        }
+        class CISInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStateUploadCIS
+            function<void()> pfTransitionToInProduction
+        }
+        class IdleSyncInteraction #LightGrey {
+            function<TransitionResponse(string, map<string,string>)> pfStateIdleSync
+            function<void()> pfTransitionToCPL
+            function<void()> pfTransitionToSyncLoop
+        }
+        class CPLInteraction #LightGrey {
+            function<TransitionResponse(string, map<string,string>)> pfStateCPL
+            function<void()> pfTransitionToSync
+        }
+        class SyncInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStateSync
+            function<void()> pfTransitionToInProduction
+        }
+        class SyncLoopInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStateSyncLoop
+            function<void()> pfTransitionToInProduction
+        }
+        class InProdInteraction #LightGrey {
+            function<TransitionResponse(string, map<string, string>)> pfStateInProd
+        }
+
+        struct Context #A6A6A6 {
+            + bool cisFinish
+            + bool syncFinish
+            + Content* content
+            + Releases* release
+            + ContentInteraction* contentInteraction
+            + PublishingInteraction* publishingInteraction
+            + ReleaseInteraction* releaseInteraction
+            + CISInteraction* cisInteraction
+            + IdleSyncInteraction* idleSyncInteraction
+            + CPLInteraction* cplInteraction
+            + SyncInteraction* syncInteraction
+            + SyncLoopInteraction* syncLoopInteraction
+            + InProdInteraction* inProdInteraction
+            + MySQLDBConnection* dbConnection
+        }
+        Context o-- ContentInteraction
+        Context o-- PublishingInteraction
+        Context o-- ReleaseInteraction
+        Context o-- CISInteraction
+        Context o-- IdleSyncInteraction
+        Context o-- CPLInteraction
+        Context o-- SyncInteraction
+        Context o-- SyncLoopInteraction
+        Context o-- InProdInteraction
+        Context o-right- Content
+        Context o-right- Releases
+        Context o-right- CIS
+        Context o-right- CPL
+        Context o-right- Sync
+        Context o-right- SyncLoop
+
+        class StateMachine #LightBlue {
+            - FSM::Instance * _fsmInstance
+            --
+            + StateMachine(Context* context)
+            + FSM::Instance * GetFSM()
+            + Transition(StateEvent eventTrigger)
+            + changeRelease(Control control, string compositeId)
+        }
+        StateMachine *-- Context
+        StateMachine o-up- HSFM2
+        StateEvent --o StateMachine
+        class StateMachineManager <<Singleton>> #LightBlue {
+            - static StateMachineManager* _instance
+            - map<string, StateMachine*> _stateMachineMap 
+            --
+            + static StateMachineManager* GetInstance()
+            + StateMachine* GetStateMachine(int id)
+            + AddStateMachine(int id, StateMachine* stateMachine)
+        }
+        StateMachineManager o-up- StateMachine
+        enum StateEvent #LightBlue
+
+        struct TransitionResponse {
+            + string cmdUUID
+            + string cmdComment
+            + string cmdStatus
+            + string cmdDatasXML
+        }
+        struct StateTemplate  <<FSM::State>> #LightCyan {
+            + TransitionResponse response
+            --
+            template <typename Event>
+            + react(const Event&, EventControl&)
+        }
+        StateTemplate -up-o TransitionResponse 
+        struct StateContentInit #LightCyan {
+            + entryGuard(FullControl& control)
+            + newContent(FullControl& control, string contentTitle)
+            + react (const ContentInitEvent&, EventControl& control)
+        }
+        struct StatePublishing #LightCyan {
+            + entryGuard(FullControl& control)
+            + deleteRelease(Control control, string id_movie, string id_type, string id_localisation)
+            + react (const CancelEvent&, EventControl& control)
+            + react (const CreateReleaseEvent&, EventControl& control)
+        }
+        struct StateReleaseCreation #LightCyan {
+            + entryGuard(FullControl& control)
+            + newRelease(Control control, int id_movie, int id_type, int id_localisation, string cplRefPath)
+            + react (const ReleaseCreatedEvent&, EventControl& control)
+        }
+        struct StateUploadCIS #LightCyan {
+            + entryGuard(FullControl& control)
+            + react (const PushCISEvent&, EventControl& control)
+            + newCISFile(Control control, string cisPath)
+        }
+        struct StateSyncCreate #LightCyan {
+            + enter(Control&)
+        }
+        struct StateIdleSync #LightCyan {
+            + entryGuard(FullControl& control)
+            + react (const CreateSyncEvent&, EventControl& control)
+            + react (const CreateCPLEvent&, EventControl& control)
+        }
+        struct StateCPL #LightCyan {
+            + entryGuard(FullControl& control)
+            + react (const CreateSyncEvent&, EventControl& control)
+            + newCPLFile(Control control, int id_serv_pair_config, string CPL_name, string CPL_uuid, string CPL_path)
+        }
+        struct StateSync #LightCyan {
+            + entryGuard(FullControl& control)
+            + react (const SyncCreatedEvent&, EventControl& control)
+            + newSyncFile(Control control, string compositeId, string syncPath)
+        }
+        struct StateSyncLoop #LightCyan {
+            + entryGuard(FullControl& control)
+            + react (const SyncCreatedEvent&, EventControl& control)
+            + newSyncLoop(Control control, string id_serv_pair_config, string syncLoopPath)
+        }
+        struct StateCancel #LightCyan {
+            + enter(Control&)
+        }
+        struct StateInProd #LightCyan {
+            + entryGuard(FullControl& control)
+        }
+
+        StateContentInit -up-|> StateTemplate
+        StatePublishing -up-|> StateTemplate
+        StateReleaseCreation -up-|> StateTemplate
+        StateUploadCIS -up-|> StateTemplate
+        StateSyncCreate -up-|> StateTemplate
+        StateIdleSync -up-|> StateTemplate
+        StateCPL -up-|> StateTemplate
+        StateSync -up-|> StateTemplate
+        StateSyncLoop -up-|> StateTemplate
+        StateCancel -up-|> StateTemplate
+        StateInProd -up-|> StateTemplate
+        StateContentInit --* StateMachine
+        StatePublishing --* StateMachine
+        StateReleaseCreation --* StateMachine
+        StateUploadCIS --* StateMachine
+        StateSyncCreate --* StateMachine
+        StateIdleSync --* StateMachine
+        StateCPL --* StateMachine
+        StateSync --* StateMachine
+        StateSyncLoop --* StateMachine
+        StateCancel --* StateMachine    
+        StateInProd --* StateMachine
     }
-    class SyncLoopRepo #LightYellow
-    SyncLoop o-- SyncLoopRepo #DarkGoldenRod 
-    enum TypeMovie
-    Releases o-up- TypeMovie #DarkGrey
-    enum LocalisationMovie
-    Releases o-up- LocalisationMovie #DarkGrey
+    package Infra #LightGray {
+        package HTTP #B0EBB4 {
+            class HTTPInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+                + Run(bool)
+            }
+            class HTTPInteraction <<abstract>> #LightGreen
+            class HTTPContentInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+            }
+            class HTTPContentInteraction #LightGreen
+            HTTPContentInteraction --|> HTTPInteraction
+            HTTPContentInteraction -up-|> ContentInteraction #Green
+            class HTTPPublishingInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+                + Run(bool)
+            }
+            class HTTPPublishingInteraction #LightGreen
+            HTTPPublishingInteraction --|> HTTPInteraction
+            HTTPPublishingInteraction -up-|> PublishingInteraction #Green
+            class HTTPReleaseInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+            }
+            class HTTPReleaseInteraction #LightGreen
+            HTTPReleaseInteraction --|> HTTPInteraction
+            HTTPReleaseInteraction -up-|> ReleaseInteraction #Green
+            class HTTPCISInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+            }
+            class HTTPCISInteraction #LightGreen
+            HTTPCISInteraction --|> HTTPInteraction
+            HTTPCISInteraction -up-|> CISInteraction #Green
+            class HTTPIdleSyncInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+                + Run(bool)
+            }
+            class HTTPIdleSyncInteraction #LightGreen
+            HTTPIdleSyncInteraction --|> HTTPInteraction
+            HTTPIdleSyncInteraction -up-|> IdleSyncInteraction #Green
+            class HTTPCPLInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+            }
+            class HTTPCPLInteraction #LightGreen
+            HTTPCPLInteraction --|> HTTPInteraction
+            HTTPCPLInteraction -up-|> CPLInteraction #Green
+            class HTTPSyncInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+            }
+            class HTTPSyncInteraction #LightGreen
+            HTTPSyncInteraction --|> HTTPInteraction
+            HTTPSyncInteraction -up-|> SyncInteraction #Green
+            class HTTPSyncLoopInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+                + Run()
+            }
+            class HTTPSyncLoopInteraction #LightGreen
+            HTTPSyncLoopInteraction --|> HTTPInteraction
+            HTTPSyncLoopInteraction -up-|> SyncLoopInteraction #Green
+            class HTTPInProdInteraction {
+                + TransitionResponse Run(string cmdUUID, map<string, string> Params)
+            }
+            class HTTPInProdInteraction #LightGreen
+            HTTPInProdInteraction --|> HTTPInteraction
+            HTTPInProdInteraction -up-|> InProdInteraction #Green
+        }
+        package MySQL #F3D0D7 {
+            class MySQLDBConnection #Pink {
+                - DatabaseConnector* _database
+                --
+                + MySQLDBConnection(DatabaseConnector* database)
+                + bool InitConnection()
+                + ResultQuery* ExecuteQuery(Query* query)
+            }
+            MySQLDBConnection -up-|> Context #Red
+            class MySQLContentRepo #Pink {
+                - static string _database
+                - static string _table
+
+                - int* _id
+                - string _title
+                - Query* _query
+                --
+                + Create(Content* content)
+                + Read(Content* content)
+                + Update(Content* content)
+                + Remove(Content* content)
+
+                + Query* MySQLcreate(Content* content)
+                + Query* MySQLread(Content* content)
+                + Query* MySQLupdate(Content* content)
+                + Query* MySQLremove(Content* content)
+                
+                + Query* GetQuery()
+            }
+            MySQLContentRepo -up-|> ContentRepo #Red
+            class MySQLReleaseRepo #Pink {
+                - static string _database
+                - static string _table
+
+                - int* _releaseIds
+                - string _CPLRefPath
+
+                - Query* _query
+                --
+                + Create(Releases* release)
+                + Read(Releases* release)
+                + Update(Releases* release)
+                + Remove(Releases* release)
+
+                + Query* MySQLcreate(Releases* release)
+                + Query* MySQLread(Releases* release)
+                + Query* MySQLupdate(Releases* release)
+                + Query* MySQLremove(Releases* release)
+            }
+            MySQLReleaseRepo -up-|> ReleaseRepo #Red
+            class MySQLCISRepo #Pink {
+                - static string _database
+                - static string _table
+
+                - int* _CISids
+                - string _pathCIS
+
+                - Query* _query
+                --
+                + Create(CIS* cis)
+                + Read(CIS* cis)
+                + Update(CIS* cis)
+                + Remove(CIS* cis)
+
+                + Query* MySQLcreate(CIS* cis)
+                + Query* MySQLread(CIS* cis)
+                + Query* MySQLupdate(CIS* cis)
+                + Query* MySQLremove(CIS* cis)
+
+                + Query* GetQuery()
+            }
+            MySQLCISRepo -up-|> CISRepo #Red
+            class MySQLCPLRepo #Pink {
+                - static string _database
+                - static string _table
+
+                - int* _cplIds
+                - string _uuid
+                - string _name
+                - string _cplPath
+
+                - Query* _query
+                --
+                + Create(CPL* cpl)
+                + Read(CPL* cpl)
+                + Update(CPL* cpl)
+                + Remove(CPL* cpl)
+
+                + Query* MySQLcreate(CPL* cpl)
+                + Query* MySQLread(CPL* cpl)
+                + Query* MySQLupdate(CPL* cpl)
+                + Query* MySQLremove(CPL* cpl)
+
+                + Query* GetQuery()
+            }
+            MySQLCPLRepo -up-|> CPLRepo #Red
+            class MySQLSyncRepo #Pink {
+                - static string _database
+                - static string _table
+
+                - int* _syncId
+                - string _syncPath
+
+                - Query* _query
+                --
+                + Create(Sync* sync)
+                + Read(Sync* sync)
+                + Update(Sync* sync)
+                + Remove(Sync* sync)
+
+                + Query* MySQLcreate(Sync* sync)
+                + Query* MySQLread(Sync* sync)
+                + Query* MySQLupdate(Sync* sync)
+                + Query* MySQLremove(Sync* sync)
+
+                + Query* GetQuery()
+            }
+            MySQLSyncRepo -up-|> SyncRepo #Red
+            class MySQLSyncLoopRepo #Pink {
+                - static string _database
+                - static string _table
+
+                - int* _syncloopIds
+                - string _syncLoopPath
+
+                - Query* _query
+                --
+                + Create(SyncLoop* syncloop)
+                + Read(SyncLoop* syncloop)
+                + Update(SyncLoop* syncloop)
+                + Remove(SyncLoop* syncloop)
+
+                + Query* MySQLcreate(SyncLoop* syncloop)
+                + Query* MySQLread(SyncLoop* syncloop)
+                + Query* MySQLupdate(SyncLoop* syncloop)
+                + Query* MySQLremove(SyncLoop* syncloop)
+
+                + Query* GetQuery()
+            }
+            MySQLSyncLoopRepo -up-|> SyncLoopRepo #Red
+        }
+    }
 }
-package App {
-    abstract StateTemplate <<HFSM2>> {
-        + FullControl* stateControl
-    }
 
-    abstract StateTemplate <<HFSM2>> #LightCyan
-    struct StateIdle{
+package CENTRAL {
+    class Configurator {
+        - map<CommandCentral::CommandCentralType, HTTPInteraction*> _httpInteractions
+        - Context* _context
+        - StateMachine* _stateMachine
+        - MySQLDBConnection* _dbConnection
+        + FSM::Instance * fsmMachine
         --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateIdle <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateIdle #DarkCyan
-    class IdleInteraction {
-        + function<void()> pfTransition
-    }
-    class IdleInteraction #lightgrey
-    StateIdle --o IdleInteraction #DarkBlue
-
-    struct StateContentInit {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateContentInit <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateContentInit #DarkCyan
-    StateContentInit o-- Content #Blue;text:Blue; : To Create Release 
-    class ContentInteraction {
-        + function<void()> pfTransition
-    }
-    class ContentInteraction #lightgrey
-    StateContentInit --o ContentInteraction #DarkBlue
-
-    struct StateReleaseCreation {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateReleaseCreation <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateReleaseCreation #DarkCyan
-    StateReleaseCreation o-- Content #Blue;text:Blue; : Create Release
-    class ReleaseInteraction {
-        + function<void()> pfTransition
-    }
-    class ReleaseInteraction #lightgrey
-    StateReleaseCreation --o ReleaseInteraction #DarkBlue
-
-    struct StatePublishing {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StatePublishing <<HFSM2>> #LightBlue
-    StateTemplate <|-- StatePublishing #DarkCyan
-    class PublishingInteraction {
-        + function<void()> pfTransition
-    }
-    class PublishingInteraction #lightgrey
-    StatePublishing --o PublishingInteraction #DarkBlue
-    StatePublishing o-- CIS #Blue;text:Blue; :Publish
-    StatePublishing o-- Sync #Blue;text:Blue; :Publish
-    StatePublishing o-- SyncLoop #Blue;text:Blue; :Publish
-
-    struct StateUploadCIS {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateUploadCIS <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateUploadCIS #DarkCyan  
-    StateUploadCIS o-- Releases #Blue;text:Blue; : Upload CIS
-    class CISInteraction {
-        + function<void()> pfTransition
-    }
-    class CISInteraction #lightgrey
-    StateUploadCIS --o CISInteraction #DarkBlue
-
-    struct StateSyncCreate {
-        --
-        enter()
-    }
-    struct StateSyncCreate <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateSyncCreate #DarkCyan
-    struct StateIdleSync {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        TransitionToCPL()
-        TransitionToSYNCLOOP()
-    }
-    struct StateIdleSync <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateIdleSync #DarkCyan
-    class IdleSyncInteraction {
-        + function<void()> pfTransitionToCPL
-        + function<void()> pfTransitionToSYNCLOOP
-    }
-    class IdleSyncInteraction #lightgrey
-    StateIdleSync --o IdleSyncInteraction #DarkBlue
-
-    struct StateCPL {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateCPL <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateCPL #DarkCyan
-    StateCPL o-- CPL #Blue;text:Blue; : Create CPL
-    class CPLInteraction {
-        + function<void()> pfTransition
-    }
-    class CPLInteraction #lightgrey
-    StateCPL --o CPLInteraction #DarkBlue
-
-    struct StateSync {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateSync <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateSync #DarkCyan
-    StateSync o-- Sync #Blue;text:Blue; : Create Sync
-    class SyncInteraction {
-        + function<void()> pfTransition
-    }
-    class SyncInteraction #lightgrey
-    StateSync --o SyncInteraction #DarkBlue
-
-    struct StateSyncLoop {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateSyncLoop <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateSyncLoop #DarkCyan
-    StateSyncLoop o-- Releases #Blue;text:Blue; : Create SyncLoop
-    class SyncLoopInteraction {
-        + function<void()> pfTransition
-    }
-    class SyncLoopInteraction #lightgrey
-    StateSyncLoop --o SyncLoopInteraction #DarkBlue
-
-    ' struct StateCancel {
-    '     --
-    '     entryGuard(FullControl& control)
-    '     enter()
-    '     Transition()
-    ' }
-    ' struct StateCancel <<HFSM2>> #LightBlue
-    ' StateTemplate <|-- StateCancel #DarkCyan
-    ' class CancelInteraction #lightgrey
-    ' StateCancel --o CancelInteraction #DarkBlue
-
-    struct StateInProd {
-        --
-        entryGuard(FullControl& control)
-        enter()
-        Transition()
-    }
-    struct StateInProd <<HFSM2>> #LightBlue
-    StateTemplate <|-- StateInProd #DarkCyan
-    class InProdInteraction {
-        + function<void()> pfTransition
-    }
-    class InProdInteraction #lightgrey
-    StateInProd --o InProdInteraction #DarkBlue
-}
-package Infrastructure {
-    package Infrastructure::MySQL{
-        class MySQLContentRepo {
-            - string _database
-            - string _table
-            --
-            + Query* MySQLcreate(Content* content)
-            + Query* MySQLread(Content* content)
-            + Query* MySQLupdate(Content* content) 
-            + Query* MySQLremove(Content* content)
-        }
-        class MySQLContentRepo #LightPink
-        ContentRepo <|-- MySQLContentRepo #Red
-        class MySQLReleaseRepo {
-            - string _database
-            - string _table
-            --
-            + Query* MySQLcreate(Releases* release)
-            + Query* MySQLread(Releases* release)
-            + Query* MySQLupdate(Releases* release)
-            + Query* MySQLremove(Releases* release)
-        }
-        class MySQLReleaseRepo #LightPink
-        ReleaseRepo <|-- MySQLReleaseRepo #Red
-        class MySQLCISRepo {
-            - string _database
-            - string _table
-            --
-            + Query* MySQLcreate(CIS* cis)
-            + Query* MySQLread(CIS* cis)
-            + Query* MySQLupdate(CIS* cis)
-            + Query* MySQLremove(CIS* cis)
-        }
-        class MySQLCISRepo #LightPink
-        CISRepo <|-- MySQLCISRepo #Red
-        class MySQLCPLRepo {
-            - string _database
-            - string _table
-            --
-            + Query* MySQLcreate(CPL* cpl)
-            + Query* MySQLread(CPL* cpl)
-            + Query* MySQLupdate(CPL* cpl)
-            + Query* MySQLremove(CPL* cpl)
-        }
-        class MySQLCPLRepo #LightPink
-        CPLRepo <|-- MySQLCPLRepo #Red
-        class MySQLSyncRepo {
-            - string _database
-            - string _table
-            --
-            + Query* MySQLcreate(CPL* cpl)
-            + Query* MySQLread(CPL* cpl)
-            + Query* MySQLupdate(CPL* cpl)
-            + Query* MySQLremove(CPL* cpl)
-        }
-        class MySQLSyncRepo #LightPink
-        SyncRepo <|-- MySQLSyncRepo #Red
-        class MySQLSyncLoopRepo {
-            - string _database
-            - string _table
-            --
-            + Query* MySQLcreate(SyncLoop* syncloop)
-            + Query* MySQLread(SyncLoop* syncloop)
-            + Query* MySQLupdate(SyncLoop* syncloop)
-            + Query* MySQLremove(SyncLoop* syncloop)
-        }
-        class MySQLSyncLoopRepo #LightPink
-        SyncLoopRepo <|-- MySQLSyncLoopRepo #Red
-        class MySQLDBConnection {
-            - _DatabaseConnector* _database
-            --
-            + bool InitConnection()
-            + ResultQuery* ExecuteQuery(Query* query)
-        }
-        class MySQLDBConnection #LightPink
-        MySQLContentRepo o-- MySQLDBConnection #Red
-        MySQLReleaseRepo o-- MySQLDBConnection #Red
-        MySQLCISRepo o-- MySQLDBConnection #Red
-        MySQLCPLRepo o-- MySQLDBConnection #Red
-        MySQLSyncRepo o-- MySQLDBConnection #Red
-        MySQLSyncLoopRepo o-- MySQLDBConnection #Red
-    }
-    package Infrastructure::HTTP {
-        interface HTTPInteraction {
-            --
-            + run()
-        }
-        class HTTPIdleInteraction {
-            --
-            + run()
-        }
-        class HTTPIdleInteraction #LightGreen
-        IdleInteraction <|-- HTTPIdleInteraction #Green
-        HTTPIdleInteraction --|> HTTPInteraction
-        class HTTPContentInteraction {
-            --
-            + run()
-        }
-        class HTTPContentInteraction #LightGreen
-        ContentInteraction <|-- HTTPContentInteraction #Green
-        HTTPContentInteraction --|> HTTPInteraction
-        class HTTPReleaseInteraction {
-            --
-            + run()
-        }
-        class HTTPReleaseInteraction #LightGreen
-        ReleaseInteraction <|-- HTTPReleaseInteraction #Green
-        HTTPReleaseInteraction --|> HTTPInteraction
-        class HTTPCISInteraction {
-            --
-            + run()
-        }
-        class HTTPCISInteraction #LightGreen
-        CISInteraction <|-- HTTPCISInteraction #Green
-        HTTPCISInteraction --|> HTTPInteraction
-        class HTTPIdleSyncInteraction {
-            - bool _syncLoop 
-            --
-            + SetSyncLoop(bool SyncLoop)
-
-            + run()
-        }
-        class HTTPIdleSyncInteraction #LightGreen
-        IdleSyncInteraction <|-- HTTPIdleSyncInteraction #Green
-        HTTPIdleSyncInteraction --|> HTTPInteraction
-        class HTTPCPLInteraction {
-            --
-            + run()
-        }
-        class HTTPCPLInteraction #LightGreen
-        CPLInteraction <|-- HTTPCPLInteraction #Green
-        HTTPCPLInteraction --|> HTTPInteraction
-        class HTTPSyncInteraction {
-            --
-            + run()
-        }
-        class HTTPSyncInteraction #LightGreen
-        SyncInteraction <|-- HTTPSyncInteraction #Green 
-        HTTPSyncInteraction --|> HTTPInteraction
-        class HTTPSyncLoopInteraction {
-            --
-            + run()
-        }
-        class HTTPSyncLoopInteraction #LightGreen
-        SyncLoopInteraction <|-- HTTPSyncLoopInteraction #Green
-        HTTPSyncLoopInteraction --|> HTTPInteraction
-        class HTTPPublishingInteraction {
-            --
-            + run()
-        }
-        class HTTPPublishingInteraction #LightGreen
-        PublishingInteraction <|-- HTTPPublishingInteraction #Green
-        HTTPPublishingInteraction --|> HTTPInteraction
-        class HTTPInProdInteraction {
-            --
-            + run()
-        }
-        class HTTPInProdInteraction #LightGreen
-        InProdInteraction <|-- HTTPInProdInteraction #Green
-        HTTPInProdInteraction --|> HTTPInteraction
-        ' class HTTPCancelInteraction {
-        '     --
-        '     + run()
-        ' }
-        ' class HTTPCancelInteraction #LightGreen
-        ' CancelInteraction <|-- HTTPCancelInteraction #Green
-        ' HTTPCancelInteraction --|> HTTPInteraction
+        + Configurator(MySQLDBConnection* DBconnection)
+        + map<CommandCentral::CommandCentralType, HTTPInteraction*> GetHTTPInteractions()
+        + StateMachine* GetStateMachine()
     }
 }
+
 @enduml

@@ -2,17 +2,18 @@
 #include "Sync.h"
 #include <iostream>
 class CPLRepo;
-class CPL
+class CPLRelease
 {
 public:
-    CPL();
-    ~CPL();
+    CPLRelease();
+    ~CPLRelease();
 
     void CreateSync(std::string SyncPath);
 
     void SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
     void SetDatas(std::string CPLUUID, std::string CPLName);
     void SetCplInfos(std::string CPLPath);
+    std::string toXmlString();
 
     int* GetCPLId() {return this->_CPLId;}
     std::string GetCPLUUID() {return this->_CPLUUID;}

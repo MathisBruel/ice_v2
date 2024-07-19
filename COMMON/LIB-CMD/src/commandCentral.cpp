@@ -515,6 +515,17 @@ CommandCentral::CommandCentralType CommandCentral::generateFromString(std::strin
         return CANCEL;
     }
 
+    // -- Getters State Machine
+    else if (typeStr == "GET_CONTENT") {
+        return GET_CONTENT;
+    }
+    else if (typeStr == "GET_RELEASES_CONTENT") {
+        return GET_RELEASES_CONTENT;
+    }
+    else if (typeStr == "DELETE_RELEASE_CONTENT") {
+        return DELETE_RELEASE_CONTENT;
+    }
+
     // -- DEFAULT
     else {
         return UNKNOW_COMMAND;
@@ -736,6 +747,17 @@ std::string CommandCentral::generateToString(CommandCentral::CommandCentralType 
     }
     else if (type == CANCEL) {
         return "CANCEL";
+    }
+
+        // -- Getters State Machine
+    else if (type == GET_CONTENT) {
+        return "GET_CONTENT";
+    }
+    else if (type == GET_RELEASES_CONTENT) {
+        return "GET_RELEASES_CONTENT";
+    }
+    else if (type == DELETE_RELEASE_CONTENT) {
+        return "DELETE_RELEASE_CONTENT";
     }
 
     // -- DEFAULT

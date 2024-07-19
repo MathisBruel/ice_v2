@@ -6,5 +6,6 @@ enum LocalisationMovie {
     ESTONIA,
     INDIA,
     AR_KSA,
-    AR_AE
+    AR_AE,
+    UNKNOW_LOCALISATION = -1
 };

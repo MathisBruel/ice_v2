@@ -1,12 +1,12 @@
 #include "StateMachine.h"
-class StateMachineMannager {
+class StateMachineManager {
     public:
-        static StateMachineMannager* GetInstance();
+        static StateMachineManager* GetInstance();
 
         void AddStateMachine(int id, StateMachine* stateMachine);
         StateMachine* GetStateMachine(int id);
     private:
-        StateMachineMannager();
-        static StateMachineMannager* _instance;
-        std::map<int,StateMachine*> stateMachineMap;
+        StateMachineManager();
+        static StateMachineManager* _instance;
+        std::map<int,StateMachine*> _stateMachineMap;
 };

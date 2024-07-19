@@ -12,10 +12,18 @@ namespace Migrations
 
         void up() const override
         {
+			Schema::create("posts", [](Blueprint &table)
+            {
+                table.id();
+
+                table.string(NAME);
+                table.timestamps();
+            });
 			Schema::create("groups", [](Blueprint &table)
 			{
 				table.id("id_group");
-				table.unsignedBigInteger("id_group_1");
+				table.unsignedBigInteger("id_group_1").nullable();
+				table.string("name", 50);
 				table.foreign("id_group_1").references("id_group").on("groups");
 			});
 			Schema::create("connection", [](Blueprint &table)
@@ -25,10 +33,12 @@ namespace Migrations
 			Schema::create("localisation", [](Blueprint &table)
 			{
 				table.id("id_localisation");
+				table.string("name", 50);
 			});
 			Schema::create("type", [](Blueprint &table)
 			{
 				table.id("id_type");
+				table.string("name", 50);
 			});
 			Schema::create("movie", [](Blueprint &table)
 			{
@@ -66,7 +76,8 @@ namespace Migrations
 				table.unsignedBigInteger("id_movie");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
-				table.string("path", 50);
+				table.string("release_cis_path", 50).defaultValue("NULL").nullable();
+				table.string("release_cpl_ref_path", 50);
 				table.primary({"id_movie", "id_type", "id_localisation"});
 				table.foreign("id_movie").references("id_movie").on("movie");
 				table.foreign("id_type").references("id_type").on("type");
@@ -122,6 +133,7 @@ namespace Migrations
 				table.unsignedBigInteger("id_movie");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
+				table.integer("type_cpl").nullable().change();
 				table.integer("id").change();
                 table.dropPrimary("id");
 				table.primary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
@@ -130,6 +142,7 @@ namespace Migrations
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");
 			});
+			DB::statement("ALTER TABLE cpl MODIFY id INT NULL;");
 			Schema::create("sync", [](Blueprint &table)
 			{
 				table.unsignedBigInteger("id_serv_pair_config");

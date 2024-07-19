@@ -114,6 +114,13 @@ public:
         SYNCLOOP_CREATED,
         IMPORT_TO_PROD,
         CANCEL,
+
+        // ------------------------
+        // -- Getters State Machine 
+        // ------------------------
+        GET_CONTENT,
+        GET_RELEASES_CONTENT,
+        DELETE_RELEASE_CONTENT,
         
         // -- DEFAULT
         UNKNOW_COMMAND

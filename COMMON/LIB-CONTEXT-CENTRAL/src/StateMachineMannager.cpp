@@ -1,22 +1,22 @@
 #include "App/StateMachineManager.h"
 
-StateMachineMannager* StateMachineMannager::_instance = nullptr;
+StateMachineManager* StateMachineManager::_instance = nullptr;
 
-StateMachineMannager::StateMachineMannager() { 
+StateMachineManager::StateMachineManager() { 
     _instance = nullptr;
 }
 
-StateMachineMannager* StateMachineMannager::GetInstance() {
+StateMachineManager* StateMachineManager::GetInstance() {
     if(_instance == nullptr){
-        _instance = new StateMachineMannager();
+        _instance = new StateMachineManager();
     }
     return _instance;
 }
 
-void StateMachineMannager::AddStateMachine(int id, StateMachine* stateMachine) {
-    stateMachineMap[id] = stateMachine;
+void StateMachineManager::AddStateMachine(int id, StateMachine* stateMachine) {
+    _stateMachineMap[id] = stateMachine;
 }
 
-StateMachine* StateMachineMannager::GetStateMachine(int id) {
-    return stateMachineMap[id];
+StateMachine* StateMachineManager::GetStateMachine(int id) {
+    return _stateMachineMap[id];
 };

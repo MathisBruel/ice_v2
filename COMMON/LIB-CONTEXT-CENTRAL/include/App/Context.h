@@ -26,10 +26,6 @@ struct Context
 
     Content* content;
     Releases* release;
-    CIS* cis;
-    CPL* cpl;
-    Sync* sync;
-    SyncLoop* syncLoop;
 
     ContentInteraction* contentInteraction;
     PublishingInteraction* publishingInteraction;
@@ -49,10 +45,6 @@ struct Context
             InProdInteraction* pfInProdInteraction, MySQLDBConnection* dbConnection) {
         this->content = nullptr;
         this->release = nullptr;
-        this->cis = nullptr;
-        this->cpl = nullptr;
-        this->sync = nullptr;
-        this->syncLoop = nullptr;
         this->contentInteraction = pfcontentInteraction;
         this->publishingInteraction = pfPublishingInteraction;
         this->releaseInteraction = pfReleaseInteraction;
@@ -70,14 +62,6 @@ struct Context
         this->content = nullptr;
         if (this->release) { delete this->release; }
         this->release = nullptr;
-        if (this->cis) { delete this->cis; }
-        this->cis = nullptr;
-        if (this->cpl) { delete this->cpl; }
-        this->cpl = nullptr;
-        if (this->sync) { delete this->sync; }
-        this->sync = nullptr;
-        if (this->syncLoop) { delete this->syncLoop; }
-        this->syncLoop = nullptr;
 
         if (this->contentInteraction) { delete this->contentInteraction; }
         this->contentInteraction = nullptr;
