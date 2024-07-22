@@ -525,6 +525,9 @@ CommandCentral::CommandCentralType CommandCentral::generateFromString(std::strin
     else if (typeStr == "DELETE_RELEASE_CONTENT") {
         return DELETE_RELEASE_CONTENT;
     }
+    else if (typeStr == "GET_CPLS_SITE") {
+        return GET_CPLS_SITE;
+    }
 
     // -- DEFAULT
     else {
@@ -758,6 +761,9 @@ std::string CommandCentral::generateToString(CommandCentral::CommandCentralType 
     }
     else if (type == DELETE_RELEASE_CONTENT) {
         return "DELETE_RELEASE_CONTENT";
+    }
+    else if (type == GET_CPLS_SITE) {
+        return "GET_CPLS_SITE";
     }
 
     // -- DEFAULT

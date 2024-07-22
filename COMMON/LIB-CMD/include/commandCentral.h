@@ -121,6 +121,7 @@ public:
         GET_CONTENT,
         GET_RELEASES_CONTENT,
         DELETE_RELEASE_CONTENT,
+        GET_CPLS_SITE,
         
         // -- DEFAULT
         UNKNOW_COMMAND
