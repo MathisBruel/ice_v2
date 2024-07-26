@@ -8,6 +8,14 @@ Releases::Releases()
     _CPLRefPath = "";
     _cis = nullptr;
 }
+Releases::Releases(int id_movie, int typeMovie, int localisationMovie) {
+    _releaseId[0] = id_movie;
+    _releaseId[1] = typeMovie;
+    _releaseId[2] = localisationMovie;
+    _CPLRefPath = "";
+    _cis = nullptr;
+
+}
 Releases::~Releases() {
     if (_cis != nullptr) {
         delete _cis;
@@ -47,13 +55,16 @@ void Releases::SetReleaseId(int id_movie, TypeMovie typeMovie, LocalisationMovie
     _releaseId[2] = localisationMovie;
 }
 
-std::string Releases::toXmlString()
+std::string Releases::toXmlString(bool printChild)
 {
     std::string xml = "<release";
     xml += " id_movie=\"" + std::to_string(this->_releaseId[0]) + "\"";
     xml += " id_type=\"" + std::to_string(this->_releaseId[1]) + "\"";
     xml += " id_localisation=\"" + std::to_string(this->_releaseId[2]) + "\"";
     xml += " release_cpl_ref_path=\"" + this->_CPLRefPath + "\"";
+    if (printChild) {
+        xml += " release_cis_path=\"" + this->_cis->GetCISPath() + "\"";
+    }
     xml += "/>";
     return xml;
 }

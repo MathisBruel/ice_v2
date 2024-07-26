@@ -1,7 +1,7 @@
 #include "Infra/MySQLSyncLoopRepo.h"
 
 std::string MySQLSyncLoopRepo::_database = "ice";
-std::string MySQLSyncLoopRepo::_table = "LoopSync";
+std::string MySQLSyncLoopRepo::_table = "loopSync";
 
 Query* MySQLSyncLoopRepo::MySQLcreate(SyncLoop* syncloop){
     _syncloopIds = syncloop->GetSyncLoopId();
@@ -15,7 +15,7 @@ Query* MySQLSyncLoopRepo::MySQLcreate(SyncLoop* syncloop){
     createQuery->addParameter("id_movie", &_syncloopIds[1], "int");
     createQuery->addParameter("id_type", &_syncloopIds[2], "int");
     createQuery->addParameter("id_localisation", &_syncloopIds[3], "int");
-    createQuery->addParameter("LoopSync_path", &_syncLoopPath, "string");
+    createQuery->addParameter("path_sync_loop", &_syncLoopPath, "string");
     return createQuery;
 }
 Query* MySQLSyncLoopRepo::MySQLread(SyncLoop* syncloop){
@@ -26,7 +26,7 @@ Query* MySQLSyncLoopRepo::MySQLread(SyncLoop* syncloop){
     readQuery->addParameter("id_movie", nullptr, "int");
     readQuery->addParameter("id_type",nullptr, "int");
     readQuery->addParameter("id_localisation", nullptr, "int");
-    readQuery->addParameter("LoopSync_path", nullptr, "string");
+    readQuery->addParameter("path_sync_loop", nullptr, "string");
     if (*&_syncloopIds[0] != -1 ) { readQuery->addWhereParameter("id_serv_pair_config", &_syncloopIds[0], "int"); };
     if (*&_syncloopIds[1] != -1 ) { readQuery->addWhereParameter("id_movie", &_syncloopIds[1], "int"); };
     if (*&_syncloopIds[2] != -1 ) { readQuery->addWhereParameter("id_type", &_syncloopIds[2], "int"); };
@@ -41,7 +41,7 @@ Query* MySQLSyncLoopRepo::MySQLupdate(SyncLoop* syncloop){
     _syncLoopPath = syncloop->GetSyncLoopPath();
 
     Query* updateQuery = new Query(Query::UPDATE, _database, _table);
-    updateQuery->addParameter("LoopSync_path", &_syncLoopPath, "string");
+    updateQuery->addParameter("path_sync_loop", &_syncLoopPath, "string");
     updateQuery->addWhereParameter("id_serv_pair_config", &_syncloopIds[0], "int");
     updateQuery->addWhereParameter("id_movie", &_syncloopIds[1], "int");
     updateQuery->addWhereParameter("id_type", &_syncloopIds[2], "int");

@@ -13,7 +13,7 @@ Query* MySQLSyncRepo::MySQLcreate(Sync* sync)
     createQuery->addParameter("id_movie", &_syncId[1], "int");
     createQuery->addParameter("id_type", &_syncId[2], "int");
     createQuery->addParameter("id_localisation", &_syncId[3], "int");
-    createQuery->addParameter("sync_path", &_syncPath, "string");
+    createQuery->addParameter("path_sync", &_syncPath, "string");
     return createQuery;
 }
 Query* MySQLSyncRepo::MySQLread(Sync* sync)
@@ -25,7 +25,7 @@ Query* MySQLSyncRepo::MySQLread(Sync* sync)
     readQuery->addParameter("id_movie", nullptr, "int");
     readQuery->addParameter("id_type", nullptr, "int");
     readQuery->addParameter("id_localisation", nullptr, "int");
-    readQuery->addParameter("sync_path", nullptr, "string");
+    readQuery->addParameter("path_sync", nullptr, "string");
     if (*&_syncId[0] != -1 ) { readQuery->addWhereParameter("id_serv_pair_config", &_syncId[0], "int"); };
     if (*&_syncId[1] != -1 ) { readQuery->addWhereParameter("id_movie", &_syncId[1], "int"); };
     if (*&_syncId[2] != -1 ) { readQuery->addWhereParameter("id_type", &_syncId[2], "int"); };
@@ -39,7 +39,7 @@ Query* MySQLSyncRepo::MySQLupdate(Sync* sync)
     if (_syncId[0] == -1 || _syncId[1] == -1 || _syncId[2] == -1 || _syncId[3] == -1) { return nullptr; }
     _syncPath = sync->GetSyncPath();
     Query* updateQuery = new Query(Query::UPDATE, _database, _table);
-    updateQuery->addParameter("sync_path", &_syncPath, "string");
+    updateQuery->addParameter("path_sync", &_syncPath, "string");
     updateQuery->addWhereParameter("id_serv_pair_config", &_syncId[0], "int");
     updateQuery->addWhereParameter("id_movie", &_syncId[1], "int");
     updateQuery->addWhereParameter("id_type", &_syncId[2], "int");

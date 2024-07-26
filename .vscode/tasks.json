@@ -19,7 +19,9 @@
                 // "Container Stop",
                 // "Container Start",
                 "Build WebCentral executable",
-                "Container-Image Remove",
+                "Build ICE-MIGRATION executable",
+                // "Container-Image Remove",
+                "Container-Image Remove Central",
                 "Docker container build and run",
                 "Start ICE-SERVICE and ICE-Panel",
                 "Container Config Web-Central",
@@ -111,6 +113,18 @@
             },
             "group": "build"
         },
+        {   "label": "Container-Image Remove Central",
+            "command": "docker container stop ice-server-container-central-v2; docker container rm ice-server-container-central-v2; docker rmi -f ice_v2-ice-server-central-v2;",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
         {   "label": "Docker container build and run",
             "command": "docker compose up -d; while ! docker exec ice-server-container-central-v2 sh -c '[ -f /migration/migration-done ]'; do sleep 1; done && docker exec ice-server-container-central-v2 rm -r migration; ",
             "type": "shell",
@@ -140,6 +154,19 @@
             "label": "Build WebCentral executable",
             "type": "shell",
             "command": "rm BUILD/BIN/ICE-CENTRAL; cd CMAKE/EXE/SERVICES/CENTRAL; make ICE-CENTRAL; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build ICE-MIGRATION executable",
+            "type": "shell",
+            "command": "rm BUILD/BIN/ICE-MIGRATION; cd CMAKE/EXE/SERVICES/ICE-MIGRATION; make ICE-MIGRATION; cp ICE-MIGRATION ../../../../BUILD/BIN/;",
             "args": [],
             "problemMatcher": [
                 "$tsc"

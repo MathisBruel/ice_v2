@@ -178,8 +178,8 @@ std::string Query::getQueryString()
                 else if (itSchema->second == "null") {
                     query += "NULL";
                 }
+                query += " AND ";
             }
-            query += " AND ";
         }
         query = query.substr(0, query.size()-5);
         query += ")";

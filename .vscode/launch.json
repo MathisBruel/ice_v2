@@ -67,18 +67,6 @@
                 }
             ]
         },
-        {   "name": "(NodeJS) Web Central",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/Main_API.js",
-            "args": [ "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/config.json" ],
-            "runtimeExecutable": "/usr/bin/nodejs",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Start nodeJS Web-Central",
-            "stopOnEntry": false,
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
         {
             "name": "Attach NodeJS",
             "type": "node",

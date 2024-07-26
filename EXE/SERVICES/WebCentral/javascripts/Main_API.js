@@ -224,6 +224,7 @@ class Main_API {
         this.app.get('/synchro', this.restrictPage.bind(this), function(request, response){ response.render('model/synchro'); }.bind(this));
         this.app.get('/sites', this.restrictPage.bind(this), function(request, response){ response.render('model/sites'); }.bind(this));
         this.app.get('/movies', this.restrictPage.bind(this), function(request, response){ response.render('model/movies'); }.bind(this));
+        this.app.get('/contentRelease', this.restrictPage.bind(this), function(request, response){ response.render('model/content_release'); }.bind(this));
 
         // -- GET API
         this.app.post('/getGroups', this.restrictPage.bind(this), function(request, response){ this.giveGroups(request, response); }.bind(this));
@@ -286,12 +287,21 @@ class Main_API {
         this.app.post('/createContent', this.restrictPage.bind(this), function(request, response){ this.createContent(request, response); }.bind(this));
         this.app.post('/getContents', this.restrictPage.bind(this), function(request, response){ this.getContents(request, response); }.bind(this));
         this.app.post('/createReleases', this.restrictPage.bind(this), function(request, response){ this.createReleases(request, response); }.bind(this));
+        this.app.post('/updateReleases', this.restrictPage.bind(this), function(request, response){ this.updateReleaseContent(request, response); }.bind(this));
         this.app.post('/getReleasesContent', this.restrictPage.bind(this), function(request, response){ this.getReleasesContent(request, response); }.bind(this));
         this.app.post('/deleteReleases', this.restrictPage.bind(this), function(request, response){ this.deleteReleases(request, response); }.bind(this));
+        this.app.post('/createCIS', this.restrictPage.bind(this), function(request, response){ this.insertCIS(request, response); }.bind(this));
+        this.app.post('/updateCIS', this.restrictPage.bind(this), function(request, response){ this.updateCIS(request, response); }.bind(this));
         this.app.post('/createSyncLoop', this.restrictPage.bind(this), function(request, response){ this.addSyncLoop(request, response); }.bind(this));
-        this.app.post('/createCPL', this.restrictPage.bind(this), function(request, response){ alert("test"); this.addCpl(request, response); }.bind(this));
+        this.app.post('/deleteSyncLoop', this.restrictPage.bind(this), function(request, response){ this.deleteSyncLoop(request, response); }.bind(this));
+        this.app.post('/getSyncLoop', this.restrictPage.bind(this), function(request, response){ this.getSyncLoop(request, response); }.bind(this));
+        this.app.post('/createNewCPL', this.restrictPage.bind(this), function(request, response){ this.addCpl(request, response); }.bind(this));
+        this.app.post('/deleteReleaseCPL', this.restrictPage.bind(this), function(request, response){ this.deleteCpl(request, response); }.bind(this));
+        this.app.post('/getCPL', this.restrictPage.bind(this), function(request, response){ this.getCpl(request, response); }.bind(this));
         this.app.post('/createSync', this.restrictPage.bind(this), function(request, response){ this.addSync(request, response); }.bind(this));
-
+        this.app.post('/deleteSync', this.restrictPage.bind(this), function(request, response){ this.deleteSync(request, response); }.bind(this));
+        this.app.post('/getSync', this.restrictPage.bind(this), function(request, response){ this.getSync(request, response); }.bind(this));
+        this.app.post('/getServerPair', this.restrictPage.bind(this), function(request, response){ this.getServPair(request, response); }.bind(this));
         // -- LINKS
         this.app.post('/linkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.linkCinemaToGroup(request, response); }.bind(this));
         this.app.post('/unlinkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.unlinkCinemaToGroup(request, response); }.bind(this));
@@ -367,7 +377,6 @@ class Main_API {
     async giveGroups(request, response) {
         try {
             const result = await this.client.getGroups(request.body);
-            console.log(result);
             response.json(result);
         }
         catch(err){
@@ -792,7 +801,6 @@ class Main_API {
         }
     }
     async getReleasesContent(request, response) {
-        console.log(request.body);
         try {
             const result = await this.client.getReleasesContent(request.body);
             response.json(result);
@@ -810,6 +818,33 @@ class Main_API {
             this.onError(response, err, 'deleteReleases');
         }
     }
+    async updateReleaseContent(request, response) {
+        try {
+            const result = await this.client.updateReleaseContent(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'updateReleaseContent');
+        }
+    }
+    async insertCIS(request, response) {
+        try {
+            const result = await this.client.insertCIS(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'insertCIS');
+        }
+    }
+    async updateCIS(request, response) {
+        try {
+            const result = await this.client.updateCIS(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'updateCIS');
+        }
+    }
     async addSyncLoop(request, response) {
         try {
             const result = await this.client.addSyncLoopToRelease(request.body);
@@ -817,6 +852,24 @@ class Main_API {
         }
         catch(err){
             this.onError(response, err, 'addSyncLoopToRelease');
+        }
+    }
+    async deleteSyncLoop (request, response) {
+        try {
+            const result = await this.client.deleteSyncLoop(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteSyncLoop');
+        }
+    }
+    async getSyncLoop(request, response) {
+        try {
+            const result = await this.client.getSyncLoop(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getSyncLoop');
         }
     }
     async addCpl(request, response) {
@@ -828,6 +881,24 @@ class Main_API {
             this.onError(response, err, 'addCplToRelease');
         }
     }
+    async deleteCpl (request, response) {
+        try {
+            const result = await this.client.deleteCpl(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteCpl');
+        }
+    }
+    async getCpl(request, response) {
+        try {
+            const result = await this.client.getCpl(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getCpl');
+        }
+    }
     async addSync(request, response) {
         try {
             const result = await this.client.addSyncToCpl(request.body);
@@ -837,6 +908,34 @@ class Main_API {
             this.onError(response, err, 'addSyncToCpl');
         }
     }
+    async deleteSync (request, response) {
+        try {
+            const result = await this.client.deleteSync(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteSync');
+        }
+    }
+    async getSync(request, response) {
+        try {
+            const result = await this.client.getSync(request.body);
+            response.json(result);
+        } 
+        catch(err){
+            this.onError(response, err, 'getSync');
+        }
+    }
+    async getServPair(request, response) {
+        try {
+            const result = await this.client.getServPair(request.body);
+            response.json(result);
+        } 
+        catch(err){
+            this.onError(response, err, 'getServPair');
+        }
+    }
+    
     // -- LINKS
     async linkCinemaToGroup(request, response) {
         try {

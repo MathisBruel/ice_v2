@@ -43,10 +43,11 @@ Query* MySQLReleaseRepo::MySQLupdate(Releases* release)
     if (_releaseIds[0] == -1 || _releaseIds[1] == -1 || _releaseIds[2] == -1) { return nullptr; }
 
     Query* updateQuery = new Query(Query::UPDATE, _database, _table);
+
+    updateQuery->addParameter("release_cpl_ref_path", &_CPLRefPath, "string");
     updateQuery->addWhereParameter("id_movie", &_releaseIds[0], "int");
     updateQuery->addWhereParameter("id_type", &_releaseIds[1], "int");
     updateQuery->addWhereParameter("id_localisation", &_releaseIds[2], "int");
-    updateQuery->addWhereParameter("release_cpl_ref_path", &_CPLRefPath, "string");
 
     return updateQuery;
 }

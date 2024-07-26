@@ -49,7 +49,7 @@ std::string Content::toXmlString(bool printChild)
     if (printChild) {
         xml += ">"; 
         for (auto const& release : this->_release) {
-            xml += release.second->toXmlString();
+            xml += release.second->toXmlString(false);
         }
     }
     else {

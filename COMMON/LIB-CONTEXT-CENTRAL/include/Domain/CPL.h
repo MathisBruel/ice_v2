@@ -13,6 +13,7 @@ public:
     void SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
     void SetDatas(std::string CPLUUID, std::string CPLName);
     void SetCplInfos(std::string CPLPath);
+    void DeleteSync() {delete this->_sync;}
     std::string toXmlString();
 
     int* GetCPLId() {return this->_CPLId;}

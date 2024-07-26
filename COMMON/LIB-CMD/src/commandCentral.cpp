@@ -525,8 +525,41 @@ CommandCentral::CommandCentralType CommandCentral::generateFromString(std::strin
     else if (typeStr == "DELETE_RELEASE_CONTENT") {
         return DELETE_RELEASE_CONTENT;
     }
+    else if (typeStr == "GET_GROUPS_FILTER") {
+        return GET_GROUPS_FILTER;
+    }
+    else if (typeStr == "GET_SITES") {
+        return GET_SITES;
+    }
     else if (typeStr == "GET_CPLS_SITE") {
         return GET_CPLS_SITE;
+    }
+    else if (typeStr == "UPDATE_RELEASE_CONTENT") {
+        return UPDATE_RELEASE_CONTENT;
+    }
+    else if (typeStr == "UPDATE_CIS") {
+        return UPDATE_CIS;
+    }
+    else if (typeStr == "GET_RELEASE_CPLS") {
+        return GET_RELEASE_CPLS;
+    }
+    else if (typeStr == "GET_RELEASE_SYNCS") {
+        return GET_RELEASE_SYNCS;
+    }
+    else if (typeStr == "GET_RELEASE_SYNCLOOPS") {
+        return GET_RELEASE_SYNCLOOPS;
+    }
+    else if (typeStr == "GET_SERVER_PAIR") {
+        return GET_SERVER_PAIR;
+    }
+    else if (typeStr == "DELETE_RELEASE_CPL") {
+        return DELETE_RELEASE_CPL;
+    }
+    else if (typeStr == "DELETE_RELEASE_SYNC") {
+        return DELETE_RELEASE_SYNC;
+    }
+    else if (typeStr == "DELETE_RELEASE_SYNCLOOP") {
+        return DELETE_RELEASE_SYNCLOOP;
     }
 
     // -- DEFAULT
@@ -762,8 +795,41 @@ std::string CommandCentral::generateToString(CommandCentral::CommandCentralType 
     else if (type == DELETE_RELEASE_CONTENT) {
         return "DELETE_RELEASE_CONTENT";
     }
+    else if (type == GET_GROUPS_FILTER) {
+        return "GET_GROUPS_FILTER";
+    }
+    else if (type == GET_SITES) {
+        return "GET_SITES";
+    }
     else if (type == GET_CPLS_SITE) {
         return "GET_CPLS_SITE";
+    }
+    else if (type == UPDATE_RELEASE_CONTENT) {
+        return "UPDATE_RELEASE_CONTENT";
+    }
+    else if (type == UPDATE_CIS) {
+        return "UPDATE_CIS";
+    }
+    else if (type == GET_RELEASE_CPLS) {
+        return "GET_RELEASE_CPLS";
+    }
+    else if (type == GET_RELEASE_SYNCS) {
+        return "GET_RELEASE_SYNCS";
+    }
+    else if (type == GET_RELEASE_SYNCLOOPS) {
+        return "GET_RELEASE_SYNCLOOPS";
+    }
+    else if (type == GET_SERVER_PAIR) {
+        return "GET_SERVER_PAIR";
+    }
+    else if (type == DELETE_RELEASE_CPL) {
+        return "DELETE_RELEASE_CPL";
+    }
+    else if (type == DELETE_RELEASE_SYNC) {
+        return "DELETE_RELEASE_SYNC";
+    }
+    else if (type == DELETE_RELEASE_SYNCLOOP) {
+        return "DELETE_RELEASE_SYNCLOOP";
     }
 
     // -- DEFAULT

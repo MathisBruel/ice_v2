@@ -29,6 +29,7 @@ namespace Migrations
 			Schema::create("connection", [](Blueprint &table)
 			{
 				table.id("id_connection");
+				table.string("name", 50);
 			});
 			Schema::create("localisation", [](Blueprint &table)
 			{
@@ -58,6 +59,7 @@ namespace Migrations
 				table.id("id_site");
 				table.unsignedBigInteger("id_group");
 				table.unsignedBigInteger("id_connection");
+				table.string("name", 50);
 				table.foreign("id_group").references("id_group").on("groups");
 				table.foreign("id_connection").references("id_connection").on("connection");
 			});
@@ -66,6 +68,7 @@ namespace Migrations
 				table.id("id_serv_pair_config");
 				table.string("projection_server_ip", 50);
 				table.string("auditorium_server_ip", 50);
+				table.string("name", 50);
 				table.unsignedBigInteger("id_default_auditorium");
 				table.unsignedBigInteger("id_site");
 				table.foreign("id_default_auditorium").references("id_default_auditorium").on("default_server_configuration_auditorium");
@@ -135,6 +138,7 @@ namespace Migrations
 				table.unsignedBigInteger("id_localisation");
 				table.integer("type_cpl").nullable().change();
 				table.integer("id").change();
+				table.string("sha1_sync", 40).nullable().change();
                 table.dropPrimary("id");
 				table.primary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
 				table.foreign("id_serv_pair_config").references("id_serv_pair_config").on("server_pair_configuration");
@@ -142,28 +146,28 @@ namespace Migrations
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");
 			});
-			DB::statement("ALTER TABLE cpl MODIFY id INT NULL;");
+			DB::statement("ALTER TABLE cpl MODIFY id INT NULL ;");
 			Schema::create("sync", [](Blueprint &table)
 			{
 				table.unsignedBigInteger("id_serv_pair_config");
 				table.unsignedBigInteger("id_movie");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
-				table.string("path", 50);
+				table.string("path_sync", 50);
 				table.primary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
 				table.foreign("id_serv_pair_config").references("id_serv_pair_config").on("server_pair_configuration");
 				table.foreign("id_movie").references("id_movie").on("releases");
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");
 			});
-			Schema::create("LoopSync", [](Blueprint &table)
+			Schema::create("loopSync", [](Blueprint &table)
 			{
 				table.unsignedBigInteger("id_movie");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.unsignedBigInteger("id_serv_pair_config");
-				table.string("path", 50);
-				table.primary({"id_movie", "id_type", "id_localisation", "id_serv_pair_config"});
+				table.string("path_sync_loop", 50);
+				table.primary({"id_serv_pair_config","id_movie", "id_type", "id_localisation"});
 				table.foreign("id_movie").references("id_movie").on("releases");
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");

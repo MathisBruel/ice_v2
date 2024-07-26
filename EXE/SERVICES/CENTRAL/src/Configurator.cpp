@@ -26,6 +26,9 @@ Configurator::Configurator(MySQLDBConnection* DBconnection) {
     this->_httpInteractions [CommandCentral::CREATE_CONTENT] = pfHTTPContentInteraction;
     this->_httpInteractions [CommandCentral::CREATE_RELEASE] = pfHTTPPublishingInteraction;
     this->_httpInteractions [CommandCentral::DELETE_RELEASE_CONTENT] = pfHTTPPublishingInteraction;
+    this->_httpInteractions [CommandCentral::DELETE_RELEASE_CPL] = pfHTTPPublishingInteraction;
+    this->_httpInteractions [CommandCentral::DELETE_RELEASE_SYNC] = pfHTTPPublishingInteraction;
+    this->_httpInteractions [CommandCentral::DELETE_RELEASE_SYNCLOOP] = pfHTTPPublishingInteraction;
     this->_httpInteractions [CommandCentral::RELEASE_CREATED] = pfHTTPReleaseInteraction;
     this->_httpInteractions [CommandCentral::CIS_CREATED] = pfHTTPCISInteraction;
     this->_httpInteractions [CommandCentral::CREATE_CPL] = pfHTTPIdleSyncInteraction;

@@ -5,10 +5,10 @@ class Sync
 {
 public:
     Sync();
-    ~Sync();
 
     void SetSyncId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
     void SetSyncInfos(std::string SyncPath);
+    std::string toXmlString();
 
     int* GetSyncID() {return this->_syncId;}
     std::string GetSyncPath() {return this->_syncPath;}

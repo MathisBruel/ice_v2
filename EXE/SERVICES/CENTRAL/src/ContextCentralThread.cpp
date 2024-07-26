@@ -2240,9 +2240,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     // -- Getters State Machine
     else if (cmd->getType() == CommandCentral::GET_CONTENT) {
         MySQLContentRepo* contentRepo = new MySQLContentRepo();
-        int cmdId;
-        if (cmd->getIntParameter("id_movie") != -1) { cmdId = cmd->getIntParameter("id_movie"); }
-        else { cmdId = cmd->getIntParameter("id"); }
+        int cmdId = cmd->getIntParameter("id_movie");
         Content* content = new Content();
         if (cmdId == -1) {
             contentRepo->Read(content);
@@ -2296,46 +2294,238 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     } 
     else if (cmd->getType() == CommandCentral::GET_RELEASES_CONTENT) {
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
-        int cmdId;
-        if (cmd->getIntParameter("id_movie") != -1) { cmdId = cmd->getIntParameter("id_movie"); }
-        else { cmdId = cmd->getIntParameter("id"); }
-        Releases* release = new Releases();
-        release->SetReleaseId(cmdId, TypeMovie::UNKNOW_TYPE, LocalisationMovie::UNKNOW_LOCALISATION);
-        releaseRepo->Read(release);
-        Query* query = releaseRepo->GetQuery();
-        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+        int cmdId = cmd->getIntParameter("id_movie");
+        int typeId = cmd->getIntParameter("id_type");
+        int LocalisationId = cmd->getIntParameter("id_localisation");
+        if (typeId == -1 || LocalisationId == -1) {
+            Releases* release = new Releases();
+            release->SetReleaseId(cmdId, TypeMovie::UNKNOW_TYPE, LocalisationMovie::UNKNOW_LOCALISATION);
+            releaseRepo->Read(release);
+            Query* query = releaseRepo->GetQuery();
+            ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
 
-        if (result != nullptr && result->isValid()) {
-            response->setStatus(CommandCentralResponse::OK);
-            response->setComments("Releases get success");
-            std::string datas = "<releases>";
-            for (int i = 0; i < result->getNbRows(); i++) {
-                release->SetReleaseId(*result->getIntValue(i, "id_movie"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
-                release->SetReleaseInfos(*result->getStringValue(i, "release_cpl_ref_path"));
-                datas += release->toXmlString();
+            if (result != nullptr && result->isValid()) {
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Releases get success");
+                std::string datas = "<releases>";
+                for (int i = 0; i < result->getNbRows(); i++) {
+                    release->SetReleaseId(*result->getIntValue(i, "id_movie"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
+                    release->SetReleaseInfos(*result->getStringValue(i, "release_cpl_ref_path"));
+                    datas += release->toXmlString(false);
+                }
+                datas += "</releases>";
+                response->setDatas(datas);
             }
-            datas += "</releases>";
+            else {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Releases get failed");
+                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            }
+            delete query;
+            delete result;
+            delete release; 
+        }
+        else {
+            Releases* release = new Releases(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
+            releaseRepo->Read(release);
+            Query* queryRelease = releaseRepo->GetQuery();
+            ResultQuery *resultRelease = this->_dbConnection->ExecuteQuery(queryRelease);
+
+            MySQLCISRepo *cisRepo = new MySQLCISRepo();
+            CIS* cis = new CIS();
+            cis->SetCISId(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
+            cisRepo->Read(cis);
+            Query* queryCIS = cisRepo->GetQuery();
+            ResultQuery *resultCIS = this->_dbConnection->ExecuteQuery(queryCIS);
+
+            if (resultRelease != nullptr && resultRelease->isValid() && resultCIS != nullptr && resultCIS->isValid()) {
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Release get success");
+                std::string datas = "<releases>";
+                release->SetReleaseId(*resultRelease->getIntValue(0, "id_movie"), static_cast<TypeMovie>(*resultRelease->getIntValue(0, "id_type")),  static_cast<LocalisationMovie>(*resultRelease->getIntValue(0, "id_localisation")));
+                release->SetReleaseInfos(*resultRelease->getStringValue(0, "release_cpl_ref_path"));
+                release->UploadCIS(*resultCIS->getStringValue(0, "release_cis_path"));
+                datas += release->toXmlString(true);
+                datas += "</releases>";
+                response->setDatas(datas);
+            }
+            delete queryRelease;
+            delete resultRelease;
+            delete queryCIS;
+            delete resultCIS;
+            delete release;
+        }
+        delete releaseRepo;
+    }
+    else if (cmd->getType() == CommandCentral::GET_GROUPS_FILTER) {
+        int cmdId = cmd->getIntParameter("id_group");
+        if (cmdId == -1) {
+            Query* query =  new Query(Query::SELECT, "ice", "groups");
+            query->addParameter("id_group", nullptr, "int");
+            query->addParameter("id_group_1", nullptr, "int");
+            query->addParameter("name", nullptr, "string");
+            ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+            if (result->isValid()) {
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Groups get success");
+                std::string datas = "<groups>";
+                for (int i = 0; i < result->getNbRows(); i++) {
+                    std::string GroupParent;
+                    result->getIntValue(i, "id_group_1") == nullptr ? GroupParent = "" : GroupParent = "\" id_group_1=\"" + std::to_string(*result->getIntValue(i, "id_group_1"));      
+                    datas += "<group id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + GroupParent + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+                }
+                datas += "</groups>";
+                response->setDatas(datas);
+            }
+            else {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Groups get failed");
+                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            }
+        }
+        else {
+            Query* query =  new Query(Query::SELECT, "ice", "groups");
+            query->addParameter("id_group", nullptr, "int");
+            query->addParameter("id_group_1", nullptr, "int");
+            query->addParameter("name", nullptr, "string");
+            query->addWhereParameter("id_group",&cmdId , "int");
+            ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+            if (result->isValid()) {
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Groups get success");
+                std::string datas = "<groups>";
+                for (int i = 0; i < result->getNbRows(); i++) {
+                    std::string GroupParent;
+                    result->getIntValue(i, "id_group_1") == nullptr ? GroupParent = "" : GroupParent = "\" id_group_1=\"" + std::to_string(*result->getIntValue(i, "id_group_1"));      
+                    datas += "<group id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + GroupParent + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+                }
+                datas += "</groups>";
+                response->setDatas(datas);
+            }
+            else {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Groups get failed");
+                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            }
+        }
+    }
+    else if (cmd->getType() == CommandCentral::GET_SITES) {
+        int groupId = cmd->getIntParameter("id_group");
+        Query* query =  new Query(Query::SELECT, "ice", "site");
+        query->addParameter("id_site", nullptr, "int");
+        query->addParameter("id_group", nullptr, "int");
+        query->addParameter("id_connection", nullptr, "int");
+        query->addParameter("name", nullptr, "string");
+        query->addWhereParameter("id_group", &groupId, "int");
+        ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+        if (result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Sites get success");
+            std::string datas = "<sites>";
+            for (int i = 0; i < result->getNbRows(); i++) {
+                datas += "<site id_site=\"" + std::to_string(*result->getIntValue(i, "id_site")) + "\" id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + "\" id_connection=\"" + std::to_string(*result->getIntValue(i, "id_connection")) + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+            }
+            datas += "</sites>";
             response->setDatas(datas);
         }
         else {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Releases get failed");
+            response->setComments("Sites get failed");
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
         }
-        delete query;
-        delete result;
-        delete releaseRepo;
-        delete release; 
     }
     else if (cmd->getType() == CommandCentral::GET_CPLS_SITE) {
         MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
-        int cmdId;
-        if (cmd->getIntParameter("id_serv_pair_config") != -1) { cmdId = cmd->getIntParameter("id_serv_pair_config"); }
-        else { cmdId = cmd->getIntParameter("id"); }
+        int siteId = cmd->getIntParameter("id_site");
+        Query* queryIceServerPairConfig = new Query(Query::SELECT, "ice", "server_pair_configuration");
+        queryIceServerPairConfig->addParameter("id_serv_pair_config", nullptr, "int");
+        queryIceServerPairConfig->addParameter("id_site", nullptr, "int");
+        queryIceServerPairConfig->addWhereParameter("id_site", &siteId, "int");
+        ResultQuery* resultIceServerPairConfig = this->_dbConnection->ExecuteQuery(queryIceServerPairConfig);
         CPLRelease* cpl = new CPLRelease();
-        if (cmdId != -1) {
-            cpl->SetCPLId(cmdId, -1, -1, -1);
+        cpl->SetCPLId(-1, -1, -1, -1);
+        cplRepo->Read(cpl);
+        Query* queryCpl = cplRepo->GetQuery();
+        ResultQuery *resultCPL = this->_dbConnection->ExecuteQuery(queryCpl);
+        if (resultCPL != nullptr && resultCPL->isValid() && resultIceServerPairConfig != nullptr && resultIceServerPairConfig->isValid() && resultIceServerPairConfig->getNbRows() > 0) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CPLs get success");
+            std::string datas = "<cpls>";
+            for (int i = 0; i < resultCPL->getNbRows(); i++) {
+                for (int j = 0; j < resultIceServerPairConfig->getNbRows(); j++) {
+                    if (*resultCPL->getIntValue(i, "id_serv_pair_config") == *resultIceServerPairConfig->getIntValue(j, "id_serv_pair_config")){
+                        cpl->SetCPLId(*resultCPL->getIntValue(i, "id_serv_pair_config"), *resultCPL->getIntValue(i, "id_movie"), *resultCPL->getIntValue(i, "id_type"), *resultCPL->getIntValue(i, "id_localisation"));
+                        cpl->SetDatas(*resultCPL->getStringValue(i, "uuid"), *resultCPL->getStringValue(i, "name"));
+                        cpl->SetCplInfos(*resultCPL->getStringValue(i, "path_cpl"));
+                        datas += cpl->toXmlString();
+                    }
+                }
+            }
+            datas += "</cpls>";
+            response->setDatas(datas);
         }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CPLs get failed");
+            response->setDatas("<error><code>" + std::to_string(resultCPL->getErrorCode()) + "</code><message>" + resultCPL->getErrorMessage() + "</message></error>");
+        }
+        delete cplRepo;
+        delete cpl;
+    }
+    else if (cmd->getType() == CommandCentral::UPDATE_RELEASE_CONTENT) {
+        MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
+        int contentId = cmd->getIntParameter("id_movie");
+        int typeId = cmd->getIntParameter("id_type");
+        int LocalisationId = cmd->getIntParameter("id_localisation");
+        Releases* release = new Releases(contentId, typeId, LocalisationId);
+        std::string path = cmd->getStringParameter("release_cpl_ref_path");
+        release->SetReleaseInfos(path);
+        releaseRepo->Update(release);
+        Query* query = releaseRepo->GetQuery();
+        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+        if (result != nullptr && result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Release update success");
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Release update failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
+    }
+    else if (cmd->getType() == CommandCentral::UPDATE_CIS) {
+        MySQLCISRepo* cisRepo = new MySQLCISRepo();
+        int contentId = cmd->getIntParameter("id_movie");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        std::string pathCIS = cmd->getStringParameter("release_cis_path");
+        CIS* cis = new CIS();
+        cis->SetCISId(contentId, typeId, localisationId);
+        cis->SetCISInfos(pathCIS);
+        cisRepo->Update(cis);
+        Query* updateQuery = cisRepo->GetQuery();
+        ResultQuery *result = this->_dbConnection->ExecuteQuery(updateQuery);
+        if (result != nullptr && result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CIS update success");
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CIS update failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
+        delete result;
+        delete updateQuery;
+        delete cis;
+        delete cisRepo;
+    }
+    else if (cmd->getType() == CommandCentral::GET_RELEASE_CPLS) {
+        int contentId = cmd->getIntParameter("id_movie");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        CPLRelease* cpl = new CPLRelease();
+        cpl->SetCPLId(-1, contentId, typeId, localisationId);
         cplRepo->Read(cpl);
         Query* query = cplRepo->GetQuery();
         ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
@@ -2345,8 +2535,8 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             std::string datas = "<cpls>";
             for (int i = 0; i < result->getNbRows(); i++) {
                 cpl->SetCPLId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
-                cpl->SetDatas(*result->getStringValue(i, "CPL_uuid"), *result->getStringValue(i, "CPL_name"));
-                cpl->SetCplInfos(*result->getStringValue(i, "CPL_path"));
+                cpl->SetDatas(*result->getStringValue(i, "uuid"), *result->getStringValue(i, "name"));
+                cpl->SetCplInfos(*result->getStringValue(i, "path_cpl"));
                 datas += cpl->toXmlString();
             }
             datas += "</cpls>";
@@ -2357,8 +2547,88 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setComments("CPLs get failed");
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
         }
-        delete cplRepo;
-        delete cpl;
+    }
+    else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCS) {
+        int contentId = cmd->getIntParameter("id_movie");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
+        Sync* sync = new Sync();
+        sync->SetSyncId(-1, contentId, typeId, localisationId);
+        syncRepo->Read(sync);
+        Query* query = syncRepo->GetQuery();
+        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+        if (result != nullptr && result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Syncs get success");
+            std::string datas = "<syncs>";
+            for (int i = 0; i < result->getNbRows(); i++) {
+                sync->SetSyncId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
+                sync->SetSyncInfos(*result->getStringValue(i, "path_sync"));
+                datas += sync->toXmlString();
+            }
+            datas += "</syncs>";
+            response->setDatas(datas);
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Syncs get failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
+    }
+    else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCLOOPS) {
+        int contentId = cmd->getIntParameter("id_movie");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
+        SyncLoop* syncLoop = new SyncLoop();
+        syncLoop->SetSyncLoopId(-1, contentId, typeId, localisationId);
+        syncLoopRepo->Read(syncLoop);
+        Query* query = syncLoopRepo->GetQuery();
+        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+        if (result != nullptr && result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("SyncLoops get success");
+            std::string datas = "<syncLoops>";
+            for (int i = 0; i < result->getNbRows(); i++) {
+                syncLoop->SetSyncLoopId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
+                syncLoop->SetSyncLoopInfos(*result->getStringValue(i, "path_sync_loop"));
+                datas += syncLoop->toXmlString();
+            }
+            datas += "</syncLoops>";
+            response->setDatas(datas);
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("SyncLoops get failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
+    }
+    else if (cmd->getType() == CommandCentral::GET_SERVER_PAIR) {
+        int serverPairId = cmd->getIntParameter("id_serv_pair_config");
+        Query* query =  new Query(Query::SELECT, "ice", "server_pair_configuration");
+        query->addParameter("id_serv_pair_config", nullptr, "int");
+        query->addParameter("id_site", nullptr, "int");
+        query->addParameter("projection_server_ip", nullptr, "string");
+        query->addParameter("auditorium_server_ip", nullptr, "string");
+        query->addParameter("name", nullptr, "string");
+        if (serverPairId != -1) { query->addWhereParameter("id_serv_pair_config", &serverPairId, "int"); }
+        ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+        if (result->isValid()) {
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Server pair get success");
+            std::string datas = "<servPairs>";
+            for (int i = 0; i < result->getNbRows(); i++) {
+                datas += "<servPair id_serv_pair_config=\"" + std::to_string(*result->getIntValue(i, "id_serv_pair_config")) + "\" id_site=\"" + std::to_string(*result->getIntValue(i, "id_site")) + "\" projection_server_ip=\"" + *result->getStringValue(i, "projection_server_ip") + "\" auditorium_server_ip=\"" + *result->getStringValue(i, "auditorium_server_ip") + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+            }
+            datas += "</servPairs>";
+            response->setDatas(datas);
+        }
+        else {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Server pair get failed");
+            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        }
     }
     else {
         int cmdId;
@@ -2373,8 +2643,13 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         if (cmdType == CommandCentral::CREATE_CONTENT) { configurator = new Configurator(this->_dbConnection); }
         else { configurator = this->_contentConfigurator[cmdId]; }
 
-        if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) { 
-            configurator->GetHTTPInteractions()[cmdType]->Run();
+        if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) {
+            if (cmdType == CommandCentral::CREATE_SYNCLOOP) {
+                configurator->GetHTTPInteractions()[cmdType]->Run(true);
+            }
+            else {
+                configurator->GetHTTPInteractions()[cmdType]->Run();
+            }
             switch (cmdType)
             {
             case CommandCentral::CREATE_RELEASE:
@@ -2388,7 +2663,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 break;
             }
         }
-    
+        HTTPInteraction* interaction = configurator->GetHTTPInteractions()[cmdType];
         TransitionResponse stateResponse = configurator->GetHTTPInteractions()[cmdType]->Run(cmd->getUuid(), cmd->getParameters());
         response->setComments(stateResponse.cmdComment);
         response->setDatas(stateResponse.cmdDatasXML);
@@ -2411,7 +2686,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             }
         }
 
-        if (cmdType == CommandCentral::CANCEL || cmdType == CommandCentral::CREATE_SYNCLOOP) {
+        if (cmdType == CommandCentral::CANCEL) {
             configurator->GetHTTPInteractions()[cmdType]->Run(true);
         }
         else if (cmdType == CommandCentral::DELETE_RELEASE_CONTENT) {} //Pas de Transition à effectuer lors d'une suppression de release

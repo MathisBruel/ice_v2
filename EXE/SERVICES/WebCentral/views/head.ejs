@@ -353,6 +353,9 @@
                 z-index: 1; 
                 background-color: rgb(49, 73, 122);
             }
+            .trBody {
+                background-color: rgb(49, 73, 122);
+            }
             #content-liste th:nth-child(1), #content-liste td:nth-child(1) { width: 34px;  height: 34px; padding: 0;}
             #content-liste th:nth-child(2), #content-liste td:nth-child(2) { display: none;}
             #content-liste th:nth-child(3), #content-liste td:nth-child(3) { width: 235px; height: 34px;}
@@ -372,6 +375,7 @@
             .check-column {
                 border-right: 2px transparent;
                 border-top: 2px transparent;
+                background-color: transparent;
             }
             .check-column-first {
                 border-bottom: 2px transparent;
@@ -420,6 +424,7 @@
             .BlockLabel {
                 display: flex;
                 width: 100%;
+                height: 30px;
             }
             .BlockLabel label {
                 margin-right: 5px;
@@ -441,6 +446,30 @@
             #sitesList .ContentDetails th:nth-child(3), 
             #sitesList .ContentDetails td:nth-child(3)
             { width: 1000px;  height: 34px;}
+            #cplbox {
+                grid-template-columns: 2.5fr 1fr;
+                display: grid;
+                padding: 0 20px;
+            }
+            .releaseDetailsContainer {
+                margin: 0px 10px;
+                height: 370px;
+                overflow-y: auto;
+            }
+            #cplbox tr {
+                height: 34px;
+            }
+            .actionCell {
+                width: 34px;
+            }
+            .idCell {
+                width: 100px;
+            }
+            #cplTable th:nth-child(2), #cplTable td:nth-child(2) { width: 275px; }
+            #cplTable th:nth-child(3), #cplTable td:nth-child(3) { width: 150px; }
+            #cplTable th:nth-child(4), #cplTable td:nth-child(4) { width: 450px; }
+            
+            #syncTable th:nth-child(2), #syncTable td:nth-child(2) { width: 240px; }
         </style>
     </head>
     <body>

@@ -54,9 +54,24 @@ struct StatePublishing : StateTemplate {
         control.context().publishingInteraction->pfStatePublishing = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
             changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
-            deleteRelease(control, Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+            if (Params["typeOfElement"] == "RELEASE") {           
+                deleteRelease(control, Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+                this->response.cmdComment = "Release deleted";
+            }
+            else if (Params["typeOfElement"] == "CPL") {
+                this->response.cmdComment = "Cpl deleted";
+                deleteSync(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+                deleteCPL(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+            } 
+            else if (Params["typeOfElement"] == "SYNC") {
+                this->response.cmdComment = "Sync deleted";
+                deleteSync(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+            } 
+            else if (Params["typeOfElement"] == "SYNCLOOP") {
+                this->response.cmdComment = "SyncLoop deleted";
+                deleteSyncLoop(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+            }
             this->response.cmdStatus = "OK";
-            this->response.cmdComment = "Release deleted";
             return this->response;
         };
         control.context().publishingInteraction->pfTransitionToReleaseCreation = [control](){
@@ -73,6 +88,30 @@ struct StatePublishing : StateTemplate {
         control.context().content->DeleteRelease(id_movie + "_" + id_type + "_" + id_localisation);
         control.context().release = nullptr;
         delete releaseRepo;
+    }
+    void deleteCPL(Control control, std::string id_serv_pair_config, std::string id_movie, std::string id_type, std::string id_localisation) {
+        std::string compositeId = id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation;
+        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        cplRepo->Remove(control.context().release->GetCPL(compositeId));
+        control.context().dbConnection->ExecuteQuery(cplRepo->GetQuery());
+        control.context().release->DeleteCPL(compositeId);
+        delete cplRepo;
+    }
+    void deleteSync(Control control, std::string id_serv_pair_config, std::string id_movie, std::string id_type, std::string id_localisation) {
+        std::string compositeId = id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation;
+        MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
+        syncRepo->Remove(control.context().release->GetCPL(compositeId)->GetSync());
+        control.context().dbConnection->ExecuteQuery(syncRepo->GetQuery());
+        control.context().release->GetCPL(compositeId)->DeleteSync();
+        delete syncRepo;
+    }
+    void deleteSyncLoop(Control control, std::string id_serv_pair_config, std::string id_movie, std::string id_type, std::string id_localisation) {
+        std::string compositeId = id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation;
+        MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
+        syncLoopRepo->Remove(control.context().release->GetSyncLoop(compositeId));
+        control.context().dbConnection->ExecuteQuery(syncLoopRepo->GetQuery());
+        control.context().release->DeleteSyncLoop(compositeId);
+        delete syncLoopRepo;
     }
     void update(FullControl& control)  {
         std::cout << "Etats d'avancement: CIS " << control.context().cisFinish << " Sync " << control.context().syncFinish << "\n";
@@ -96,7 +135,7 @@ struct StateReleaseCreation : StateTemplate {
             return this->response;
         };
         control.context().releaseInteraction->pfTransitionToPublishing = [control](){
-            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::PUBLISH);
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::RELEASE_CREATED);
         };
     }
     void newRelease(Control control, int id_movie, int id_type, int id_localisation, std::string cplRefPath) {
@@ -119,13 +158,13 @@ struct StateUploadCIS : StateTemplate {
         control.context().cisInteraction->pfStateUploadCIS = [control, this] (std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
             changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
-            newCISFile(control, Params["cisPath"]);
+            newCISFile(control, Params["release_cis_path"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "CIS uploaded";
             return this->response;
         };
         control.context().cisInteraction->pfTransitionToInProduction = [control](){
-            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_SYNC);
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::PUSH_CIS);
         };
     }
     void newCISFile(Control control, std::string cisPath) {
@@ -138,9 +177,9 @@ struct StateUploadCIS : StateTemplate {
     void react(const PushCISEvent&, EventControl& control) {
         control.context().cisFinish = true;
         std::cout << "UploadCIS Finish\n";
-        if (control.context().cisFinish && control.context().syncFinish) {
-            control.changeTo<StateInProd>();
-        }
+        // if (control.context().cisFinish && control.context().syncFinish) {
+        //     control.changeTo<StateInProd>();
+        // }
     }
 }; 
 
@@ -162,7 +201,7 @@ struct StateIdleSync : StateTemplate {
         };
         control.context().idleSyncInteraction->pfTransitionToCPL = [control](){
             StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_CPL);
-        };
+        }; 
     }
     void react(const CreateSyncEvent&, EventControl& control) {
         control.changeTo<StateSyncLoop>();    
@@ -175,6 +214,7 @@ struct StateIdleSync : StateTemplate {
 struct StateCPL : StateTemplate {
     using StateTemplate::react;
     void entryGuard(FullControl& control)  {
+        std::cout << "CPL\n";
         control.context().cplInteraction->pfStateCPL = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
             changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
@@ -191,7 +231,7 @@ struct StateCPL : StateTemplate {
         control.context().release->UploadCPL(id_serv_pair_config, CPL_name, CPL_uuid, CPL_path);
         MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
         int* releaseId = control.context().release->GetReleaseId();
-        std::string compositeId = id_serv_pair_config + "_" 
+        std::string compositeId = std::to_string(id_serv_pair_config) + "_" 
                                 + std::to_string(releaseId[0]) + "_" 
                                 + std::to_string(releaseId[1]) + "_" 
                                 + std::to_string(releaseId[2]);
@@ -210,13 +250,13 @@ struct StateSync : StateTemplate {
         control.context().syncInteraction->pfStateSync = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
             changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
-            newSyncFile(control, Params["id_serv_pair_config"] + "_" + Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"], Params["syncPath"]);
+            newSyncFile(control, Params["id_serv_pair_config"] + "_" + Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"], Params["path_sync"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "Sync";
             return this->response;
         };
         control.context().syncInteraction->pfTransitionToInProduction = [control](){
-            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CREATE_SYNC);
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::SYNC_CREATED);
         };
     }
     void newSyncFile(Control control, std::string compositeId, std::string syncPath) {
@@ -229,9 +269,9 @@ struct StateSync : StateTemplate {
     void react (const SyncCreatedEvent&, EventControl& control) {
         control.context().syncFinish = true;
         std::cout << "SyncCreated Finish\n";
-        if (control.context().cisFinish && control.context().syncFinish) {
-            control.changeTo<StateInProd>();
-        }
+        // if (control.context().cisFinish && control.context().syncFinish) {
+        //     control.changeTo<StateInProd>();
+        // }
     }
 };
  
@@ -241,13 +281,13 @@ struct StateSyncLoop : StateTemplate {
         control.context().syncLoopInteraction->pfStateSyncLoop = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
             changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
-            newSyncLoop(control, Params["id_serv_pair_config"], Params["syncLoopPath"]);
+            newSyncLoop(control, Params["id_serv_pair_config"], Params["path_syncloop"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "SyncLoop";
             return this->response;
         };
         control.context().syncLoopInteraction->pfTransitionToInProduction = [control](){
-            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::PUBLISH);
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::SYNC_CREATED);
         };
     }
     void newSyncLoop(Control control, std::string id_serv_pair_config, std::string syncLoopPath) {
@@ -265,9 +305,9 @@ struct StateSyncLoop : StateTemplate {
     void react (const SyncCreatedEvent&, EventControl& control) {
         control.context().syncFinish = true;
         std::cout << "SyncCreate Finish\n";
-        if (control.context().cisFinish && control.context().syncFinish) {
-            control.changeTo<StateInProd>();
-        }  
+        // if (control.context().cisFinish && control.context().syncFinish) {
+        //     control.changeTo<StateInProd>();
+        // }  
     }
 };
  

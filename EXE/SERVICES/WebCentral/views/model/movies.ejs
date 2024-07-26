@@ -69,6 +69,7 @@
                                 }
                                 else {
                                     showErrorMessage("message-box", body.message);
+                                    window.location.reload();
                                 }
                             }
                             else {
@@ -322,7 +323,7 @@
                         if (result.ok == true) {
                             const body = await result.json();
                             if (body.code == 200) {
-                                window.location.assign("/movies?id=" + content.id_movie);
+                                window.location.assign("/contentRelease?id_movie=" + content.id_movie + "&id_type=" + selectType.value + "&id_localisation=" + selectLocalisation.value + "&contentTitle=" + content.title);
                             }
                             else {
                                 showErrorMessage("message-box", body.message);
@@ -360,10 +361,14 @@
         createTable.appendChild(tr);
 
         for (const release of content.releases) {
+            const Ids = release.id_release.split("_");
             const tr = createDOM("tr");
             const tdId = createDOM("td", {align:"center", valign:"center"});
             tdId.innerHTML = release.id_release;
             tr.appendChild(tdId);
+            tdId.addEventListener('click', function(){
+                window.location.assign("/contentRelease?id_movie=" + Ids[0] + "&id_type=" + Ids[1] + "&id_localisation=" + Ids[2] + "&contentTitle=" + content.title);
+            });
             const tdType = createDOM("td", {align:"center", valign:"center"});
             tdType.innerHTML = release.type;
             tr.appendChild(tdType);
@@ -376,9 +381,8 @@
             const tdAction = createDOM("td", {align:"center", valign:"center"});
             const tdActionImg = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"delete"});
             tdActionImg.addEventListener('click', async function(){
-                if (confirm("Confirme la supreesion de la release : " + release.id_release + " ?")) {
-                    const Ids = release.id_release.split("_");
-                    const json = {"id_movie":Ids[0], "id_type":Ids[1], "id_localisation":Ids[2]};
+                if (confirm("Confirme la suppression de la release : " + release.id_release + " ?")) {
+                    const json = {id_movie:Ids[0], id_type:Ids[1], id_localisation:Ids[2], typeOfElement:"RELEASE"};
                     const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
                     const result = await fetch(`/deleteReleases`, options);
                     if (result.ok == true) {

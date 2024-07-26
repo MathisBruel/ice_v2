@@ -17,9 +17,9 @@ Query* MySQLCPLRepo::MySQLcreate(CPLRelease* cpl){
     createQuery->addParameter("id_movie", &_cplIds[1], "int");
     createQuery->addParameter("id_type", &_cplIds[2], "int");
     createQuery->addParameter("id_localisation", &_cplIds[3], "int");
-    createQuery->addParameter("CPL_name", &_uuid, "string");
-    createQuery->addParameter("CPL_uuid", &_name, "string");
-    createQuery->addParameter("CPL_path", &_cplPath, "string");
+    createQuery->addParameter("name", &_uuid, "string");
+    createQuery->addParameter("uuid", &_name, "string");
+    createQuery->addParameter("path_cpl", &_cplPath, "string");
     return createQuery;
 }
 Query* MySQLCPLRepo::MySQLread(CPLRelease* cpl){
@@ -30,9 +30,9 @@ Query* MySQLCPLRepo::MySQLread(CPLRelease* cpl){
     readQuery->addParameter("id_movie",nullptr, "int");
     readQuery->addParameter("id_type", nullptr, "int");
     readQuery->addParameter("id_localisation", nullptr, "int");
-    readQuery->addParameter("CPL_name", nullptr, "string");
-    readQuery->addParameter("CPL_uuid", nullptr, "string");
-    readQuery->addParameter("CPL_path", nullptr, "string");
+    readQuery->addParameter("name", nullptr, "string");
+    readQuery->addParameter("uuid", nullptr, "string");
+    readQuery->addParameter("path_cpl", nullptr, "string");
     if (*&_cplIds[0] != -1 ) {readQuery->addWhereParameter("id_serv_pair_config", &_cplIds[0], "int");};
     if (*&_cplIds[1] != -1 ) {readQuery->addWhereParameter("id_movie", &_cplIds[1], "int");};
     if (*&_cplIds[2] != -1 ) {readQuery->addWhereParameter("id_type", &_cplIds[2], "int");};
@@ -48,9 +48,9 @@ Query* MySQLCPLRepo::MySQLupdate(CPLRelease* cpl){
     _cplPath = cpl->GetCPLPath();
     
     Query* updateQuery = new Query(Query::UPDATE, _database, _table);
-    updateQuery->addParameter("CPL_name", &_uuid, "string");
-    updateQuery->addParameter("CPL_uuid", &_name, "string");
-    updateQuery->addParameter("CPL_path", &_cplPath, "string");
+    updateQuery->addParameter("name", &_uuid, "string");
+    updateQuery->addParameter("uuid", &_name, "string");
+    updateQuery->addParameter("path_cpl", &_cplPath, "string");
     updateQuery->addWhereParameter("id_serv_pair_config", &_cplIds[0], "int");
     updateQuery->addWhereParameter("id_movie", &_cplIds[1], "int");
     updateQuery->addWhereParameter("id_type", &_cplIds[2], "int");

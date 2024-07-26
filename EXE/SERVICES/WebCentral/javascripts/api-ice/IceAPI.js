@@ -38,27 +38,12 @@ class IceAPI {
         return await this.client.sendGetCommands(this.token, 'GET_CPLS', values);
     }
     async getSites(values) {
-        const id_group = parseInt(values.id_group);
-        const site = [randomInt(0,10), randomInt(0,10)];
-        return {"ok":true,"data":{"sites":{"site":[{"$":{"id_site":site[0], "name":"Site " + site[0].toString(), "id_group":id_group}},
-                                                   {"$":{"id_site":site[1], "name":"Site " + site[1].toString(), "id_group":id_group}}]}}};
+        return await this.client.sendGetCommands(this.token, 'GET_SITES', values);
     }
     async getCplsSite(values) {
-        return {"ok":true,"data":{"cpls":{"cpl":[
-            {"$":{"CPL_UUID":"2b79b259-384d-478c-adec-f19f01bbc574", "id_movie":randomInt(0,5), "id_type":randomInt(0,15), "id_localisation":randomInt(0,6), "Lorem": "Lorem ipsum dolor sit amet"}},
-            {"$":{"CPL_UUID":"2b79b259-384d-478c-adec-f19f01bbc574", "id_movie":randomInt(0,5), "id_type":randomInt(0,15), "id_localisation":randomInt(0,6), "Lorem": "Lorem ipsum dolor sit amet"}},
-            {"$":{"CPL_UUID":"2b79b259-384d-478c-adec-f19f01bbc574", "id_movie":randomInt(0,5), "id_type":randomInt(0,15), "id_localisation":randomInt(0,6), "Lorem": "Lorem ipsum dolor sit amet"}}]}}};
         return await this.client.sendGetCommands(this.token, 'GET_CPLS_SITE', values);
     }
     async getGroupsFilter(values) {
-        return {"ok":true,"data":{"groups":{"group":[
-                {"$":{"id_group":1, "id_group_parent":"","name":"France"}},
-                {"$":{"id_group":2, "id_group_parent":"","name":"USA"}},
-                {"$":{"id_group":3, "id_group_parent": 1,"name":"Espagne"}},
-                {"$":{"id_group":4, "id_group_parent":"","name":"Estonie"}},
-                {"$":{"id_group":5, "id_group_parent": 2,"name":"Inde"}},
-                {"$":{"id_group":6, "id_group_parent": 4,"name":"Teaser"}},
-                {"$":{"id_group":7, "id_group_parent":"","name":"Promo"}}]}}};
         return await this.client.sendGetCommands(this.token, 'GET_GROUPS_FILTER', values);
     }
 
@@ -216,16 +201,45 @@ class IceAPI {
         
         return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_CONTENT', values);
     }
-    async addSyncLoopToRelease (values) {
+    async updateReleaseContent (values) {
+        return await this.client.sendPostCommands(this.token, 'UPDATE_RELEASE_CONTENT', values);
+    }
+    async insertCIS (values) {
+        return await this.client.sendPostCommands(this.token, 'CIS_CREATED', values);
+    }
+    async updateCIS (values) {
+        return await this.client.sendPostCommands(this.token, 'UPDATE_CIS', values);
+    }
+   async addSyncLoopToRelease (values) {
         return await this.client.sendPostCommands(this.token, 'CREATE_SYNCLOOP', values);
+    }
+    async getSyncLoop (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASE_SYNCLOOPS', values);
+    }
+    async deleteSyncLoop (values) {
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_SYNCLOOP', values);
     }
     async addCplToRelease (values) {
         return await this.client.sendPostCommands(this.token, 'CREATE_CPL', values);
     }
+    async getCpl (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASE_CPLS', values);
+    }
+    async deleteCpl (values) {
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_CPL', values);
+    }
     async addSyncToCpl (values) {
         return await this.client.sendPostCommands(this.token, 'SYNC_CREATED', values);
     }
-
+    async getSync (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASE_SYNCS', values);
+    }
+    async deleteSync (values) {
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_SYNC', values);
+    }
+    async getServPair (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_SERVER_PAIR', values);
+    }
 }
 
 module.exports = IceAPI;
