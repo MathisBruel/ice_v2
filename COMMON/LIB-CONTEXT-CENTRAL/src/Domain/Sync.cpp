@@ -8,10 +8,10 @@ Sync::Sync()
     _syncId[3] = -1;
     _syncPath = "";
 }
-void Sync::SetSyncId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+void Sync::SetSyncId(int id_serv_pair_config, int id_content, int id_type, int id_localisation)
 {
     _syncId[0] = id_serv_pair_config;
-    _syncId[1] = id_movie;
+    _syncId[1] = id_content;
     _syncId[2] = id_type;
     _syncId[3] = id_localisation;
 }
@@ -23,7 +23,7 @@ std::string Sync::toXmlString()
 {
     std::string xml = "<sync";
     xml += " id_serv_pair_config=\"" + std::to_string(this->_syncId[0]) + "\"";
-    xml += " id_movie=\"" + std::to_string(this->_syncId[1]) + "\"";
+    xml += " id_content=\"" + std::to_string(this->_syncId[1]) + "\"";
     xml += " id_type=\"" + std::to_string(this->_syncId[2]) + "\"";
     xml += " id_localisation=\"" + std::to_string(this->_syncId[3]) + "\"";
     xml += " path_sync=\"" + this->_syncPath + "\"";

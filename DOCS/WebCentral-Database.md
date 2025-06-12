@@ -61,7 +61,7 @@ CREATE TRIGGER `cpl_exists`
 BEFORE INSERT ON `sync`
 FOR EACH ROW
 BEGIN
-IF NOT EXISTS (SELECT * FROM `cpl` WHERE id_serv_pair_config = NEW.id_serv_pair_config && id_type = NEW.id_type && id_movie = NEW.id_movie &   id_localisation = NEW.id_localisation) THEN
+IF NOT EXISTS (SELECT * FROM `cpl` WHERE id_serv_pair_config = NEW.id_serv_pair_config && id_type = NEW.id_type && id_content = NEW.id_content &   id_localisation = NEW.id_localisation) THEN
 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Aucun CPL correspondant';
 END IF;
 END;

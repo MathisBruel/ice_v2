@@ -8,7 +8,7 @@ public:
     CIS();
     ~CIS();
 
-    void SetCISId(int id_movie, int id_type, int id_localisation);
+    void SetCISId(int id_content, int id_type, int id_localisation);
     void SetCISInfos(std::string CISPath);
 
     int* GetCISId() {return this->_CISId;}

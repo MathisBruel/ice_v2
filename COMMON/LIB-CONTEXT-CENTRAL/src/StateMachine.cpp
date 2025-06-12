@@ -81,32 +81,32 @@ struct StatePublishing : StateTemplate {
             StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CANCEL);
         };
     }
-    void deleteRelease(Control control, std::string id_movie, std::string id_type, std::string id_localisation) {
+    void deleteRelease(Control control, std::string id_content, std::string id_type, std::string id_localisation) {
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
         releaseRepo->Remove(control.context().release);
         control.context().dbConnection->ExecuteQuery(releaseRepo->GetQuery());
-        control.context().content->DeleteRelease(id_movie + "_" + id_type + "_" + id_localisation);
+        control.context().content->DeleteRelease(id_content + "_" + id_type + "_" + id_localisation);
         control.context().release = nullptr;
         delete releaseRepo;
     }
-    void deleteCPL(Control control, std::string id_serv_pair_config, std::string id_movie, std::string id_type, std::string id_localisation) {
-        std::string compositeId = id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation;
+    void deleteCPL(Control control, std::string id_serv_pair_config, std::string id_content, std::string id_type, std::string id_localisation) {
+        std::string compositeId = id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation;
         MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
         cplRepo->Remove(control.context().release->GetCPL(compositeId));
         control.context().dbConnection->ExecuteQuery(cplRepo->GetQuery());
         control.context().release->DeleteCPL(compositeId);
         delete cplRepo;
     }
-    void deleteSync(Control control, std::string id_serv_pair_config, std::string id_movie, std::string id_type, std::string id_localisation) {
-        std::string compositeId = id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation;
+    void deleteSync(Control control, std::string id_serv_pair_config, std::string id_content, std::string id_type, std::string id_localisation) {
+        std::string compositeId = id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation;
         MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
         syncRepo->Remove(control.context().release->GetCPL(compositeId)->GetSync());
         control.context().dbConnection->ExecuteQuery(syncRepo->GetQuery());
         control.context().release->GetCPL(compositeId)->DeleteSync();
         delete syncRepo;
     }
-    void deleteSyncLoop(Control control, std::string id_serv_pair_config, std::string id_movie, std::string id_type, std::string id_localisation) {
-        std::string compositeId = id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation;
+    void deleteSyncLoop(Control control, std::string id_serv_pair_config, std::string id_content, std::string id_type, std::string id_localisation) {
+        std::string compositeId = id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation;
         MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
         syncLoopRepo->Remove(control.context().release->GetSyncLoop(compositeId));
         control.context().dbConnection->ExecuteQuery(syncLoopRepo->GetQuery());
@@ -138,9 +138,9 @@ struct StateReleaseCreation : StateTemplate {
             StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::RELEASE_CREATED);
         };
     }
-    void newRelease(Control control, int id_movie, int id_type, int id_localisation, std::string cplRefPath) {
-        control.context().content->CreateRelease(id_movie, id_type, id_localisation);
-        changeRelease(control, std::to_string(id_movie) + "_" + std::to_string(id_type) + "_" + std::to_string(id_localisation));
+    void newRelease(Control control, int id_content, int id_type, int id_localisation, std::string cplRefPath) {
+        control.context().content->CreateRelease(id_content, id_type, id_localisation);
+        changeRelease(control, std::to_string(id_content) + "_" + std::to_string(id_type) + "_" + std::to_string(id_localisation));
         control.context().release->SetReleaseInfos(cplRefPath);
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
         releaseRepo->Create(control.context().release);

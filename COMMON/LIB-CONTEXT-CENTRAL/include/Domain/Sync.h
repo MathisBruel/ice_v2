@@ -6,7 +6,7 @@ class Sync
 public:
     Sync();
 
-    void SetSyncId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
+    void SetSyncId(int id_serv_pair_config, int id_content, int id_type, int id_localisation);
     void SetSyncInfos(std::string SyncPath);
     std::string toXmlString();
 

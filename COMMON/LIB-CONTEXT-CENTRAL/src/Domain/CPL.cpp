@@ -24,10 +24,10 @@ void CPLRelease::CreateSync(std::string SyncPath)
     this->_sync->SetSyncId(_CPLId[0], _CPLId[1], _CPLId[2], _CPLId[3]);
     this->_sync->SetSyncInfos(SyncPath);
 }
-void CPLRelease::SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+void CPLRelease::SetCPLId(int id_serv_pair_config, int id_content, int id_type, int id_localisation)
 {
     this->_CPLId[0] = id_serv_pair_config;
-    this->_CPLId[1] = id_movie;
+    this->_CPLId[1] = id_content;
     this->_CPLId[2] = id_type;
     this->_CPLId[3] = id_localisation;
 }
@@ -45,7 +45,7 @@ std::string CPLRelease::toXmlString()
 {
     std::string xml = "<cpl";
     xml += " id_serv_pair_config=\"" + std::to_string(this->_CPLId[0]) + "\"";
-    xml += " id_movie=\"" + std::to_string(this->_CPLId[1]) + "\"";
+    xml += " id_content=\"" + std::to_string(this->_CPLId[1]) + "\"";
     xml += " id_type=\"" + std::to_string(this->_CPLId[2]) + "\"";
     xml += " id_localisation=\"" + std::to_string(this->_CPLId[3]) + "\"";
     xml += " CPL_name=\"" + this->_CPLName + "\"";

@@ -2636,7 +2636,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         else { cmdId = cmd->getIntParameter("id"); }
         Configurator* configurator = nullptr; 
         int contentId = -1;
-        std::regex id_regex(R"(id_movie=\"(\d+)\")"); 
+        std::regex id_regex(R"(id_content=\"(\d+)\")"); 
         std::smatch match;
         CommandCentral::CommandCentralType cmdType = cmd->getType();
 

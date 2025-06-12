@@ -21,9 +21,9 @@
     
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const id_movie = urlParams.get('id');
+    const id_content = urlParams.get('id');
     document.addEventListener('DOMContentLoaded', async function(){
-        let response = await ( getContents(id_movie) );
+        let response = await ( getContents(id_content) );
         if (response.ok == true) {
             drawContentslist(response.data.contents); 
             const imgAdd = document.querySelector(".image-line-add");
@@ -65,7 +65,7 @@
                             if (result.ok == true) {
                                 const body = await result.json();
                                 if (body.code == 200) { 
-                                    window.location.assign("/movies?id=" + body.data.content.$.id_movie);
+                                    window.location.assign("/movies?id=" + body.data.content.$.id_content);
                                 }
                                 else {
                                     showErrorMessage("message-box", body.message);
@@ -84,8 +84,8 @@
             if (response.data.contents == "") {
                 imgAdd.dispatchEvent(new Event('click'));
             }
-            if (id_movie != null) {
-                const inputCheck = document.getElementById("Check_" + id_movie);
+            if (id_content != null) {
+                const inputCheck = document.getElementById("Check_" + id_content);
                 inputCheck.checked = true;
                 const event_change = new Event('change');
                 inputCheck.dispatchEvent(event_change);
@@ -155,19 +155,21 @@
                 tbody.appendChild(tr);
 
                 const tdCheck = createDOM("td", {align:"center", valign:"center"});
-                const inputCheck = createDOM("input", {type:"checkbox", id:"Check_" + content.$.id_movie});
+                const inputCheck = createDOM("input", {type:"checkbox", id:"Check_" + content.$.id_content});
                 inputCheck.addEventListener('change', function(){
                     if (inputCheck.checked == false) { CheckInput.checked = false; }
-                    contentDetailsTest(content.$.id_movie);
+                    console.log("contentDetailsTest", content.$.id_content);
+                    console.log("content", content);
+                    contentDetailsTest(content.$.id_content);
                 });
                 tdCheck.appendChild(inputCheck);
                 tr.appendChild(tdCheck);
                 
                 const tdId = createDOM("td", {align:"center", valign:"center"});
-                tdId.innerHTML = content.$.id_movie;
+                tdId.innerHTML = content.$.id_content;
                 tr.appendChild(tdId);
 
-                const tdContent = createDOM("td", {align:"center", valign:"center", id:"contentTitle_" + content.$.id_movie});
+                const tdContent = createDOM("td", {align:"center", valign:"center", id:"contentTitle_" + content.$.id_content});
                 tdContent.innerHTML = content.$.title;
 
                 tdContent.addEventListener('click', function(event){
@@ -197,12 +199,12 @@
         TableContents.appendChild(tbody);
     }
 
-    async function contentDetailsTest(id_movie) {
-        const inputCheckbox = document.getElementById("Check_" + id_movie);
-        const contentTitle = document.getElementById("contentTitle_" + id_movie);
-        const contentDetails = document.getElementById("content_" + id_movie);
+    async function contentDetailsTest(id_content) {
+        const inputCheckbox = document.getElementById("Check_" + id_content);
+        const contentTitle = document.getElementById("contentTitle_" + id_content);
+        const contentDetails = document.getElementById("content_" + id_content);
         if (inputCheckbox.checked && contentDetails == null) {
-            const json = {"id_content":id_movie};
+            const json = {"id_content":id_content};
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
             const response = await ( await fetch(`/getReleasesContent`, options) ).json();
 
@@ -210,13 +212,13 @@
 
             if (response.data.releases != "") {
                 for (const release of response.data.releases.release) {
-                    releasesdetails.push({"id_release": [id_movie, release.$.id_type, release.$.id_localisation].join("_"), 
+                    releasesdetails.push({"id_release": [id_content, release.$.id_type, release.$.id_localisation].join("_"), 
                                           "localisation": contentLocalisation[release.$.id_localisation], 
                                           "type":contentType[release.$.id_type], 
                                           "ref":release.$.release_cpl_ref_path});
                 }
             }
-            const content = {"title":contentTitle.innerText, "id_content":id_movie, "releases":releasesdetails};
+            const content = {"title":contentTitle.innerText, "id_content":id_content, "releases":releasesdetails};
             drawContentDetails(content, document.getElementById("content-details"));
         }
         else {
@@ -228,7 +230,7 @@
 
     function drawContentDetails(content, contentsContainer) {
 
-        const contentReleaseContainer = createDOM("div", {class:"ContentDetails", id : "content_" + content.id_movie});
+        const contentReleaseContainer = createDOM("div", {class:"ContentDetails", id : "content_" + content.id_content});
         contentsContainer.appendChild(contentReleaseContainer);
         const contentTop = createDOM("div", {class:"BlockTop"});
         contentReleaseContainer.appendChild(contentTop);
@@ -240,16 +242,16 @@
         const ReleaseAdd = createDOM("img", {class:"image-line-add", src:"/add.png", id:"create"});
         contentTop.appendChild(ReleaseAdd);
         ReleaseAdd.addEventListener("click", async function(){
-            const ContentDetailsTable = document.getElementById("content_" + content.id_movie).querySelectorAll("#createRelease");
+            const ContentDetailsTable = document.getElementById("content_" + content.id_content).querySelectorAll("#createRelease");
             if (ContentDetailsTable.length < 1) {
                 const CreateRelease_tr = createDOM("tr");
                 
-                const CreateRelease_tdId = createDOM("td", {align:"center", valign:"center", id: "createReleaseId_" + content.id_movie});
-                CreateRelease_tdId.innerHTML = content.id_movie + "_-1_-1";
+                const CreateRelease_tdId = createDOM("td", {align:"center", valign:"center", id: "createReleaseId_" + content.id_content});
+                CreateRelease_tdId.innerHTML = content.id_content + "_-1_-1";
                 CreateRelease_tr.appendChild(CreateRelease_tdId);
 
                 const CreateRelease_tdType = createDOM("td", {align:"center", valign:"center"});
-                const CreateRelease_tdTypeSelect = createDOM("select", {id:"createReleaseTypeSelect_" + content.id_movie});
+                const CreateRelease_tdTypeSelect = createDOM("select", {id:"createReleaseTypeSelect_" + content.id_content});
                 const optionType = createDOM("option", {value:"-1", selected:true, style:"display:none"});
                 optionType.innerHTML =  "Type"
                 CreateRelease_tdTypeSelect.appendChild(optionType);
@@ -261,13 +263,13 @@
                     }
                 }
                 CreateRelease_tdTypeSelect.addEventListener('change', function(){
-                    IdsRelease(content.id_movie);
+                    IdsRelease(content.id_content);
                 });
                 CreateRelease_tdType.appendChild(CreateRelease_tdTypeSelect);
                 CreateRelease_tr.appendChild(CreateRelease_tdType);
                 
                 const CreateRelease_tdLocalisation = createDOM("td", {align:"center", valign:"center"});
-                const CreateRelease_tdLocalisationSelect = createDOM("select", {id:"createReleaseLocalisationSelect_" + content.id_movie});
+                const CreateRelease_tdLocalisationSelect = createDOM("select", {id:"createReleaseLocalisationSelect_" + content.id_content});
                 const optionLocalisation = createDOM("option", {value:"-1", selected:true, style:"display:none"});
                 optionLocalisation.innerHTML =  "Localisation"
                 CreateRelease_tdLocalisationSelect.appendChild(optionLocalisation);
@@ -279,13 +281,13 @@
                     }
                 }
                 CreateRelease_tdLocalisationSelect.addEventListener('change', function(){
-                    IdsRelease(content.id_movie);
+                    IdsRelease(content.id_content);
                 });
                 CreateRelease_tdLocalisation.appendChild(CreateRelease_tdLocalisationSelect);
                 CreateRelease_tr.appendChild(CreateRelease_tdLocalisation)
                 
                 const CreateRelease_tdRef = createDOM("td", {align:"center", valign:"center"});
-                const CreateRelease_inputRef = createDOM("input", {type:"text", id:"createReleaseRef_" + content.id_movie});
+                const CreateRelease_inputRef = createDOM("input", {type:"text", id:"createReleaseRef_" + content.id_content});
                 CreateRelease_tdRef.appendChild(CreateRelease_inputRef);
                 CreateRelease_tr.appendChild(CreateRelease_tdRef);
                 
@@ -293,14 +295,14 @@
                 const CreateRelease_tdActionImg = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createRelease"});
                 CreateRelease_tdAction.appendChild(CreateRelease_tdActionImg);
                 CreateRelease_tr.appendChild(CreateRelease_tdAction);
-                const check_column = document.getElementById("Add_" + content.id_movie);
+                const check_column = document.getElementById("Add_" + content.id_content);
                 check_column.className = "check-column";
                 
                 CreateRelease_tdActionImg.addEventListener('click', async function() {
-                    const Ids = document.getElementById("createReleaseId_" + content.id_movie).innerText.split("_");
-                    const selectLocalisation = document.getElementById("createReleaseLocalisationSelect_" + content.id_movie);
-                    const selectType = document.getElementById("createReleaseTypeSelect_" + content.id_movie);
-                    const Refpath = document.getElementById("createReleaseRef_" + content.id_movie);
+                    const Ids = document.getElementById("createReleaseId_" + content.id_content).innerText.split("_");
+                    const selectLocalisation = document.getElementById("createReleaseLocalisationSelect_" + content.id_content);
+                    const selectType = document.getElementById("createReleaseTypeSelect_" + content.id_content);
+                    const Refpath = document.getElementById("createReleaseRef_" + content.id_content);
                     selectType.style.backgroundColor = "";
                     selectLocalisation.style.backgroundColor = "";
                     Refpath.style.backgroundColor = "";
@@ -317,13 +319,13 @@
                         showErrorMessage("message-box", "Ref is empty");
                     }
                     else {
-                        const json = {"id_content":content.id_movie, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "cplRefPath":Refpath.value};
+                        const json = {"id_content":content.id_content, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "cplRefPath":Refpath.value};
                         const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
                         const result = await fetch(`/createReleases`, options);
                         if (result.ok == true) {
                             const body = await result.json();
                             if (body.code == 200) {
-                                window.location.assign("/contentRelease?id_movie=" + content.id_movie + "&id_type=" + selectType.value + "&id_localisation=" + selectLocalisation.value + "&contentTitle=" + content.title);
+                                window.location.assign("/contentRelease?id_content=" + content.id_content + "&id_type=" + selectType.value + "&id_localisation=" + selectLocalisation.value + "&contentTitle=" + content.title);
                             }
                             else {
                                 showErrorMessage("message-box", body.message);
@@ -352,22 +354,25 @@
         thLocalisation.innerHTML = "Localisation";
         const thRef = createDOM("th");
         thRef.innerHTML = "Ref";
-        const thAction = createDOM("th", {id: "Add_" + content.id_movie, class:"check-column" + (content.releases == "" ? " check-column-first" : "")});
+        const thAction = createDOM("th", {id: "Add_" + content.id_content, class:"check-column" + (content.releases == "" ? " check-column-first" : "")});
         tr.appendChild(thId);
         tr.appendChild(thType);
         tr.appendChild(thLocalisation);
         tr.appendChild(thRef);
         tr.appendChild(thAction);
         createTable.appendChild(tr);
+        console.log("content2 -> ", content);
+        console.log("content.releases -> ", content.releases);
 
         for (const release of content.releases) {
+            console.log("release", release);
             const Ids = release.id_release.split("_");
             const tr = createDOM("tr");
             const tdId = createDOM("td", {align:"center", valign:"center"});
             tdId.innerHTML = release.id_release;
             tr.appendChild(tdId);
             tdId.addEventListener('click', function(){
-                window.location.assign("/contentRelease?id_movie=" + Ids[0] + "&id_type=" + Ids[1] + "&id_localisation=" + Ids[2] + "&contentTitle=" + content.title);
+                window.location.assign("/contentRelease?id_content=" + Ids[0] + "&id_type=" + Ids[1] + "&id_localisation=" + Ids[2] + "&contentTitle=" + content.title);
             });
             const tdType = createDOM("td", {align:"center", valign:"center"});
             tdType.innerHTML = release.type;
@@ -382,13 +387,13 @@
             const tdActionImg = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"delete"});
             tdActionImg.addEventListener('click', async function(){
                 if (confirm("Confirme la suppression de la release : " + release.id_release + " ?")) {
-                    const json = {id_movie:Ids[0], id_type:Ids[1], id_localisation:Ids[2], typeOfElement:"RELEASE"};
+                    const json = {id_content:Ids[0], id_type:Ids[1], id_localisation:Ids[2], typeOfElement:"RELEASE"};
                     const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
                     const result = await fetch(`/deleteReleases`, options);
                     if (result.ok == true) {
                         const body = await result.json();
                         if (body.code == 200) {
-                            window.location.assign("/movies?id=" + content.id_movie);
+                            window.location.assign("/movies?id=" + content.id_content);
                         }
                         else {
                             showErrorMessage("message-box", body.message);
@@ -408,11 +413,11 @@
         }
     }
     
-    function IdsRelease(id_movie) {
-        const IdsRelease = document.getElementById("createReleaseId_" + id_movie);
-        const id_localisation = document.getElementById("createReleaseLocalisationSelect_" + id_movie).value;
-        const id_type = document.getElementById("createReleaseTypeSelect_" + id_movie).value;
-        IdsRelease.innerHTML = id_movie + "_" + id_type + "_" + id_localisation;
+    function IdsRelease(id_content) {
+        const IdsRelease = document.getElementById("createReleaseId_" + id_content);
+        const id_localisation = document.getElementById("createReleaseLocalisationSelect_" + id_content).value;
+        const id_type = document.getElementById("createReleaseTypeSelect_" + id_content).value;
+        IdsRelease.innerHTML = id_content + "_" + id_type + "_" + id_localisation;
     }
 </script>
 

@@ -94,10 +94,10 @@
                                 tdUUID.innerText = cpl.$.CPL_uuid;
                                 tr.appendChild(tdUUID);
                                 const tdIdRelease = createDOM("td", {align:"center", valign:"center"});
-                                tdIdRelease.innerText = [cpl.$.id_movie, cpl.$.id_type, cpl.$.id_localisation].join("_")
+                                tdIdRelease.innerText = [cpl.$.id_content, cpl.$.id_type, cpl.$.id_localisation].join("_")
                                 tr.appendChild(tdIdRelease);
                                 tdIdRelease.addEventListener("click", function () {
-                                    window.location.assign("/movies?id=" + cpl.$.id_movie)
+                                    window.location.assign("/movies?id=" + cpl.$.id_content)
                                 });
                                 const tdLorem = createDOM("td", {align:"center", valign:"center"});
                                 tdLorem.innerText = cpl.$.CPL_name;

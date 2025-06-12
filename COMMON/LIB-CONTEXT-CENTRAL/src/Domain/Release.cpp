@@ -8,8 +8,8 @@ Releases::Releases()
     _CPLRefPath = "";
     _cis = nullptr;
 }
-Releases::Releases(int id_movie, int typeMovie, int localisationMovie) {
-    _releaseId[0] = id_movie;
+Releases::Releases(int id_content, int typeMovie, int localisationMovie) {
+    _releaseId[0] = id_content;
     _releaseId[1] = typeMovie;
     _releaseId[2] = localisationMovie;
     _CPLRefPath = "";
@@ -48,9 +48,9 @@ void Releases::UploadSyncLoop(int id_serv_pair_config, std::string SyncLoopPath)
     this->_syncLoops[compositeId]->SetSyncLoopId(id_serv_pair_config, _releaseId[0], _releaseId[1], _releaseId[2]);
     this->_syncLoops[compositeId]->SetSyncLoopInfos(SyncLoopPath);
 }
-void Releases::SetReleaseId(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie)
+void Releases::SetReleaseId(int id_content, TypeMovie typeMovie, LocalisationMovie localisationMovie)
 {
-    _releaseId[0] = id_movie;
+    _releaseId[0] = id_content;
     _releaseId[1] = typeMovie;
     _releaseId[2] = localisationMovie;
 }
@@ -58,7 +58,7 @@ void Releases::SetReleaseId(int id_movie, TypeMovie typeMovie, LocalisationMovie
 std::string Releases::toXmlString(bool printChild)
 {
     std::string xml = "<release";
-    xml += " id_movie=\"" + std::to_string(this->_releaseId[0]) + "\"";
+    xml += " id_content=\"" + std::to_string(this->_releaseId[0]) + "\"";
     xml += " id_type=\"" + std::to_string(this->_releaseId[1]) + "\"";
     xml += " id_localisation=\"" + std::to_string(this->_releaseId[2]) + "\"";
     xml += " release_cpl_ref_path=\"" + this->_CPLRefPath + "\"";

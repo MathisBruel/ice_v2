@@ -7,7 +7,7 @@ public:
     SyncLoop();
     ~SyncLoop();
 
-    void SetSyncLoopId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation);
+    void SetSyncLoopId(int id_serv_pair_config, int id_content, int id_type, int id_localisation);
     void SetSyncLoopInfos(std::string SyncLoopPath);
     std::string toXmlString();
 

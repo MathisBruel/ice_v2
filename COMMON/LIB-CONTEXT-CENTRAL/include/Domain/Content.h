@@ -10,7 +10,7 @@ public:
     Content();
     Content(std::string contentTitle);
 
-    void CreateRelease(int id_movie, int typeMovie, int localisationMovie);
+    void CreateRelease(int id_content, int typeMovie, int localisationMovie);
     
     void SetContentId(int contentId);
     void SetDatas(std::string contentTitle);

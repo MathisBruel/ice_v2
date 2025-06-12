@@ -10,7 +10,7 @@ class Releases
 {
 public:
     Releases();
-    Releases(int id_movie, int typeMovie, int localisationMovie);
+    Releases(int id_content, int typeMovie, int localisationMovie);
     ~Releases();
 
     void UploadCIS(std::string CISPath);
@@ -18,7 +18,7 @@ public:
     void UploadSyncLoop(int id_serv_pair_config, std::string SyncLoopPath);
     std::string toXmlString(bool printChild);
 
-    void SetReleaseId(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie);
+    void SetReleaseId(int id_content, TypeMovie typeMovie, LocalisationMovie localisationMovie);
     void SetReleaseInfos(std::string CPLRefPath) {this->_CPLRefPath = CPLRefPath;}
     void SetCIS(CIS* cis) {this->_cis = cis;}
     void AddCPL(std::string compositeId, CPLRelease* cpl) {this->_cpls[compositeId] = cpl;}

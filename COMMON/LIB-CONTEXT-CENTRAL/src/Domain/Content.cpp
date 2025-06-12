@@ -30,21 +30,21 @@ void Content::DeleteRelease(std::string releaseId)
     delete this->_release[releaseId];
     this->_release[releaseId] = nullptr;
 }
-void Content::CreateRelease(int id_movie, int typeMovie, int localisationMovie){
+void Content::CreateRelease(int id_content, int typeMovie, int localisationMovie){
     TypeMovie idTypeMovie = static_cast<TypeMovie>(typeMovie);
     LocalisationMovie idLocalisationMovie = static_cast<LocalisationMovie>(localisationMovie);
 
-    std::string releaseId = std::to_string(id_movie) + "_" +
+    std::string releaseId = std::to_string(id_content) + "_" +
                         std::to_string(typeMovie) + "_" +
                         std::to_string(localisationMovie);
     this->_release[releaseId] = new Releases();
-    this->_release[releaseId]->SetReleaseId(id_movie, idTypeMovie, idLocalisationMovie);
+    this->_release[releaseId]->SetReleaseId(id_content, idTypeMovie, idLocalisationMovie);
 }
 
 std::string Content::toXmlString(bool printChild)
 {
     std::string xml = "<content";
-    xml += " id_movie=\"" + std::to_string(this->_contentId) + "\"";
+    xml += " id_content=\"" + std::to_string(this->_contentId) + "\"";
     xml += " title=\"" + this->_contentTitle + "\"";
     if (printChild) {
         xml += ">"; 

@@ -36,21 +36,21 @@
                          12:"Promo", 13:"Carte stéréo 3D", 14:"Episode", 15:"Points forts", 16:"Evenements"};
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const id_movie = urlParams.get('id_movie');
+    const id_content = urlParams.get('id_content');
     const id_type = urlParams.get('id_type');
     const id_localisation = urlParams.get('id_localisation');
     const contentTitle = urlParams.get('contentTitle');
     document.addEventListener('DOMContentLoaded', async function(){
-        if (id_movie == null || id_type == null || id_localisation == null) { window.location.assign("/movies"); }
+        if (id_content == null || id_type == null || id_localisation == null) { window.location.assign("/movies"); }
         const numRelease = document.getElementById("releaseNum");
-        numRelease.innerHTML = id_movie + "-" + id_type + "-" + id_localisation;
+        numRelease.innerHTML = id_content + "-" + id_type + "-" + id_localisation;
         const inputType = document.getElementById("type");
         inputType.value = contentType[id_type];
         const inputLocalisation = document.getElementById("Localisation");
         inputLocalisation.value = contentLocalisation[id_localisation];
         const inputTitle = document.getElementById("title");
         inputTitle.value = contentTitle;
-        const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation };
+        const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation };
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
         let response = await (await fetch(`/getReleasesContent`, options)).json();
         if (response.ok == true) {
@@ -68,7 +68,7 @@
                         showErrorMessage("message-box", "No changes detected");
                     }
                     else {
-                        const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, release_cpl_ref_path: release_cpl_ref_path.value };
+                        const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cpl_ref_path: release_cpl_ref_path.value };
                         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                         let response = await (await fetch(`/updateReleases`, options)).json();
                         if (response.ok == true) {
@@ -110,7 +110,7 @@
                             showErrorMessage("message-box", "Content is empty");
                         }
                         else {
-                            const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                             let response = await fetch(`/createCIS`, options);
                             if (response.ok == true) {
@@ -141,7 +141,7 @@
                             showErrorMessage("message-box", "No changes detected");
                         }
                         else {
-                            const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                             let response = await (await fetch(`/updateCIS`, options)).json();
                             if (response.ok == true) {
@@ -219,7 +219,7 @@
                 }
             }
         }
-        const cplJson = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation};
+        const cplJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
         const cplOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cplJson) };
         let cplResponse = await (await fetch(`/getCPL`, cplOptions)).json();
         let cplIds = [];
@@ -230,7 +230,7 @@
                     cplTable.appendChild(cplTableRow);
                     const cplIdCell = createDOM("td", {align:"center", valign:"center"});
                     cplTableRow.appendChild(cplIdCell);
-                    let id = cpl.$.id_serv_pair_config + "_" + cpl.$.id_movie + "_" + cpl.$.id_type + "_" + cpl.$.id_localisation;
+                    let id = cpl.$.id_serv_pair_config + "_" + cpl.$.id_content + "_" + cpl.$.id_type + "_" + cpl.$.id_localisation;
                     cplIds.push(id);
                     servPairs = servPairs.filter(servPair => servPair.id_serv_pair_config != cpl.$.id_serv_pair_config);
                     cplIdCell.innerText = id;
@@ -248,8 +248,8 @@
                     const imgDeleteCpl = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"removeCPLRow"});
                     cplActionCell.appendChild(imgDeleteCpl);
                     imgDeleteCpl.addEventListener("click", async function(){ 
-                        if (confirm("Confirme la suppression du cpl : " + cpl.$.id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation +" ?")) {
-                            const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: cpl.$.id_serv_pair_config, typeOfElement:"CPL" };
+                        if (confirm("Confirme la suppression du cpl : " + cpl.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: cpl.$.id_serv_pair_config, typeOfElement:"CPL" };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                             let response = await fetch(`/deleteReleaseCPL`, options);
                             if (response.ok == true) {
@@ -336,7 +336,7 @@
                     showErrorMessage("message-box", "Content is empty");
                 }
                 else {
-                    const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newCplIdSelect.value, CPL_uuid: newCplUuidInput.value, CPL_name: newCplNameInput.value, CPL_path: newCplPathInput.value };
+                    const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newCplIdSelect.value, CPL_uuid: newCplUuidInput.value, CPL_name: newCplNameInput.value, CPL_path: newCplPathInput.value };
                     const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                     let response = await fetch(`/createNewCPL`, options);
                     if (response.ok == true) {
@@ -376,7 +376,7 @@
         syncTableHeadRow.appendChild(syncActionCell);
         const imgAddSync = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSync"});
         syncActionCell.appendChild(imgAddSync);
-        const syncJson = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation};
+        const syncJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
         const syncOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncJson) };
         let syncResponse = await (await fetch(`/getSync`, syncOptions)).json();
 
@@ -389,8 +389,8 @@
                     syncTableBody.appendChild(syncTableRow);
                     const syncIdCell = createDOM("td", {align:"center", valign:"center"});
                     syncTableRow.appendChild(syncIdCell);
-                    cplIds = cplIds.filter(cplId => cplId != sync.$.id_serv_pair_config + "_" + sync.$.id_movie + "_" + sync.$.id_type + "_" + sync.$.id_localisation);
-                    syncIdCell.innerText = sync.$.id_serv_pair_config + "_" + sync.$.id_movie + "_" + sync.$.id_type + "_" + sync.$.id_localisation;
+                    cplIds = cplIds.filter(cplId => cplId != sync.$.id_serv_pair_config + "_" + sync.$.id_content + "_" + sync.$.id_type + "_" + sync.$.id_localisation);
+                    syncIdCell.innerText = sync.$.id_serv_pair_config + "_" + sync.$.id_content + "_" + sync.$.id_type + "_" + sync.$.id_localisation;
                     const syncPathCell = createDOM("td", {align:"center", valign:"center"});
                     syncTableRow.appendChild(syncPathCell);
                     syncPathCell.innerText = sync.$.path_sync;
@@ -399,8 +399,8 @@
                     const imgDeleteSync = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"removeSyncRow"});
                     syncActionCell.appendChild(imgDeleteSync);
                     imgDeleteSync.addEventListener("click", async function(){
-                        if (confirm("Confirme la suppression du sync : " + sync.$.id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation +" ?")) {
-                            const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: sync.$.id_serv_pair_config, typeOfElement:"SYNC" };
+                        if (confirm("Confirme la suppression du sync : " + sync.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: sync.$.id_serv_pair_config, typeOfElement:"SYNC" };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                             let response = await fetch(`/deleteSync`, options);
                             if (response.ok == true) {
@@ -465,7 +465,7 @@
                     }
                     else {
                         let cplId = newSyncIdSelect.value.split("_");
-                        const syncJson = { id_movie: cplId[1], id_type: cplId[2], id_localisation: cplId[3], id_serv_pair_config: cplId[0], path_sync: newSyncPathInput.value };
+                        const syncJson = { id_content: cplId[1], id_type: cplId[2], id_localisation: cplId[3], id_serv_pair_config: cplId[0], path_sync: newSyncPathInput.value };
                         const syncOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncJson) };
                         let syncResponse = await fetch(`/createSync`, syncOptions);
                         if (syncResponse.ok == true) {
@@ -521,7 +521,7 @@
             }
         }
 
-        const syncLoopJson = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation};
+        const syncLoopJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
         const syncLoopOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncLoopJson) };
         let syncLoopResponse = await (await fetch(`/getSyncLoop`, syncLoopOptions)).json(); 
 
@@ -535,7 +535,7 @@
                     const syncLoopIdCell = createDOM("td", {align:"center", valign:"center"});
                     syncLoopTableRow.appendChild(syncLoopIdCell);
                     servPairs = servPairs.filter(servPair => servPair.id_serv_pair_config != syncLoop.$.id_serv_pair_config);
-                    syncLoopIdCell.innerText = syncLoop.$.id_serv_pair_config + "_" + syncLoop.$.id_movie + "_" + syncLoop.$.id_type + "_" + syncLoop.$.id_localisation;
+                    syncLoopIdCell.innerText = syncLoop.$.id_serv_pair_config + "_" + syncLoop.$.id_content + "_" + syncLoop.$.id_type + "_" + syncLoop.$.id_localisation;
                     const syncLoopPathCell = createDOM("td", {align:"center", valign:"center"});
                     syncLoopTableRow.appendChild(syncLoopPathCell);
                     syncLoopPathCell.innerText = syncLoop.$.path_sync_loop;
@@ -544,8 +544,8 @@
                     const imgDeleteSyncLoop = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"deleteSyncLoop"});
                     syncLoopActionCell.appendChild(imgDeleteSyncLoop);
                     imgDeleteSyncLoop.addEventListener("click", async function(){
-                        if (confirm("Confirme la suppression du sync : " + syncLoop.$.id_serv_pair_config + "_" + id_movie + "_" + id_type + "_" + id_localisation +" ?")) {
-                            const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: syncLoop.$.id_serv_pair_config, typeOfElement:"SYCLOOP" };
+                        if (confirm("Confirme la suppression du sync : " + syncLoop.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: syncLoop.$.id_serv_pair_config, typeOfElement:"SYCLOOP" };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                             let response = await fetch(`/deleteSyncLoop`, options);
                             if (response.ok == true) {
@@ -608,7 +608,7 @@
                     showErrorMessage("message-box", "Content is empty");
                 }
                 else {
-                    const json = { id_movie: id_movie, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newSyncLoopIdSelect.value, path_syncloop: newSyncLoopPathInput.value };
+                    const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newSyncLoopIdSelect.value, path_syncloop: newSyncLoopPathInput.value };
                     const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                     let response = await fetch(`/createSyncLoop`, options);
                     if (response.ok == true) {
