@@ -202,7 +202,7 @@
         const contentTitle = document.getElementById("contentTitle_" + id_movie);
         const contentDetails = document.getElementById("content_" + id_movie);
         if (inputCheckbox.checked && contentDetails == null) {
-            const json = {"id_movie":id_movie};
+            const json = {"id_content":id_movie};
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
             const response = await ( await fetch(`/getReleasesContent`, options) ).json();
 
@@ -216,7 +216,7 @@
                                           "ref":release.$.release_cpl_ref_path});
                 }
             }
-            const content = {"title":contentTitle.innerText, "id_movie":id_movie, "releases":releasesdetails};
+            const content = {"title":contentTitle.innerText, "id_content":id_movie, "releases":releasesdetails};
             drawContentDetails(content, document.getElementById("content-details"));
         }
         else {
@@ -317,7 +317,7 @@
                         showErrorMessage("message-box", "Ref is empty");
                     }
                     else {
-                        const json = {"id_movie":content.id_movie, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "cplRefPath":Refpath.value};
+                        const json = {"id_content":content.id_movie, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "cplRefPath":Refpath.value};
                         const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
                         const result = await fetch(`/createReleases`, options);
                         if (result.ok == true) {

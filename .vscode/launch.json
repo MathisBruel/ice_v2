@@ -67,6 +67,39 @@
                 }
             ]
         },
+        {  "name": "(Native) Web Central REBUILD",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/data/ICE2/ICE-CENTRAL",
+            "cwd": "/",
+            "args": [
+                "configPath:/data/ICE2/CONFIG/"
+            ],
+            "stopAtEntry": false,
+            "environment": [],
+            "preLaunchTask": "REBUILD Container Configuration Web-Central",
+            "externalConsole": true,
+            "pipeTransport": {
+                "debuggerPath": "/usr/bin/gdb",
+                "pipeProgram": "docker",
+                "pipeArgs": [
+                    "exec",
+                    "-i",
+                    "ice-server-container-central-v2",
+                    "sh",
+                    "-c"
+                ],
+                "pipeCwd": "${workspaceRoot}"
+            },
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
         {
             "name": "Attach NodeJS",
             "type": "node",
@@ -81,6 +114,10 @@
     "compounds": [
         {  "name": "WebCentral",
             "configurations": ["(Native) Web Central","Attach NodeJS"],
+            "stopAll": true
+        },
+        {  "name": "WebCentral REBUILD",
+            "configurations": ["(Native) Web Central REBUILD","Attach NodeJS"],
             "stopAll": true
         }
     ]

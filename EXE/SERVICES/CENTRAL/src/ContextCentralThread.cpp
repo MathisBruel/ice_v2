@@ -2240,7 +2240,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     // -- Getters State Machine
     else if (cmd->getType() == CommandCentral::GET_CONTENT) {
         MySQLContentRepo* contentRepo = new MySQLContentRepo();
-        int cmdId = cmd->getIntParameter("id_movie");
+        int cmdId = cmd->getIntParameter("id_content");
         Content* content = new Content();
         if (cmdId == -1) {
             contentRepo->Read(content);
@@ -2252,7 +2252,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 response->setComments("Contents get success");
                 std::string datas = "<contents>";
                 for (int i = 0; i < result->getNbRows(); i++) {
-                    content->SetContentId(*result->getIntValue(i, "id_movie"));
+                    content->SetContentId(*result->getIntValue(i, "id_content"));
                     content->SetDatas(*result->getStringValue(i, "title"));
                     datas += content->toXmlString(false);
                 }
@@ -2276,7 +2276,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             if (result != nullptr && result->isValid()) {
                 response->setStatus(CommandCentralResponse::OK);
                 response->setComments("Content get success");
-                content->SetContentId(*result->getIntValue(0, "id_movie"));
+                content->SetContentId(*result->getIntValue(0, "id_content"));
                 content->SetDatas(*result->getStringValue(0, "title"));
                 response->setDatas(content->toXmlString(true));
             }
@@ -2294,7 +2294,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     } 
     else if (cmd->getType() == CommandCentral::GET_RELEASES_CONTENT) {
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
-        int cmdId = cmd->getIntParameter("id_movie");
+        int cmdId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int LocalisationId = cmd->getIntParameter("id_localisation");
         if (typeId == -1 || LocalisationId == -1) {
@@ -2309,7 +2309,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 response->setComments("Releases get success");
                 std::string datas = "<releases>";
                 for (int i = 0; i < result->getNbRows(); i++) {
-                    release->SetReleaseId(*result->getIntValue(i, "id_movie"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
+                    release->SetReleaseId(*result->getIntValue(i, "id_content"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
                     release->SetReleaseInfos(*result->getStringValue(i, "release_cpl_ref_path"));
                     datas += release->toXmlString(false);
                 }
@@ -2342,7 +2342,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 response->setStatus(CommandCentralResponse::OK);
                 response->setComments("Release get success");
                 std::string datas = "<releases>";
-                release->SetReleaseId(*resultRelease->getIntValue(0, "id_movie"), static_cast<TypeMovie>(*resultRelease->getIntValue(0, "id_type")),  static_cast<LocalisationMovie>(*resultRelease->getIntValue(0, "id_localisation")));
+                release->SetReleaseId(*resultRelease->getIntValue(0, "id_content"), static_cast<TypeMovie>(*resultRelease->getIntValue(0, "id_type")),  static_cast<LocalisationMovie>(*resultRelease->getIntValue(0, "id_localisation")));
                 release->SetReleaseInfos(*resultRelease->getStringValue(0, "release_cpl_ref_path"));
                 release->UploadCIS(*resultCIS->getStringValue(0, "release_cis_path"));
                 datas += release->toXmlString(true);
@@ -2454,7 +2454,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             for (int i = 0; i < resultCPL->getNbRows(); i++) {
                 for (int j = 0; j < resultIceServerPairConfig->getNbRows(); j++) {
                     if (*resultCPL->getIntValue(i, "id_serv_pair_config") == *resultIceServerPairConfig->getIntValue(j, "id_serv_pair_config")){
-                        cpl->SetCPLId(*resultCPL->getIntValue(i, "id_serv_pair_config"), *resultCPL->getIntValue(i, "id_movie"), *resultCPL->getIntValue(i, "id_type"), *resultCPL->getIntValue(i, "id_localisation"));
+                        cpl->SetCPLId(*resultCPL->getIntValue(i, "id_serv_pair_config"), *resultCPL->getIntValue(i, "id_content"), *resultCPL->getIntValue(i, "id_type"), *resultCPL->getIntValue(i, "id_localisation"));
                         cpl->SetDatas(*resultCPL->getStringValue(i, "uuid"), *resultCPL->getStringValue(i, "name"));
                         cpl->SetCplInfos(*resultCPL->getStringValue(i, "path_cpl"));
                         datas += cpl->toXmlString();
@@ -2474,7 +2474,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else if (cmd->getType() == CommandCentral::UPDATE_RELEASE_CONTENT) {
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
-        int contentId = cmd->getIntParameter("id_movie");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int LocalisationId = cmd->getIntParameter("id_localisation");
         Releases* release = new Releases(contentId, typeId, LocalisationId);
@@ -2495,7 +2495,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else if (cmd->getType() == CommandCentral::UPDATE_CIS) {
         MySQLCISRepo* cisRepo = new MySQLCISRepo();
-        int contentId = cmd->getIntParameter("id_movie");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         std::string pathCIS = cmd->getStringParameter("release_cis_path");
@@ -2520,7 +2520,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         delete cisRepo;
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_CPLS) {
-        int contentId = cmd->getIntParameter("id_movie");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
@@ -2534,7 +2534,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setComments("CPLs get success");
             std::string datas = "<cpls>";
             for (int i = 0; i < result->getNbRows(); i++) {
-                cpl->SetCPLId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
+                cpl->SetCPLId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_content"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
                 cpl->SetDatas(*result->getStringValue(i, "uuid"), *result->getStringValue(i, "name"));
                 cpl->SetCplInfos(*result->getStringValue(i, "path_cpl"));
                 datas += cpl->toXmlString();
@@ -2549,7 +2549,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCS) {
-        int contentId = cmd->getIntParameter("id_movie");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
@@ -2563,7 +2563,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setComments("Syncs get success");
             std::string datas = "<syncs>";
             for (int i = 0; i < result->getNbRows(); i++) {
-                sync->SetSyncId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
+                sync->SetSyncId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_content"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
                 sync->SetSyncInfos(*result->getStringValue(i, "path_sync"));
                 datas += sync->toXmlString();
             }
@@ -2577,7 +2577,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCLOOPS) {
-        int contentId = cmd->getIntParameter("id_movie");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
@@ -2591,7 +2591,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setComments("SyncLoops get success");
             std::string datas = "<syncLoops>";
             for (int i = 0; i < result->getNbRows(); i++) {
-                syncLoop->SetSyncLoopId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_movie"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
+                syncLoop->SetSyncLoopId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_content"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
                 syncLoop->SetSyncLoopInfos(*result->getStringValue(i, "path_sync_loop"));
                 datas += syncLoop->toXmlString();
             }
@@ -2632,7 +2632,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else {
         int cmdId;
-        if (cmd->getIntParameter("id_movie") != -1) { cmdId = cmd->getIntParameter("id_movie"); }
+        if (cmd->getIntParameter("id_content") != -1) { cmdId = cmd->getIntParameter("id_content"); }
         else { cmdId = cmd->getIntParameter("id"); }
         Configurator* configurator = nullptr; 
         int contentId = -1;

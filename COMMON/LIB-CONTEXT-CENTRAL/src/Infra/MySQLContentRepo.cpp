@@ -1,7 +1,7 @@
 #include "Infra/MySQLContentRepo.h"
 
 std::string MySQLContentRepo::_database = "ice";
-std::string MySQLContentRepo::_table = "movie";
+std::string MySQLContentRepo::_table = "content";
 
 Query* MySQLContentRepo::MySQLcreate(Content* content)
 {
@@ -19,9 +19,9 @@ Query* MySQLContentRepo::MySQLread(Content* content)
     _id = content->GetContentId();
 
     Query* readQuery = new Query(Query::SELECT, _database, _table);
-    readQuery->addParameter("id_movie", nullptr, "int");
+    readQuery->addParameter("id_content", nullptr, "int");
     readQuery->addParameter("title", nullptr, "string");
-    if (*_id != -1) {readQuery->addWhereParameter("id_movie", &_id, "int");}
+    if (*_id != -1) {readQuery->addWhereParameter("id_content", &_id, "int");}
     return readQuery;
 }
 
@@ -34,7 +34,7 @@ Query* MySQLContentRepo::MySQLupdate(Content* content)
 
     Query* updateQuery = new Query(Query::UPDATE, _database, _table);
     updateQuery->addParameter("title", &_id, "string");
-    updateQuery->addWhereParameter("id_movie", &_title, "int");
+    updateQuery->addWhereParameter("id_content", &_title, "int");
     return updateQuery;
 }
 
@@ -44,6 +44,6 @@ Query* MySQLContentRepo::MySQLremove(Content* content)
     if (*_id == -1) { return nullptr; }
 
     Query* removeQuery = new Query(Query::REMOVE, _database, _table);
-    removeQuery->addWhereParameter("id_movie", &_id, "int");
+    removeQuery->addWhereParameter("id_content", &_id, "int");
     return removeQuery;
 }

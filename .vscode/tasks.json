@@ -25,11 +25,34 @@
                 // ---- docker compose up -d ----
                 //"Container Create",
                 //"Build ICE-MIGRATION executable",
-                // "Container-Image Remove",
+                //"Container-Image Remove",
                 //"Container-Image Remove Central",
                 //"Docker container build and run",
                 "Move files to container",
                 "Container Start",
+                "Start ICE-SERVICE and ICE-Panel",
+                "Container Config Web-Central",
+                //"Set datas in MySQL",
+                "Start nodeJS Web-Central"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "label": "REBUILD Container Configuration Web-Central",
+            "type": "shell",
+            "dependsOn": [
+                //"Container Stop",
+                //"Container Start",
+                "Container Delete",
+                "Build WebCentral executable",
+                // ---- docker compose up -d ----
+                //"Container Create",
+                "Build ICE-MIGRATION executable",
+                "Container-Image Remove",
+                "Container-Image Remove Central",
+                "Docker container build and run",
+                //"Move files to container",
+                "Container Create",
                 "Start ICE-SERVICE and ICE-Panel",
                 "Container Config Web-Central",
                 "Start nodeJS Web-Central"
@@ -224,6 +247,16 @@
             "problemMatcher": [
                 "$tsc"
             ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Set datas in MySQL",
+            "type": "shell",
+            "command": "mysql -h 127.0.0.1 -P 33061 -u root -padmin < /home/mathis/ice_v2/EXE/SERVICES/Launcher/init-datas.sql",
+            "problemMatcher": [],
             "presentation": {
                 "reveal": "always"
             },

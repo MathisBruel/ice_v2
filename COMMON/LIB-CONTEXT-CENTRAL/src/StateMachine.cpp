@@ -53,23 +53,23 @@ struct StatePublishing : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().publishingInteraction->pfStatePublishing = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
-            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            changeRelease(control, Params["id_content"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
             if (Params["typeOfElement"] == "RELEASE") {           
-                deleteRelease(control, Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+                deleteRelease(control, Params["id_content"], Params["id_type"], Params["id_localisation"]);
                 this->response.cmdComment = "Release deleted";
             }
             else if (Params["typeOfElement"] == "CPL") {
                 this->response.cmdComment = "Cpl deleted";
-                deleteSync(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
-                deleteCPL(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+                deleteSync(control, Params["id_serv_pair_config"], Params["id_content"], Params["id_type"], Params["id_localisation"]);
+                deleteCPL(control, Params["id_serv_pair_config"], Params["id_content"], Params["id_type"], Params["id_localisation"]);
             } 
             else if (Params["typeOfElement"] == "SYNC") {
                 this->response.cmdComment = "Sync deleted";
-                deleteSync(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+                deleteSync(control, Params["id_serv_pair_config"], Params["id_content"], Params["id_type"], Params["id_localisation"]);
             } 
             else if (Params["typeOfElement"] == "SYNCLOOP") {
                 this->response.cmdComment = "SyncLoop deleted";
-                deleteSyncLoop(control, Params["id_serv_pair_config"], Params["id_movie"], Params["id_type"], Params["id_localisation"]);
+                deleteSyncLoop(control, Params["id_serv_pair_config"], Params["id_content"], Params["id_type"], Params["id_localisation"]);
             }
             this->response.cmdStatus = "OK";
             return this->response;
@@ -129,7 +129,7 @@ struct StateReleaseCreation : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().releaseInteraction->pfStateReleaseCreation = [control,this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
-            newRelease(control, std::stoi(Params["id_movie"]), std::stoi(Params["id_type"]), std::stoi(Params["id_localisation"]), Params["cplRefPath"]);
+            newRelease(control, std::stoi(Params["id_content"]), std::stoi(Params["id_type"]), std::stoi(Params["id_localisation"]), Params["cplRefPath"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "Release created";
             return this->response;
@@ -157,7 +157,7 @@ struct StateUploadCIS : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().cisInteraction->pfStateUploadCIS = [control, this] (std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
-            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            changeRelease(control, Params["id_content"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
             newCISFile(control, Params["release_cis_path"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "CIS uploaded";
@@ -217,7 +217,7 @@ struct StateCPL : StateTemplate {
         std::cout << "CPL\n";
         control.context().cplInteraction->pfStateCPL = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
-            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            changeRelease(control, Params["id_content"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
             newCPLFile(control, std::stoi(Params["id_serv_pair_config"]), Params["CPL_name"], Params["CPL_uuid"], Params["CPL_path"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "CPL";
@@ -249,8 +249,8 @@ struct StateSync : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().syncInteraction->pfStateSync = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
-            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
-            newSyncFile(control, Params["id_serv_pair_config"] + "_" + Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"], Params["path_sync"]);
+            changeRelease(control, Params["id_content"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            newSyncFile(control, Params["id_serv_pair_config"] + "_" + Params["id_content"] + "_" + Params["id_type"] + "_" + Params["id_localisation"], Params["path_sync"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "Sync";
             return this->response;
@@ -280,7 +280,7 @@ struct StateSyncLoop : StateTemplate {
     void entryGuard(FullControl& control)  {
         control.context().syncLoopInteraction->pfStateSyncLoop = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
             this->response.cmdUUID = UUID;
-            changeRelease(control, Params["id_movie"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
+            changeRelease(control, Params["id_content"] + "_" + Params["id_type"] + "_" + Params["id_localisation"]);
             newSyncLoop(control, Params["id_serv_pair_config"], Params["path_syncloop"]);
             this->response.cmdStatus = "OK";
             this->response.cmdComment = "SyncLoop";

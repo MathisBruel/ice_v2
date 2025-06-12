@@ -63,27 +63,27 @@ INSERT INTO `hallway_server_configuration` (`id_serv_pair_config`, `id_dafault_h
 (4,1),
 (5,1);
 
-INSERT INTO `movie` (`title`) VALUES 
+INSERT INTO `content` (`title`) VALUES 
 ("test|Toy Story"),
 ("test|Toy Story 2"),
 ("test|Toy Story 3"),
 ("test|Toy Story 4"),
 ("test|Toy Story 5");
-INSERT INTO `releases` (`id_movie`,`id_type`,`id_localisation`,`release_cpl_ref_path`) VALUES 
+INSERT INTO `releases` (`id_content`,`id_type`,`id_localisation`,`release_cpl_ref_path`) VALUES 
 (1,7,1,"/"),
 (2,7,2,"/"),
 (2,7,1,"/"),
 (5,1,2,"/"),
 (3,1,2,"/"),
 (3,1,1,"/");
-INSERT INTO `cpl` (`uuid`,`name`,`sha1_sync`,`path_cpl`,`id_serv_pair_config`,`id_movie`,`id_type`,`id_localisation` ) VALUES
+INSERT INTO `cpl` (`uuid`,`name`,`sha1_sync`,`path_cpl`,`id_serv_pair_config`,`id_content`,`id_type`,`id_localisation` ) VALUES
 ("123456","Toy Story","123456","/",1,1,7,1),
 ("123457","Toy Story 2","123457","/",2,2,7,1),
 ("123458","Toy Story 2","123458","/",3,2,7,2),
 ("123459","Toy Story 5","123459","/",4,5,1,2),
 ("123455","Toy Story 3","123455","/",5,5,1,2);
 
-INSERT INTO `sync` (`id_serv_pair_config`,`id_movie`,`id_type`,`id_localisation`,`path_sync`) VALUES
+INSERT INTO `sync` (`id_serv_pair_config`,`id_content`,`id_type`,`id_localisation`,`path_sync`) VALUES
 (1,1,7,1,"/1"),
 (2,2,7,1,"/2"),
 (3,2,7,2,"/2"),
