@@ -35,7 +35,7 @@ struct StateContentInit : StateTemplate {
     }
     void newContent(Control control, std::string contentTitle) {
         control.context().content = new Content(contentTitle);
-        MySQLContentRepo* contentRepo = new MySQLContentRepo() ;
+        MySQLContentRepo* contentRepo = new MySQLContentRepo();
         contentRepo->Create(control.context().content);
         ResultQuery* result = control.context().dbConnection->ExecuteQuery(contentRepo->GetQuery());
         control.context().content->SetContentId(result->getLastInsertedId());

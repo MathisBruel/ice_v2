@@ -1,6 +1,5 @@
 #include "Infra/MySQLContentRepo.h"
 
-#include "CentralContext.h"
 #include "Domain/Content.h"
 
 std::string MySQLContentRepo::_database = "ice";
@@ -20,9 +19,6 @@ Query* MySQLContentRepo::MySQLcreate(Content* content)
 Query* MySQLContentRepo::MySQLread(Content* content)
 {
     _id = content->GetContentId();
-    CentralContext* context = CentralContext::getCurrentContext();
-    this->_dbConnection = new MySQLDBConnection(context->getDatabaseConnector());
-    content->SetStateMachine(content->CreateStateMachine(*_id, this->_dbConnection));
     Query* readQuery = new Query(Query::SELECT, _database, _table);
     readQuery->addParameter("id_content", nullptr, "int");
     readQuery->addParameter("title", nullptr, "string");

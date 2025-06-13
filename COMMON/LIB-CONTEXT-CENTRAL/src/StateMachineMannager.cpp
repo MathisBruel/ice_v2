@@ -1,4 +1,5 @@
 #include "App/StateMachineManager.h"
+#include "App/StateMachine.h"
 
 StateMachineManager* StateMachineManager::_instance = nullptr;
 
@@ -25,4 +26,26 @@ StateMachine* StateMachineManager::GetStateMachine(int id) {
         return nullptr;
     }
     return _stateMachineMap[id];
+}
+
+
+StateMachine* StateMachineManager::CreateStateMachine(int contentId, MySQLDBConnection* dbConnection) {
+    // Création d'un nouveau contexte pour le Content
+    Context* contentContext = new Context(
+        new HTTPContentInteraction(),
+        new HTTPPublishingInteraction(),
+        new HTTPReleaseInteraction(),
+        new HTTPCISInteraction(),
+        new HTTPIdleSyncInteraction(),
+        new HTTPCPLInteraction(),
+        new HTTPSyncInteraction(),
+        new HTTPSyncLoopInteraction(),
+        new HTTPInProdInteraction(),
+        dbConnection
+    );
+
+    StateMachine* contentStateMachine = new StateMachine(contentContext);    
+    StateMachineManager::GetInstance()->AddStateMachine(contentId, contentStateMachine);
+    
+    return contentStateMachine;
 }

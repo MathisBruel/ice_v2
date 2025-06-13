@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdlib>
 #include <iostream>
 #include <queue>
@@ -5,7 +6,6 @@
 
 #include "unistd.h"
 
-#pragma once
 #include "Poco/Runnable.h"
 #include "Poco/Stopwatch.h"
 #include "CentralContext.h"

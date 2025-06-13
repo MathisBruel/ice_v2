@@ -68,24 +68,3 @@ std::string Content::toXmlString(bool printChild)
     }
     return xml;
 }
-
-StateMachine* Content::CreateStateMachine(int contentId, MySQLDBConnection* dbConnection) {
-    // Création d'un nouveau contexte pour le Content
-    Context* contentContext = new Context(
-        new HTTPContentInteraction(),
-        new HTTPPublishingInteraction(),
-        new HTTPReleaseInteraction(),
-        new HTTPCISInteraction(),
-        new HTTPIdleSyncInteraction(),
-        new HTTPCPLInteraction(),
-        new HTTPSyncInteraction(),
-        new HTTPSyncLoopInteraction(),
-        new HTTPInProdInteraction(),
-        dbConnection
-    );
-
-    StateMachine* contentStateMachine = new StateMachine(contentContext);    
-    StateMachineManager::GetInstance()->AddStateMachine(contentId, contentStateMachine);
-    
-    return contentStateMachine;
-}

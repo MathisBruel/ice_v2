@@ -4,8 +4,6 @@
 
 #include "Domain/ContentRepo.h"
 
-#include "Infra/MySQLDBConnection.h"
-
 class Content;  
 
 class MySQLContentRepo : public ContentRepo
@@ -30,5 +28,4 @@ private:
     int* _id;
     std::string _title;
     Query* _query;
-    MySQLDBConnection * _dbConnection;
 };

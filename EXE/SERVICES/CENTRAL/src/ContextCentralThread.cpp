@@ -1,5 +1,7 @@
 #include "ContextCentralThread.h"
 
+#include "CentralContext.h"
+#include "Domain/Content.h"
 ContextCentralThread::ContextCentralThread()
 {
     stop = false;
@@ -2246,6 +2248,9 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             contentRepo->Read(content);
             Query* query = contentRepo->GetQuery();
             ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+            
+            //TODO: Statemachine
+            content->SetStateMachine(StateMachineManager::GetInstance()->CreateStateMachine(*content->GetContentId(), this->_dbConnection));
 
             if (result != nullptr && result->isValid()) {
                 response->setStatus(CommandCentralResponse::OK);
