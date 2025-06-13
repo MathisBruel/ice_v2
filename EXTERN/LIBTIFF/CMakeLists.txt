@@ -569,7 +569,7 @@ set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES_SAVE})
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_SAVE})
 
 # liblzma2
-option(lzma "use liblzma (required for LZMA2 compression)" ON)
+option(lzma "use liblzma (required for LZMA2 compression)" OFF)
 if (lzma)
   find_package(LibLZMA)
 endif()

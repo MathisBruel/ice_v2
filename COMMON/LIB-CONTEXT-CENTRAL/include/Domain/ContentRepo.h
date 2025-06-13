@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Domain/Content.h"
+class Content;
 class ContentRepo
 {
 public:

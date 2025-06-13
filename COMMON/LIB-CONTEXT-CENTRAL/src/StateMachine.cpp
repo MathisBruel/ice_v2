@@ -2,7 +2,8 @@
  
 #include "App/StateMachine.h"
 #include "App/StateMachineManager.h"
- 
+#include "Domain/Content.h"
+
 struct StateTemplate : FSM::State {
     template <typename Event>
     void react(const Event&, EventControl&) {}
@@ -28,9 +29,8 @@ struct StateContentInit : StateTemplate {
             this->response.cmdComment = "Failed Content create";
             return this->response;
         };
-        
         control.context().contentInteraction->pfTransitionToPublishing = [control](){
-            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CONTENT_INIT);
+            StateMachineManager::GetInstance()->GetStateMachine(*control.context().content->GetContentId())->Transition(StateEvent::CONTENT_INIT);  
         };
     }
     void newContent(Control control, std::string contentTitle) {

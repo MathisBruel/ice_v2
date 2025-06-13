@@ -14,9 +14,22 @@ StateMachineManager* StateMachineManager::GetInstance() {
 }
 
 void StateMachineManager::AddStateMachine(int id, StateMachine* stateMachine) {
+    if (_stateMachineMap.find(id) != _stateMachineMap.end()) {
+        delete _stateMachineMap[id];
+    }
     _stateMachineMap[id] = stateMachine;
 }
 
 StateMachine* StateMachineManager::GetStateMachine(int id) {
+    if (_stateMachineMap.find(id) == _stateMachineMap.end()) {
+        return nullptr;
+    }
     return _stateMachineMap[id];
-};
+}
+
+void StateMachineManager::RemoveStateMachine(int id) {
+    if (_stateMachineMap.find(id) != _stateMachineMap.end()) {
+        delete _stateMachineMap[id];
+        _stateMachineMap.erase(id);
+    }
+}

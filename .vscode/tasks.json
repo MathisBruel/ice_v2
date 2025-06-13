@@ -41,17 +41,12 @@
             "label": "REBUILD Container Configuration Web-Central",
             "type": "shell",
             "dependsOn": [
-                //"Container Stop",
-                //"Container Start",
                 "Container Delete",
                 "Build WebCentral executable",
-                // ---- docker compose up -d ----
-                //"Container Create",
                 "Build ICE-MIGRATION executable",
                 "Container-Image Remove",
                 "Container-Image Remove Central",
                 "Docker container build and run",
-                //"Move files to container",
                 "Container Create",
                 "Start ICE-SERVICE and ICE-Panel",
                 "Container Config Web-Central",

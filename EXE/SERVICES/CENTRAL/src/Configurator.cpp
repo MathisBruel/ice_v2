@@ -1,5 +1,6 @@
 #include "Configurator.h"
 #include "App/StateMachine.h"
+
 Configurator::Configurator(MySQLDBConnection* DBconnection) {
     this->_dbConnection = DBconnection;
     HTTPContentInteraction* pfHTTPContentInteraction = new HTTPContentInteraction();
@@ -11,6 +12,8 @@ Configurator::Configurator(MySQLDBConnection* DBconnection) {
     HTTPSyncInteraction* pfHTTPSyncInteraction = new HTTPSyncInteraction();
     HTTPSyncLoopInteraction* pfHTTPSyncLoopInteraction = new HTTPSyncLoopInteraction();
     HTTPInProdInteraction* pfHTTPInProdInteraction = new HTTPInProdInteraction();
+
+    // Création du contexte par défaut pour la StateMachine initiale
     this->_context = new Context(pfHTTPContentInteraction,
                                 pfHTTPPublishingInteraction,
                                 pfHTTPReleaseInteraction,
@@ -21,20 +24,24 @@ Configurator::Configurator(MySQLDBConnection* DBconnection) {
                                 pfHTTPSyncLoopInteraction,
                                 pfHTTPInProdInteraction,
                                 this->_dbConnection);
+    
+    // Création de la StateMachine initiale
     this->_stateMachine = new StateMachine(this->_context);
     this->fsmMachine = this->_stateMachine->GetFSM();
-    this->_httpInteractions [CommandCentral::CREATE_CONTENT] = pfHTTPContentInteraction;
-    this->_httpInteractions [CommandCentral::CREATE_RELEASE] = pfHTTPPublishingInteraction;
-    this->_httpInteractions [CommandCentral::DELETE_RELEASE_CONTENT] = pfHTTPPublishingInteraction;
-    this->_httpInteractions [CommandCentral::DELETE_RELEASE_CPL] = pfHTTPPublishingInteraction;
-    this->_httpInteractions [CommandCentral::DELETE_RELEASE_SYNC] = pfHTTPPublishingInteraction;
-    this->_httpInteractions [CommandCentral::DELETE_RELEASE_SYNCLOOP] = pfHTTPPublishingInteraction;
-    this->_httpInteractions [CommandCentral::RELEASE_CREATED] = pfHTTPReleaseInteraction;
-    this->_httpInteractions [CommandCentral::CIS_CREATED] = pfHTTPCISInteraction;
-    this->_httpInteractions [CommandCentral::CREATE_CPL] = pfHTTPIdleSyncInteraction;
-    this->_httpInteractions [CommandCentral::CREATE_SYNCLOOP] = pfHTTPIdleSyncInteraction;
-    this->_httpInteractions [CommandCentral::CPL_CREATED] = pfHTTPCPLInteraction;
-    this->_httpInteractions [CommandCentral::SYNC_CREATED] = pfHTTPSyncInteraction;
-    this->_httpInteractions [CommandCentral::SYNCLOOP_CREATED] = pfHTTPSyncLoopInteraction;
-    this->_httpInteractions [CommandCentral::IMPORT_TO_PROD] = pfHTTPInProdInteraction;
+
+    // Configuration des interactions HTTP
+    this->_httpInteractions[CommandCentral::CREATE_CONTENT] = pfHTTPContentInteraction;
+    this->_httpInteractions[CommandCentral::CREATE_RELEASE] = pfHTTPPublishingInteraction;
+    this->_httpInteractions[CommandCentral::DELETE_RELEASE_CONTENT] = pfHTTPPublishingInteraction;
+    this->_httpInteractions[CommandCentral::DELETE_RELEASE_CPL] = pfHTTPPublishingInteraction;
+    this->_httpInteractions[CommandCentral::DELETE_RELEASE_SYNC] = pfHTTPPublishingInteraction;
+    this->_httpInteractions[CommandCentral::DELETE_RELEASE_SYNCLOOP] = pfHTTPPublishingInteraction;
+    this->_httpInteractions[CommandCentral::RELEASE_CREATED] = pfHTTPReleaseInteraction;
+    this->_httpInteractions[CommandCentral::CIS_CREATED] = pfHTTPCISInteraction;
+    this->_httpInteractions[CommandCentral::CREATE_CPL] = pfHTTPIdleSyncInteraction;
+    this->_httpInteractions[CommandCentral::CREATE_SYNCLOOP] = pfHTTPIdleSyncInteraction;
+    this->_httpInteractions[CommandCentral::CPL_CREATED] = pfHTTPCPLInteraction;
+    this->_httpInteractions[CommandCentral::SYNC_CREATED] = pfHTTPSyncInteraction;
+    this->_httpInteractions[CommandCentral::SYNCLOOP_CREATED] = pfHTTPSyncLoopInteraction;
+    this->_httpInteractions[CommandCentral::IMPORT_TO_PROD] = pfHTTPInProdInteraction;
 }

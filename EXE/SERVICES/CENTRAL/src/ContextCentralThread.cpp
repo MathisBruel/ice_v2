@@ -2632,15 +2632,20 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else {
         int cmdId;
-        if (cmd->getIntParameter("id_content") != -1) { cmdId = cmd->getIntParameter("id_content"); }
+        if (cmd->getIntParameter("id_content") != -1) {
+            cmdId = cmd->getIntParameter("id_content");
+        }
         else { cmdId = cmd->getIntParameter("id"); }
-        Configurator* configurator = nullptr; 
+        Configurator* configurator = nullptr;
         int contentId = -1;
-        std::regex id_regex(R"(id_content=\"(\d+)\")"); 
+        std::regex id_regex(R"(id_content=\"(\d+)\")");
         std::smatch match;
         CommandCentral::CommandCentralType cmdType = cmd->getType();
 
-        if (cmdType == CommandCentral::CREATE_CONTENT) { configurator = new Configurator(this->_dbConnection); }
+        if (cmdType == CommandCentral::CREATE_CONTENT) {
+            configurator = new Configurator(this->_dbConnection);
+            //StateMachine* stateMachine = configurator->CreateStateMachineForContent(cmdId);
+        }
         else { configurator = this->_contentConfigurator[cmdId]; }
 
         if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) {
