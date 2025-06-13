@@ -210,7 +210,7 @@
             "label": "Build WebCentral executable",
             "type": "shell",
             //"command": "rm BUILD/BIN/ICE-CENTRAL; cd CMAKE/EXE/SERVICES/CENTRAL; make ICE-CENTRAL; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
-            "command": "cd CMAKE/EXE/SERVICES/CENTRAL; make; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
+            "command": "cd CMAKE/EXE/SERVICES/CENTRAL; set -e; make; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
             //"command": "./tasks.sh -f build_lib_exe -t CENTRAL",
             "args": [],
             "problemMatcher": [

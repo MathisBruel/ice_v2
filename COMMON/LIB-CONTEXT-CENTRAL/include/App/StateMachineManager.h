@@ -9,7 +9,6 @@ class StateMachineManager {
 
         void AddStateMachine(int id, StateMachine* stateMachine);
         StateMachine* GetStateMachine(int id);
-        void RemoveStateMachine(int id);
     private:
         StateMachineManager();
         static StateMachineManager* _instance;

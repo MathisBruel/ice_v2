@@ -24,8 +24,8 @@ class Releases;
 
 struct Context
 {
-    bool cisFinish = false;
-    bool syncFinish = false;
+    bool cisFinish;
+    bool syncFinish;
 
     Content* content;
     Releases* release;

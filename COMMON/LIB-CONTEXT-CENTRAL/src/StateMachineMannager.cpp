@@ -26,10 +26,3 @@ StateMachine* StateMachineManager::GetStateMachine(int id) {
     }
     return _stateMachineMap[id];
 }
-
-void StateMachineManager::RemoveStateMachine(int id) {
-    if (_stateMachineMap.find(id) != _stateMachineMap.end()) {
-        delete _stateMachineMap[id];
-        _stateMachineMap.erase(id);
-    }
-}
