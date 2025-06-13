@@ -12,8 +12,6 @@ Configurator::Configurator(MySQLDBConnection* DBconnection) {
     HTTPSyncInteraction* pfHTTPSyncInteraction = new HTTPSyncInteraction();
     HTTPSyncLoopInteraction* pfHTTPSyncLoopInteraction = new HTTPSyncLoopInteraction();
     HTTPInProdInteraction* pfHTTPInProdInteraction = new HTTPInProdInteraction();
-
-    // Création du contexte par défaut pour la StateMachine initiale
     this->_context = new Context(pfHTTPContentInteraction,
                                 pfHTTPPublishingInteraction,
                                 pfHTTPReleaseInteraction,
@@ -24,12 +22,8 @@ Configurator::Configurator(MySQLDBConnection* DBconnection) {
                                 pfHTTPSyncLoopInteraction,
                                 pfHTTPInProdInteraction,
                                 this->_dbConnection);
-    
-    // Création de la StateMachine initiale
     this->_stateMachine = new StateMachine(this->_context);
     this->fsmMachine = this->_stateMachine->GetFSM();
-
-    // Configuration des interactions HTTP
     this->_httpInteractions[CommandCentral::CREATE_CONTENT] = pfHTTPContentInteraction;
     this->_httpInteractions[CommandCentral::CREATE_RELEASE] = pfHTTPPublishingInteraction;
     this->_httpInteractions[CommandCentral::DELETE_RELEASE_CONTENT] = pfHTTPPublishingInteraction;

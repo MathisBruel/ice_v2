@@ -1,7 +1,7 @@
 #pragma once
-class StateMachine; 
-
 #include <map>
+
+class StateMachine; 
 
 class StateMachineManager {
     public:

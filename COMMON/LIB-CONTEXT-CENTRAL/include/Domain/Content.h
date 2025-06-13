@@ -1,10 +1,12 @@
 #pragma once
-#include "Release.h"
+
 #include <map>
 #include <iostream>
-class StateMachine;         
-class StateMachineManager;  
+
+#include "Domain/Release.h"
+
 #include "App/Context.h"
+
 #include "Infra/HTTPContentInteraction.h"
 #include "Infra/HTTPPublishingInteraction.h"
 #include "Infra/HTTPReleaseInteraction.h"
@@ -17,7 +19,10 @@ class StateMachineManager;
 #include "Infra/MySQLDBConnection.h"
 
 
+class StateMachine;         
+class StateMachineManager;  
 class ContentRepo;
+
 class Content
 {
 public:

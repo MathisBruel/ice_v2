@@ -1,11 +1,12 @@
 #pragma once
 #include <iostream>
+#include "Query.h"
 
 #include "Domain/ContentRepo.h"
-#include "Query.h"
+
 #include "Infra/MySQLDBConnection.h"
 
-class Content;  // ✅ Ajoute ceci
+class Content;  
 
 class MySQLContentRepo : public ContentRepo
 {
@@ -28,6 +29,6 @@ private:
 
     int* _id;
     std::string _title;
-    MySQLDBConnection * _dbConnection;
     Query* _query;
+    MySQLDBConnection * _dbConnection;
 };

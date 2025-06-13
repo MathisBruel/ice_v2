@@ -1,7 +1,8 @@
 #include "Domain/Content.h"
 #include "Domain/ContentRepo.h"
-#include "App/StateMachine.h"           
-#include "App/StateMachineManager.h"    
+#include "App/StateMachine.h"
+#include "App/StateMachineManager.h"
+
 Content::Content()
 {
     _contentId = -1;
@@ -13,7 +14,6 @@ Content::Content(std::string contentTitle)
 {
     _contentId = -1;
     this->_contentTitle = contentTitle;
-    //this->_stateMachine = Configurator::CreateStateMachineForContent(-1); // -1 as placeholder, will be set later
 }
 void Content::SetContentId(int contentId)
 {
@@ -84,10 +84,7 @@ StateMachine* Content::CreateStateMachine(int contentId, MySQLDBConnection* dbCo
         dbConnection
     );
 
-    // Création de la StateMachine pour ce Content
-    StateMachine* contentStateMachine = new StateMachine(contentContext);
-    
-    // Enregistrement dans le StateMachineManager
+    StateMachine* contentStateMachine = new StateMachine(contentContext);    
     StateMachineManager::GetInstance()->AddStateMachine(contentId, contentStateMachine);
     
     return contentStateMachine;

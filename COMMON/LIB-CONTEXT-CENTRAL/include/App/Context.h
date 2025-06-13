@@ -19,7 +19,6 @@
 
 #include "Infra/MySQLDBConnection.h"
 
-// Forward declarations
 class Content;
 class Releases;
 

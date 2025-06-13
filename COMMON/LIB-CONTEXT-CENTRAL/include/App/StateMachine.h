@@ -9,9 +9,11 @@
 #include "Infra/MySQLCPLRepo.h"
 #include "Infra/MySQLSyncRepo.h"
 #include "Infra/MySQLSyncLoopRepo.h"
- #include "App/Context.h"
+#include "App/Context.h"
+
+
 using M = hfsm2::MachineT<hfsm2::Config::ContextT<Context>>;
- 
+
 using FSM = M::PeerRoot<
     StateContentInit,
     M::Orthogonal<StatePublishing,

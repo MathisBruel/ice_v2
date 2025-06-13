@@ -2644,7 +2644,6 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
 
         if (cmdType == CommandCentral::CREATE_CONTENT) {
             configurator = new Configurator(this->_dbConnection);
-            //StateMachine* stateMachine = configurator->CreateStateMachineForContent(cmdId);
         }
         else { configurator = this->_contentConfigurator[cmdId]; }
 
