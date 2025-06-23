@@ -1,0 +1,11 @@
+#pragma once
+#include "HTTPInteraction.h"
+#include "ContentOpsApp/CPLInteraction.h"
+
+class HTTPCPLInteraction : public HTTPInteraction, public CPLInteraction
+{
+    TransitionResponse Run(std::string cmdUUID, std::map<std::string, std::string> Params) override {
+        return CPLInteraction::pfStateCPL(cmdUUID, Params);
+    }
+    void Run() override { CPLInteraction::pfTransitionToSync(); }
+};

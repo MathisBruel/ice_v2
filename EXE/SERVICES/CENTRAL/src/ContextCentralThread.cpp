@@ -1,7 +1,8 @@
 #include "ContextCentralThread.h"
 
 #include "CentralContext.h"
-#include "Domain/Content.h"
+#include "ContentOpsBoundary/BoundaryManager.h"
+
 ContextCentralThread::ContextCentralThread()
 {
     stop = false;
@@ -2241,16 +2242,44 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     // -- Getters State Machine
     else if (cmd->getType() == CommandCentral::GET_CONTENT) {
-        MySQLContentRepo* contentRepo = new MySQLContentRepo();
-        int cmdId = cmd->getIntParameter("id_content");
-        Content* content = new Content();
+
+        int contentId = cmd->getIntParameter("id_content");
+        if (contentId == -1) {
+            try {
+                std::string contentsXml = _boundaryManager.GetAllContentsAsXml();
+                response->setDatas(contentsXml);
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Contents get success");
+            }
+            catch(std::exception e) {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Contents get failed");
+                response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+            
+            }
+        }
+        else {
+            try {
+                std::string contentXml = _boundaryManager.GetContentAsXml(contentId);
+                response->setDatas(contentXml);
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Content get success");
+            }
+            catch(std::exception e) {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Content get failed");
+                response->setDatas("<error><code>101</code><message>" + std::string(e.what())+ "</message></error>");
+            
+            }
+        }
+        /* Content* content = new Content();
         if (cmdId == -1) {
             contentRepo->Read(content);
             Query* query = contentRepo->GetQuery();
             ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
             
             //TODO: Statemachine
-            content->SetStateMachine(StateMachineManager::GetInstance()->CreateStateMachine(*content->GetContentId(), this->_dbConnection));
+            //content->SetStateMachine(StateMachineManager::GetInstance()->CreateStateMachine(*content->GetContentId(), this->_dbConnection));
 
             if (result != nullptr && result->isValid()) {
                 response->setStatus(CommandCentralResponse::OK);
@@ -2292,10 +2321,10 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             }
             delete query;
             delete result;
-        }
+        } */
 
-        delete contentRepo;
-        delete content;
+        //delete contentRepo;
+        //delete content;
     } 
     else if (cmd->getType() == CommandCentral::GET_RELEASES_CONTENT) {
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
@@ -2641,7 +2670,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             cmdId = cmd->getIntParameter("id_content");
         }
         else { cmdId = cmd->getIntParameter("id"); }
-        Configurator* configurator = nullptr;
+        //Configurator* configurator = nullptr;
         int contentId = -1;
         std::regex id_regex(R"(id_content=\"(\d+)\")");
         std::smatch match;
@@ -2650,9 +2679,11 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         if (cmdType == CommandCentral::CREATE_CONTENT) {
             configurator = new Configurator(this->_dbConnection);
         }
-        else { configurator = this->_contentConfigurator[cmdId]; }
+        else { 
+            configurator = this->_contentConfigurator[cmdId]; 
+        }
 
-        if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) {
+        /*if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) {
             if (cmdType == CommandCentral::CREATE_SYNCLOOP) {
                 configurator->GetHTTPInteractions()[cmdType]->Run(true);
             }
@@ -2700,7 +2731,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
         else if (cmdType == CommandCentral::DELETE_RELEASE_CONTENT) {} //Pas de Transition à effectuer lors d'une suppression de release
         else { configurator->GetHTTPInteractions()[cmdType]->Run(); }
-        configurator = nullptr;
+        configurator = nullptr;*/
     }
     context->getCommandHandler()->addResponse(response);
 }       

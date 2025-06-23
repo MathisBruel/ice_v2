@@ -12,9 +12,7 @@
 #include "commandCentral.h"
 #include "commandCentralResponse.h"
 #include "Configurator.h"
-#include "Infra/MySQLDBConnection.h"
-#include "App/StateMachineManager.h"
-
+#include "ContentOpsBoundary/BoundaryManager.h"
 class ContextCentralThread : public Poco::Runnable
 {
 
@@ -32,9 +30,10 @@ protected:
 
 private:
 
-    std::unordered_map<int, Configurator*> _contentConfigurator;
+    //std::unordered_map<int, Configurator*> _contentConfigurator;
     // -- for thread control
 	Poco::Thread* thread;
 	bool stop;
     MySQLDBConnection * _dbConnection;
+    BoundaryManager& _boundaryManager = BoundaryManager::GetInstance();
 };
