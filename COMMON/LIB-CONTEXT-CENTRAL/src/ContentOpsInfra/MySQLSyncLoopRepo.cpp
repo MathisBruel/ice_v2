@@ -3,7 +3,7 @@
 std::string MySQLSyncLoopRepo::_database = "ice";
 std::string MySQLSyncLoopRepo::_table = "loopSync";
 
-Query* MySQLSyncLoopRepo::MySQLcreate(SyncLoop* syncloop){
+Query* MySQLSyncLoopRepo::MySQLcreate(COD_SyncLoop* syncloop){
     _syncloopIds = syncloop->GetSyncLoopId();
     if (_syncloopIds[0] == -1 || _syncloopIds[1] == -1 || _syncloopIds[2] == -1 || _syncloopIds[3] == -1) { return nullptr; }
 
@@ -18,7 +18,7 @@ Query* MySQLSyncLoopRepo::MySQLcreate(SyncLoop* syncloop){
     createQuery->addParameter("path_sync_loop", &_syncLoopPath, "string");
     return createQuery;
 }
-Query* MySQLSyncLoopRepo::MySQLread(SyncLoop* syncloop){
+Query* MySQLSyncLoopRepo::MySQLread(COD_SyncLoop* syncloop){
     _syncloopIds = syncloop->GetSyncLoopId();
     Query* readQuery = new Query(Query::SELECT, _database, _table);
     
@@ -34,7 +34,7 @@ Query* MySQLSyncLoopRepo::MySQLread(SyncLoop* syncloop){
 
     return readQuery;
 }
-Query* MySQLSyncLoopRepo::MySQLupdate(SyncLoop* syncloop){
+Query* MySQLSyncLoopRepo::MySQLupdate(COD_SyncLoop* syncloop){
     _syncloopIds = syncloop->GetSyncLoopId();
     if (_syncloopIds[0] == -1 || _syncloopIds[1] == -1 || _syncloopIds[2] == -1 || _syncloopIds[3] == -1) { return nullptr; }
 
@@ -48,7 +48,7 @@ Query* MySQLSyncLoopRepo::MySQLupdate(SyncLoop* syncloop){
     updateQuery->addWhereParameter("id_localisation", &_syncloopIds[3], "int");
     return updateQuery;
 }
-Query* MySQLSyncLoopRepo::MySQLremove(SyncLoop* syncloop){
+Query* MySQLSyncLoopRepo::MySQLremove(COD_SyncLoop* syncloop){
     _syncloopIds = syncloop->GetSyncLoopId();
     if (_syncloopIds[0] == -1 || _syncloopIds[1] == -1 || _syncloopIds[2] == -1 || _syncloopIds[3] == -1) { return nullptr; }
 

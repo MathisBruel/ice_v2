@@ -1,11 +1,11 @@
 #pragma once
 #include <iostream>
-class SyncLoopRepo;
-class SyncLoop
+#include "ContentOpsDomain/COD_SyncLoopRepo.h"
+class COD_SyncLoop
 {
 public:
-    SyncLoop();
-    ~SyncLoop();
+    COD_SyncLoop();
+    ~COD_SyncLoop();
 
     void SetSyncLoopId(int id_serv_pair_config, int id_content, int id_type, int id_localisation);
     void SetSyncLoopInfos(std::string SyncLoopPath);
@@ -15,7 +15,7 @@ public:
     std::string GetSyncLoopPath() {return this->_SyncLoopPath;}
 
 private:
-    SyncLoopRepo* _syncLoopRepo;
+    COD_SyncLoopRepo* _syncLoopRepo;
 
     int _syncLoopId[4];
     std::string _SyncLoopPath;

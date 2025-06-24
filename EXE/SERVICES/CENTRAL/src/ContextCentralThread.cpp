@@ -2583,7 +2583,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int LocalisationId = cmd->getIntParameter("id_localisation");
-        Releases* release = new Releases(contentId, typeId, LocalisationId);
+        COD_Releases* release = new COD_Releases(contentId, typeId, LocalisationId);
         std::string path = cmd->getStringParameter("release_cpl_ref_path");
         release->SetReleaseInfos(path);
         releaseRepo->Update(release);
@@ -2630,7 +2630,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
-        CPLRelease* cpl = new CPLRelease();
+        COD_CPLRelease* cpl = new COD_CPLRelease();
         cpl->SetCPLId(-1, contentId, typeId, localisationId);
         cplRepo->Read(cpl);
         Query* query = cplRepo->GetQuery();
@@ -2659,7 +2659,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
-        Sync* sync = new Sync();
+        COD_Sync* sync = new COD_Sync();
         sync->SetSyncId(-1, contentId, typeId, localisationId);
         syncRepo->Read(sync);
         Query* query = syncRepo->GetQuery();
@@ -2687,7 +2687,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
-        SyncLoop* syncLoop = new SyncLoop();
+        COD_SyncLoop* syncLoop = new COD_SyncLoop();
         syncLoop->SetSyncLoopId(-1, contentId, typeId, localisationId);
         syncLoopRepo->Read(syncLoop);
         Query* query = syncLoopRepo->GetQuery();

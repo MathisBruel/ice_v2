@@ -1,10 +1,10 @@
 #pragma once
 #include <iostream>
 
-#include "ContentOpsDomain/CISRepo.h"
+#include "ContentOpsDomain/COD_CISRepo.h"
 #include "Query.h"
 
-class MySQLCISRepo : public CISRepo
+class MySQLCISRepo : public COD_CISRepo
 {
 public:
     void Create(COD_CIS* cis) override { _query = MySQLcreate(cis); }

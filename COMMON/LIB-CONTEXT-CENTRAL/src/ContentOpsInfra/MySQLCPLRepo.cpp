@@ -3,7 +3,7 @@
 std::string MySQLCPLRepo::_database = "ice";
 std::string MySQLCPLRepo::_table = "cpl";
 
-Query* MySQLCPLRepo::MySQLcreate(CPLRelease* cpl){
+Query* MySQLCPLRepo::MySQLcreate(COD_CPLRelease* cpl){
     _cplIds = cpl->GetCPLId();
     if (_cplIds[0] == -1 || _cplIds[1] == -1 || _cplIds[2] == -1 || _cplIds[3] == -1) { return nullptr; }
     
@@ -22,7 +22,7 @@ Query* MySQLCPLRepo::MySQLcreate(CPLRelease* cpl){
     createQuery->addParameter("path_cpl", &_cplPath, "string");
     return createQuery;
 }
-Query* MySQLCPLRepo::MySQLread(CPLRelease* cpl){
+Query* MySQLCPLRepo::MySQLread(COD_CPLRelease* cpl){
     _cplIds = cpl->GetCPLId();
     Query* readQuery = new Query(Query::SELECT, _database, _table);
     
@@ -40,7 +40,7 @@ Query* MySQLCPLRepo::MySQLread(CPLRelease* cpl){
 
     return readQuery;
 }
-Query* MySQLCPLRepo::MySQLupdate(CPLRelease* cpl){
+Query* MySQLCPLRepo::MySQLupdate(COD_CPLRelease* cpl){
     _cplIds = cpl->GetCPLId();
     if (_cplIds[0] == -1 || _cplIds[1] == -1 || _cplIds[2] == -1 || _cplIds[3] == -1) { return nullptr; }
     _uuid = cpl->GetCPLUUID();
@@ -57,7 +57,7 @@ Query* MySQLCPLRepo::MySQLupdate(CPLRelease* cpl){
     updateQuery->addWhereParameter("id_localisation", &_cplIds[3], "int");
     return updateQuery;
 }
-Query* MySQLCPLRepo::MySQLremove(CPLRelease* cpl){
+Query* MySQLCPLRepo::MySQLremove(COD_CPLRelease* cpl){
     _cplIds = cpl->GetCPLId();
     if (_cplIds[0] == -1 || _cplIds[1] == -1 || _cplIds[2] == -1 || _cplIds[3] == -1) { return nullptr; }
 

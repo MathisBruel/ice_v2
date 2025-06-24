@@ -1,11 +1,11 @@
 #include "ContentOpsInfra/MySQLContentRepo.h"
 
-#include "ContentOpsDomain/Content.h"
+#include "ContentOpsDomain/COD_Content.h"
 
 std::string MySQLContentRepo::_database = "ice";
 std::string MySQLContentRepo::_table = "content";
 
-Query* MySQLContentRepo::MySQLcreate(Content* content)
+Query* MySQLContentRepo::MySQLcreate(COD_Content* content)
 {
     _id = content->GetContentId();
     if (*_id != -1) { return nullptr; }
@@ -16,7 +16,7 @@ Query* MySQLContentRepo::MySQLcreate(Content* content)
     return createQuery;
 }
 
-Query* MySQLContentRepo::MySQLread(Content* content)
+Query* MySQLContentRepo::MySQLread(COD_Content* content)
 {
     _id = content->GetContentId();
     Query* readQuery = new Query(Query::SELECT, _database, _table);
@@ -26,7 +26,7 @@ Query* MySQLContentRepo::MySQLread(Content* content)
     return readQuery;
 }
 
-Query* MySQLContentRepo::MySQLupdate(Content* content)
+Query* MySQLContentRepo::MySQLupdate(COD_Content* content)
 {
     _id = content->GetContentId();
     if (*_id == -1) { return nullptr; }
@@ -39,7 +39,7 @@ Query* MySQLContentRepo::MySQLupdate(Content* content)
     return updateQuery;
 }
 
-Query* MySQLContentRepo::MySQLremove(Content* content)
+Query* MySQLContentRepo::MySQLremove(COD_Content* content)
 {
     _id = content->GetContentId();
     if (*_id == -1) { return nullptr; }

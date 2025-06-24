@@ -1,21 +1,21 @@
 #pragma once
 #include <iostream>
 
-#include "ContentOpsDomain/ReleaseRepo.h"
+#include "ContentOpsDomain/COD_ReleaseRepo.h"
 #include "Query.h"
 
-class MySQLReleaseRepo : public ReleaseRepo
+class MySQLReleaseRepo : public COD_ReleaseRepo
 {
 public:
-    void Create(Releases* release) override { _query = MySQLcreate(release); }
-    void Read(Releases* release) override { _query = MySQLread(release); }
-    void Update(Releases* release) override { _query = MySQLupdate(release); }
-    void Remove(Releases* release) override { _query = MySQLremove(release); }
+    void Create(COD_Releases* release) override { _query = MySQLcreate(release); }
+    void Read(COD_Releases* release) override { _query = MySQLread(release); }
+    void Update(COD_Releases* release) override { _query = MySQLupdate(release); }
+    void Remove(COD_Releases* release) override { _query = MySQLremove(release); }
 
-    Query* MySQLcreate(Releases* release);
-    Query* MySQLread(Releases* release);
-    Query* MySQLupdate(Releases* release);
-    Query* MySQLremove(Releases* release);
+    Query* MySQLcreate(COD_Releases* release);
+    Query* MySQLread(COD_Releases* release);
+    Query* MySQLupdate(COD_Releases* release);
+    Query* MySQLremove(COD_Releases* release);
 
     Query* GetQuery() { return _query; }
 private:

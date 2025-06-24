@@ -2,7 +2,7 @@
  
 #include "ContentOpsApp/StateMachine.h"
 #include "ContentOpsApp/StateMachineManager.h"
-#include "ContentOpsDomain/Content.h"
+#include "ContentOpsDomain/COD_Content.h"
 
 struct StateTemplate : FSM::State {
     template <typename Event>
@@ -34,7 +34,7 @@ struct StateContentInit : StateTemplate {
         };
     }
     void newContent(Control control, std::string contentTitle) {
-        control.context().content = new Content(contentTitle);
+        control.context().content = new COD_Content(contentTitle);
         MySQLContentRepo* contentRepo = new MySQLContentRepo();
         contentRepo->Create(control.context().content);
         ResultQuery* result = control.context().dbConnection->ExecuteQuery(contentRepo->GetQuery());

@@ -1,21 +1,21 @@
 #pragma once
 #include <iostream>
 
-#include "ContentOpsDomain/CPLRepo.h"
+#include "ContentOpsDomain/COD_CPLRepo.h"
 #include "Query.h"
 
-class MySQLCPLRepo : public CPLRepo
+class MySQLCPLRepo : public COD_CPLRepo
 {
 public:
-    void Create(CPLRelease* cpl) override { _query = MySQLcreate(cpl); }
-    void Read(CPLRelease* cpl) override { _query = MySQLread(cpl); }
-    void Update(CPLRelease* cpl) override { _query = MySQLupdate(cpl); }
-    void Remove(CPLRelease* cpl) override { _query = MySQLremove(cpl); }
+    void Create(COD_CPLRelease* cpl) override { _query = MySQLcreate(cpl); }
+    void Read(COD_CPLRelease* cpl) override { _query = MySQLread(cpl); }
+    void Update(COD_CPLRelease* cpl) override { _query = MySQLupdate(cpl); }
+    void Remove(COD_CPLRelease* cpl) override { _query = MySQLremove(cpl); }
 
-    Query* MySQLcreate(CPLRelease* cpl);
-    Query* MySQLread(CPLRelease* cpl);
-    Query* MySQLupdate(CPLRelease* cpl);
-    Query* MySQLremove(CPLRelease* cpl);
+    Query* MySQLcreate(COD_CPLRelease* cpl);
+    Query* MySQLread(COD_CPLRelease* cpl);
+    Query* MySQLupdate(COD_CPLRelease* cpl);
+    Query* MySQLremove(COD_CPLRelease* cpl);
 
     Query* GetQuery() { return _query; }
 

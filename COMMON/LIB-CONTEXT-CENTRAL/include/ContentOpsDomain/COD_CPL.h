@@ -1,12 +1,12 @@
 #pragma once
-#include "Sync.h"
+#include "COD_Sync.h"
 #include <iostream>
 class CPLRepo;
-class CPLRelease
+class COD_CPLRelease
 {
 public:
-    CPLRelease();
-    ~CPLRelease();
+    COD_CPLRelease();
+    ~COD_CPLRelease();
 
     void CreateSync(std::string SyncPath);
 
@@ -20,11 +20,11 @@ public:
     std::string GetCPLUUID() {return this->_CPLUUID;}
     std::string GetCPLName() {return this->_CPLName;}
     std::string GetCPLPath() {return this->_CPLPath;}
-    Sync* GetSync() {return this->_sync;}
+    COD_Sync* GetSync() {return this->_sync;}
 
 private:
     CPLRepo* _cplRepo;
-    Sync* _sync;
+    COD_Sync* _sync;
     
     int _CPLId[4];
     std::string _CPLUUID;

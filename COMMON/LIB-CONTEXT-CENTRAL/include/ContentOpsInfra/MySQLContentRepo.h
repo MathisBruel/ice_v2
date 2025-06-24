@@ -2,22 +2,22 @@
 #include <iostream>
 #include "Query.h"
 
-#include "ContentOpsDomain/ContentRepo.h"
+#include "ContentOpsDomain/COD_ContentRepo.h"
 
-class Content;  
+class COD_Content;  
 
-class MySQLContentRepo : public ContentRepo
+class MySQLContentRepo : public COD_ContentRepo
 {
 public:
-    void Create(Content* content) override { _query = MySQLcreate(content); }
-    void Read(Content* content) override { _query = MySQLread(content); }
-    void Update(Content* content) override { _query = MySQLupdate(content); }
-    void Remove(Content* content) override { _query = MySQLremove(content); }
+    void Create(COD_Content* content) override { _query = MySQLcreate(content); }
+    void Read(COD_Content* content) override { _query = MySQLread(content); }
+    void Update(COD_Content* content) override { _query = MySQLupdate(content); }
+    void Remove(COD_Content* content) override { _query = MySQLremove(content); }
 
-    Query* MySQLcreate(Content* content);
-    Query* MySQLread(Content* content);
-    Query* MySQLupdate(Content* content);
-    Query* MySQLremove(Content* content);
+    Query* MySQLcreate(COD_Content* content);
+    Query* MySQLread(COD_Content* content);
+    Query* MySQLupdate(COD_Content* content);
+    Query* MySQLremove(COD_Content* content);
     
     Query* GetQuery() { return _query; }
 

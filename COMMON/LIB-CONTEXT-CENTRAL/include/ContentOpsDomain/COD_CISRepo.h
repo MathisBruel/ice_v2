@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ContentOpsDomain/COD_CIS.h"
-class CISRepo
+class COD_CISRepo
 {
 public:
     virtual void Create(COD_CIS* cis) = 0;

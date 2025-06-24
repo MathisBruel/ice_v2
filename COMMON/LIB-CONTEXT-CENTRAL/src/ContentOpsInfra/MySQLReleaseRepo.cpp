@@ -3,7 +3,7 @@
 std::string MySQLReleaseRepo::_database = "ice";
 std::string MySQLReleaseRepo::_table = "releases";
 
-Query* MySQLReleaseRepo::MySQLcreate(Releases* release)
+Query* MySQLReleaseRepo::MySQLcreate(COD_Releases* release)
 {
     _releaseIds = release->GetReleaseId();
     _CPLRefPath = release->GetCPLRefPath();
@@ -17,7 +17,7 @@ Query* MySQLReleaseRepo::MySQLcreate(Releases* release)
     return createQuery;
 }
 
-Query* MySQLReleaseRepo::MySQLread(Releases* release)
+Query* MySQLReleaseRepo::MySQLread(COD_Releases* release)
 {
     _releaseIds = release->GetReleaseId();
     
@@ -34,7 +34,7 @@ Query* MySQLReleaseRepo::MySQLread(Releases* release)
     return readQuery;
 }
 
-Query* MySQLReleaseRepo::MySQLupdate(Releases* release)
+Query* MySQLReleaseRepo::MySQLupdate(COD_Releases* release)
 {
     _releaseIds = release->GetReleaseId();
     _CPLRefPath = release->GetCPLRefPath();
@@ -52,7 +52,7 @@ Query* MySQLReleaseRepo::MySQLupdate(Releases* release)
     return updateQuery;
 }
 
-Query* MySQLReleaseRepo::MySQLremove(Releases* release)
+Query* MySQLReleaseRepo::MySQLremove(COD_Releases* release)
 {
     _releaseIds = release->GetReleaseId();
     

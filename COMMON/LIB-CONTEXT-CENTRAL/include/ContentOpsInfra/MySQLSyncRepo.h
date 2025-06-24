@@ -1,21 +1,21 @@
 #pragma once
 #include <iostream>
 
-#include "ContentOpsDomain/SyncRepo.h"
+#include "ContentOpsDomain/COD_Sync.h"
 #include "Query.h"
 
-class MySQLSyncRepo : public SyncRepo
+class MySQLSyncRepo : public COD_SyncRepo
 {
 public:
-    void Create(Sync* sync) override { _query = MySQLcreate(sync); }
-    void Read(Sync* sync) override { _query = MySQLread(sync); }
-    void Update(Sync* sync) override { _query = MySQLupdate(sync); }
-    void Remove(Sync* sync) override { _query = MySQLremove(sync); }
+    void Create(COD_Sync* sync) override { _query = MySQLcreate(sync); }
+    void Read(COD_Sync* sync) override { _query = MySQLread(sync); }
+    void Update(COD_Sync* sync) override { _query = MySQLupdate(sync); }
+    void Remove(COD_Sync* sync) override { _query = MySQLremove(sync); }
 
-    Query* MySQLcreate(Sync* sync);
-    Query* MySQLread(Sync* sync);
-    Query* MySQLupdate(Sync* sync);
-    Query* MySQLremove(Sync* sync);
+    Query* MySQLcreate(COD_Sync* sync);
+    Query* MySQLread(COD_Sync* sync);
+    Query* MySQLupdate(COD_Sync* sync);
+    Query* MySQLremove(COD_Sync* sync);
 
     Query* GetQuery() { return _query; }
 private:

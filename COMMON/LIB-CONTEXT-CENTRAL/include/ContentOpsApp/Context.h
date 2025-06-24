@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ContentOpsDomain/COD_CIS.h"
-#include "ContentOpsDomain/CPL.h"
-#include "ContentOpsDomain/Sync.h"
-#include "ContentOpsDomain/SyncLoop.h"
-#include "ContentOpsDomain/Content.h"
+#include "ContentOpsDomain/COD_CPL.h"
+#include "ContentOpsDomain/COD_Sync.h"
+#include "ContentOpsDomain/COD_SyncLoop.h"
+#include "ContentOpsDomain/COD_Content.h"
 
 #include "ContentOpsApp/State.h"
 #include "ContentOpsApp/ContentInteraction.h"
@@ -19,16 +19,16 @@
 
 #include "ContentOpsInfra/MySQLDBConnection.h"
 
-class Content;
-class Releases;
+class COD_Content;
+class COD_Releases;
 
 struct Context
 {
     bool cisFinish;
     bool syncFinish;
 
-    Content* content;
-    Releases* release;
+    COD_Content* content;
+    COD_Releases* release;
 
     ContentInteraction* contentInteraction;
     PublishingInteraction* publishingInteraction;

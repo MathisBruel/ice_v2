@@ -3,7 +3,7 @@
 std::string MySQLSyncRepo::_database = "ice";
 std::string MySQLSyncRepo::_table = "sync";
 
-Query* MySQLSyncRepo::MySQLcreate(Sync* sync)
+Query* MySQLSyncRepo::MySQLcreate(COD_Sync* sync)
 {
     int* _syncId = sync->GetSyncID();
     if (_syncId[0] == -1 || _syncId[1] == -1 || _syncId[2] == -1 || _syncId[3] == -1) { return nullptr; }
@@ -16,7 +16,7 @@ Query* MySQLSyncRepo::MySQLcreate(Sync* sync)
     createQuery->addParameter("path_sync", &_syncPath, "string");
     return createQuery;
 }
-Query* MySQLSyncRepo::MySQLread(Sync* sync)
+Query* MySQLSyncRepo::MySQLread(COD_Sync* sync)
 {
     _syncId = sync->GetSyncID();
     Query* readQuery = new Query(Query::SELECT, _database, _table);
@@ -33,7 +33,7 @@ Query* MySQLSyncRepo::MySQLread(Sync* sync)
 
     return readQuery;
 }
-Query* MySQLSyncRepo::MySQLupdate(Sync* sync)
+Query* MySQLSyncRepo::MySQLupdate(COD_Sync* sync)
 {
     _syncId = sync->GetSyncID();
     if (_syncId[0] == -1 || _syncId[1] == -1 || _syncId[2] == -1 || _syncId[3] == -1) { return nullptr; }
@@ -46,7 +46,7 @@ Query* MySQLSyncRepo::MySQLupdate(Sync* sync)
     updateQuery->addWhereParameter("id_localisation", &_syncId[3], "int");
     return updateQuery;
 }
-Query* MySQLSyncRepo::MySQLremove(Sync* sync)
+Query* MySQLSyncRepo::MySQLremove(COD_Sync* sync)
 {
     _syncId = sync->GetSyncID();
     if (_syncId[0] == -1 || _syncId[1] == -1 || _syncId[2] == -1 || _syncId[3] == -1) { return nullptr; }
