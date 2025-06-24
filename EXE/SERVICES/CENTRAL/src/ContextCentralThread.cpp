@@ -2249,12 +2249,13 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 std::string contentsXml = _boundaryManager.GetAllContentsAsXml();
                 response->setDatas(contentsXml);
                 response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Contents get success");
+                response->setComments("Contents retrieved successfully.");
             }
             catch(std::exception e) {
                 response->setStatus(CommandCentralResponse::KO);
-                response->setComments("Contents get failed");
+                response->setComments("Failed to get contents");
                 response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+                Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetAllContentsAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
             
             }
         }
@@ -2263,12 +2264,13 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 std::string contentXml = _boundaryManager.GetContentAsXml(contentId);
                 response->setDatas(contentXml);
                 response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Content get success");
+                response->setComments("Content retrieved successfully.");
             }
             catch(std::exception e) {
                 response->setStatus(CommandCentralResponse::KO);
-                response->setComments("Content get failed");
+                response->setComments("Failed to get content");
                 response->setDatas("<error><code>101</code><message>" + std::string(e.what())+ "</message></error>");
+                Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetContentAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
             
             }
         }
@@ -2327,184 +2329,254 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         //delete content;
     } 
     else if (cmd->getType() == CommandCentral::GET_RELEASES_CONTENT) {
-        MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
-        int cmdId = cmd->getIntParameter("id_content");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
-        int LocalisationId = cmd->getIntParameter("id_localisation");
-        if (typeId == -1 || LocalisationId == -1) {
-            Releases* release = new Releases();
-            release->SetReleaseId(cmdId, TypeMovie::UNKNOW_TYPE, LocalisationMovie::UNKNOW_LOCALISATION);
-            releaseRepo->Read(release);
-            Query* query = releaseRepo->GetQuery();
-            ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
-
-            if (result != nullptr && result->isValid()) {
-                response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Releases get success");
-                std::string datas = "<releases>";
-                for (int i = 0; i < result->getNbRows(); i++) {
-                    release->SetReleaseId(*result->getIntValue(i, "id_content"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
-                    release->SetReleaseInfos(*result->getStringValue(i, "release_cpl_ref_path"));
-                    datas += release->toXmlString(false);
-                }
-                datas += "</releases>";
-                response->setDatas(datas);
-            }
-            else {
-                response->setStatus(CommandCentralResponse::KO);
-                response->setComments("Releases get failed");
-                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-            }
-            delete query;
-            delete result;
-            delete release; 
+        int localisationId = cmd->getIntParameter("id_localisation");
+        try {
+            std::string releasesXml = _boundaryManager.GetContentReleasesAsXml(contentId,typeId,localisationId);
+            response->setDatas(releasesXml);
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Releases retrieved successfully.");
         }
-        else {
-            Releases* release = new Releases(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
-            releaseRepo->Read(release);
-            Query* queryRelease = releaseRepo->GetQuery();
-            ResultQuery *resultRelease = this->_dbConnection->ExecuteQuery(queryRelease);
-
-            MySQLCISRepo *cisRepo = new MySQLCISRepo();
-            CIS* cis = new CIS();
-            cis->SetCISId(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
-            cisRepo->Read(cis);
-            Query* queryCIS = cisRepo->GetQuery();
-            ResultQuery *resultCIS = this->_dbConnection->ExecuteQuery(queryCIS);
-
-            if (resultRelease != nullptr && resultRelease->isValid() && resultCIS != nullptr && resultCIS->isValid()) {
-                response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Release get success");
-                std::string datas = "<releases>";
-                release->SetReleaseId(*resultRelease->getIntValue(0, "id_content"), static_cast<TypeMovie>(*resultRelease->getIntValue(0, "id_type")),  static_cast<LocalisationMovie>(*resultRelease->getIntValue(0, "id_localisation")));
-                release->SetReleaseInfos(*resultRelease->getStringValue(0, "release_cpl_ref_path"));
-                release->UploadCIS(*resultCIS->getStringValue(0, "release_cis_path"));
-                datas += release->toXmlString(true);
-                datas += "</releases>";
-                response->setDatas(datas);
-            }
-            delete queryRelease;
-            delete resultRelease;
-            delete queryCIS;
-            delete resultCIS;
-            delete release;
+        catch(std::exception e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Failed to get releases");
+            response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetContentReleasesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
+        
         }
-        delete releaseRepo;
+        //MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
+        //int cmdId = cmd->getIntParameter("id_content");
+        //int typeId = cmd->getIntParameter("id_type");
+        //int LocalisationId = cmd->getIntParameter("id_localisation");
+        //if (typeId == -1 || LocalisationId == -1) {
+        //    Releases* release = new Releases();
+        //    release->SetReleaseId(cmdId, TypeMovie::UNKNOW_TYPE, LocalisationMovie::UNKNOW_LOCALISATION);
+        //    releaseRepo->Read(release);
+        //    Query* query = releaseRepo->GetQuery();
+        //    ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
+//
+        //    if (result != nullptr && result->isValid()) {
+        //        response->setStatus(CommandCentralResponse::OK);
+        //        response->setComments("Releases get success");
+        //        std::string datas = "<releases>";
+        //        for (int i = 0; i < result->getNbRows(); i++) {
+        //            release->SetReleaseId(*result->getIntValue(i, "id_content"), static_cast<TypeMovie>(*result->getIntValue(i, "id_type")),  static_cast<LocalisationMovie>(*result->getIntValue(i, "id_localisation")));
+        //            release->SetReleaseInfos(*result->getStringValue(i, "release_cpl_ref_path"));
+        //            datas += release->toXmlString(false);
+        //        }
+        //        datas += "</releases>";
+        //        response->setDatas(datas);
+        //    }
+        //    else {
+        //        response->setStatus(CommandCentralResponse::KO);
+        //        response->setComments("Releases get failed");
+        //        response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        //    }
+        //    delete query;
+        //    delete result;
+        //    delete release; 
+        //}
+        //else {
+        //    Releases* release = new Releases(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
+        //    releaseRepo->Read(release);
+        //    Query* queryRelease = releaseRepo->GetQuery();
+        //    ResultQuery *resultRelease = this->_dbConnection->ExecuteQuery(queryRelease);
+//
+        //    MySQLCISRepo *cisRepo = new MySQLCISRepo();
+        //    CIS* cis = new CIS();
+        //    cis->SetCISId(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
+        //    cisRepo->Read(cis);
+        //    Query* queryCIS = cisRepo->GetQuery();
+        //    ResultQuery *resultCIS = this->_dbConnection->ExecuteQuery(queryCIS);
+//
+        //    if (resultRelease != nullptr && resultRelease->isValid() && resultCIS != nullptr && resultCIS->isValid()) {
+        //        response->setStatus(CommandCentralResponse::OK);
+        //        response->setComments("Release get success");
+        //        std::string datas = "<releases>";
+        //        release->SetReleaseId(*resultRelease->getIntValue(0, "id_content"), static_cast<TypeMovie>(*resultRelease->getIntValue(0, "id_type")),  static_cast<LocalisationMovie>(*resultRelease->getIntValue(0, "id_localisation")));
+        //        release->SetReleaseInfos(*resultRelease->getStringValue(0, "release_cpl_ref_path"));
+        //        release->UploadCIS(*resultCIS->getStringValue(0, "release_cis_path"));
+        //        datas += release->toXmlString(true);
+        //        datas += "</releases>";
+        //        response->setDatas(datas);
+        //    }
+        //    delete queryRelease;
+        //    delete resultRelease;
+        //    delete queryCIS;
+        //    delete resultCIS;
+        //    delete release;
+        //}
+        //delete releaseRepo;
     }
     else if (cmd->getType() == CommandCentral::GET_GROUPS_FILTER) {
-        int cmdId = cmd->getIntParameter("id_group");
-        if (cmdId == -1) {
-            Query* query =  new Query(Query::SELECT, "ice", "groups");
-            query->addParameter("id_group", nullptr, "int");
-            query->addParameter("id_group_1", nullptr, "int");
-            query->addParameter("name", nullptr, "string");
-            ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
-            if (result->isValid()) {
+
+        int groupId = cmd->getIntParameter("id_group");
+        if (groupId == -1) {
+            try {
+                std::string groupsXml = _boundaryManager.GetGroupsAsXml();
+                response->setDatas(groupsXml);
                 response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Groups get success");
-                std::string datas = "<groups>";
-                for (int i = 0; i < result->getNbRows(); i++) {
-                    std::string GroupParent;
-                    result->getIntValue(i, "id_group_1") == nullptr ? GroupParent = "" : GroupParent = "\" id_group_1=\"" + std::to_string(*result->getIntValue(i, "id_group_1"));      
-                    datas += "<group id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + GroupParent + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
-                }
-                datas += "</groups>";
-                response->setDatas(datas);
+                response->setComments("Groups retreived successfully.");
             }
-            else {
+            catch(std::exception e) {
                 response->setStatus(CommandCentralResponse::KO);
-                response->setComments("Groups get failed");
-                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+                response->setComments("Failed to get groups");
+                response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+                Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetGroupsAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
             }
-        }
-        else {
-            Query* query =  new Query(Query::SELECT, "ice", "groups");
-            query->addParameter("id_group", nullptr, "int");
-            query->addParameter("id_group_1", nullptr, "int");
-            query->addParameter("name", nullptr, "string");
-            query->addWhereParameter("id_group",&cmdId , "int");
-            ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
-            if (result->isValid()) {
+        } else {
+            try {
+                std::string groupXml = _boundaryManager.GetGroupAsXml(groupId);
+                response->setDatas(groupXml);
                 response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Groups get success");
-                std::string datas = "<groups>";
-                for (int i = 0; i < result->getNbRows(); i++) {
-                    std::string GroupParent;
-                    result->getIntValue(i, "id_group_1") == nullptr ? GroupParent = "" : GroupParent = "\" id_group_1=\"" + std::to_string(*result->getIntValue(i, "id_group_1"));      
-                    datas += "<group id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + GroupParent + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
-                }
-                datas += "</groups>";
-                response->setDatas(datas);
+                response->setComments("Group retreived successfully.");
             }
-            else {
+            catch(std::exception e) {
                 response->setStatus(CommandCentralResponse::KO);
-                response->setComments("Groups get failed");
-                response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-            }
+                response->setComments("Failed to get group");
+                response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+                Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetGroupAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
+            }  
         }
+       // if (cmdId == -1) {
+       //     Query* query =  new Query(Query::SELECT, "ice", "groups");
+       //     query->addParameter("id_group", nullptr, "int");
+       //     query->addParameter("id_group_1", nullptr, "int");
+       //     query->addParameter("name", nullptr, "string");
+       //     ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+       //     if (result->isValid()) {
+       //         response->setStatus(CommandCentralResponse::OK);
+       //         response->setComments("Groups get success");
+       //         std::string datas = "<groups>";
+       //         for (int i = 0; i < result->getNbRows(); i++) {
+       //             std::string GroupParent;
+       //             result->getIntValue(i, "id_group_1") == nullptr ? GroupParent = "" : GroupParent = "\" id_group_1=\"" + std::to_string(*result->getIntValue(i, "id_group_1"));      
+       //             datas += "<group id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + GroupParent + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+       //         }
+       //         datas += "</groups>";
+       //         response->setDatas(datas);
+       //     }
+       //     else {
+       //         response->setStatus(CommandCentralResponse::KO);
+       //         response->setComments("Groups get failed");
+       //         response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+       //     }
+       // }
+       // else {
+       //     Query* query =  new Query(Query::SELECT, "ice", "groups");
+       //     query->addParameter("id_group", nullptr, "int");
+       //     query->addParameter("id_group_1", nullptr, "int");
+       //     query->addParameter("name", nullptr, "string");
+       //     query->addWhereParameter("id_group",&cmdId , "int");
+       //     ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+       //     if (result->isValid()) {
+       //         response->setStatus(CommandCentralResponse::OK);
+       //         response->setComments("Groups get success");
+       //         std::string datas = "<groups>";
+       //         for (int i = 0; i < result->getNbRows(); i++) {
+       //             std::string GroupParent;
+       //             result->getIntValue(i, "id_group_1") == nullptr ? GroupParent = "" : GroupParent = "\" id_group_1=\"" + std::to_string(*result->getIntValue(i, "id_group_1"));      
+       //             datas += "<group id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + GroupParent + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+       //         }
+       //         datas += "</groups>";
+       //         response->setDatas(datas);
+       //     }
+       //     else {
+       //         response->setStatus(CommandCentralResponse::KO);
+       //         response->setComments("Groups get failed");
+       //         response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+       //     }
+       // }
     }
     else if (cmd->getType() == CommandCentral::GET_SITES) {
-        int groupId = cmd->getIntParameter("id_group");
-        Query* query =  new Query(Query::SELECT, "ice", "site");
-        query->addParameter("id_site", nullptr, "int");
-        query->addParameter("id_group", nullptr, "int");
-        query->addParameter("id_connection", nullptr, "int");
-        query->addParameter("name", nullptr, "string");
-        query->addWhereParameter("id_group", &groupId, "int");
-        ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
-        if (result->isValid()) {
+        try {
+            std::string sitesXml = _boundaryManager.GetSitesAsXml();
+            response->setDatas(sitesXml);
             response->setStatus(CommandCentralResponse::OK);
-            response->setComments("Sites get success");
-            std::string datas = "<sites>";
-            for (int i = 0; i < result->getNbRows(); i++) {
-                datas += "<site id_site=\"" + std::to_string(*result->getIntValue(i, "id_site")) + "\" id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + "\" id_connection=\"" + std::to_string(*result->getIntValue(i, "id_connection")) + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
-            }
-            datas += "</sites>";
-            response->setDatas(datas);
+            response->setComments("Sites retreived successfully.");
         }
-        else {
+        catch(std::exception e) {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Sites get failed");
-            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            response->setComments("Failed to get sites");
+            response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetSitesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
         }
+        //Query* query =  new Query(Query::SELECT, "ice", "site");
+        //query->addParameter("id_site", nullptr, "int");
+        //query->addParameter("id_group", nullptr, "int");
+        //query->addParameter("id_connection", nullptr, "int");
+        //query->addParameter("name", nullptr, "string");
+        //query->addWhereParameter("id_group", &groupId, "int");
+        //ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
+        //if (result->isValid()) {
+        //    response->setStatus(CommandCentralResponse::OK);
+        //    response->setComments("Sites get success");
+        //    std::string datas = "<sites>";
+        //    for (int i = 0; i < result->getNbRows(); i++) {
+        //        datas += "<site id_site=\"" + std::to_string(*result->getIntValue(i, "id_site")) + "\" id_group=\"" + std::to_string(*result->getIntValue(i, "id_group")) + "\" id_connection=\"" + std::to_string(*result->getIntValue(i, "id_connection")) + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
+        //    }
+        //    datas += "</sites>";
+        //    response->setDatas(datas);
+        //}
+        //else {
+        //    response->setStatus(CommandCentralResponse::KO);
+        //    response->setComments("Sites get failed");
+        //    response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+        //}
     }
     else if (cmd->getType() == CommandCentral::GET_CPLS_SITE) {
-        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
         int siteId = cmd->getIntParameter("id_site");
-        Query* queryIceServerPairConfig = new Query(Query::SELECT, "ice", "server_pair_configuration");
-        queryIceServerPairConfig->addParameter("id_serv_pair_config", nullptr, "int");
-        queryIceServerPairConfig->addParameter("id_site", nullptr, "int");
-        queryIceServerPairConfig->addWhereParameter("id_site", &siteId, "int");
-        ResultQuery* resultIceServerPairConfig = this->_dbConnection->ExecuteQuery(queryIceServerPairConfig);
-        CPLRelease* cpl = new CPLRelease();
-        cpl->SetCPLId(-1, -1, -1, -1);
-        cplRepo->Read(cpl);
-        Query* queryCpl = cplRepo->GetQuery();
-        ResultQuery *resultCPL = this->_dbConnection->ExecuteQuery(queryCpl);
-        if (resultCPL != nullptr && resultCPL->isValid() && resultIceServerPairConfig != nullptr && resultIceServerPairConfig->isValid() && resultIceServerPairConfig->getNbRows() > 0) {
+
+        try {
+            std::string cplsXml = _boundaryManager.GetSiteCplsAsXml(siteId);
+            response->setDatas(cplsXml);
             response->setStatus(CommandCentralResponse::OK);
-            response->setComments("CPLs get success");
-            std::string datas = "<cpls>";
-            for (int i = 0; i < resultCPL->getNbRows(); i++) {
-                for (int j = 0; j < resultIceServerPairConfig->getNbRows(); j++) {
-                    if (*resultCPL->getIntValue(i, "id_serv_pair_config") == *resultIceServerPairConfig->getIntValue(j, "id_serv_pair_config")){
-                        cpl->SetCPLId(*resultCPL->getIntValue(i, "id_serv_pair_config"), *resultCPL->getIntValue(i, "id_content"), *resultCPL->getIntValue(i, "id_type"), *resultCPL->getIntValue(i, "id_localisation"));
-                        cpl->SetDatas(*resultCPL->getStringValue(i, "uuid"), *resultCPL->getStringValue(i, "name"));
-                        cpl->SetCplInfos(*resultCPL->getStringValue(i, "path_cpl"));
-                        datas += cpl->toXmlString();
-                    }
-                }
-            }
-            datas += "</cpls>";
-            response->setDatas(datas);
+            response->setComments("Cpls retreived successfully.");
         }
-        else {
+        catch(std::exception e) {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("CPLs get failed");
-            response->setDatas("<error><code>" + std::to_string(resultCPL->getErrorCode()) + "</code><message>" + resultCPL->getErrorMessage() + "</message></error>");
+            response->setComments("Failed to get cpls");
+            response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetSiteCplsAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
         }
-        delete cplRepo;
-        delete cpl;
+
+        //MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        //int siteId = cmd->getIntParameter("id_site");
+        //Query* queryIceServerPairConfig = new Query(Query::SELECT, "ice", "server_pair_configuration");
+        //queryIceServerPairConfig->addParameter("id_serv_pair_config", nullptr, "int");
+        //queryIceServerPairConfig->addParameter("id_site", nullptr, "int");
+        //queryIceServerPairConfig->addWhereParameter("id_site", &siteId, "int");
+        //ResultQuery* resultIceServerPairConfig = this->_dbConnection->ExecuteQuery(queryIceServerPairConfig);
+        //CPLRelease* cpl = new CPLRelease();
+        //cpl->SetCPLId(-1, -1, -1, -1);
+        //cplRepo->Read(cpl);
+        //Query* queryCpl = cplRepo->GetQuery();
+        //ResultQuery *resultCPL = this->_dbConnection->ExecuteQuery(queryCpl);
+        //if (resultCPL != nullptr && resultCPL->isValid() && resultIceServerPairConfig != nullptr && resultIceServerPairConfig->isValid() && resultIceServerPairConfig->getNbRows() > 0) {
+        //    response->setStatus(CommandCentralResponse::OK);
+        //    response->setComments("CPLs get success");
+        //    std::string datas = "<cpls>";
+        //    for (int i = 0; i < resultCPL->getNbRows(); i++) {
+        //        for (int j = 0; j < resultIceServerPairConfig->getNbRows(); j++) {
+        //            if (*resultCPL->getIntValue(i, "id_serv_pair_config") == *resultIceServerPairConfig->getIntValue(j, "id_serv_pair_config")){
+        //                cpl->SetCPLId(*resultCPL->getIntValue(i, "id_serv_pair_config"), *resultCPL->getIntValue(i, "id_content"), *resultCPL->getIntValue(i, "id_type"), *resultCPL->getIntValue(i, "id_localisation"));
+        //                cpl->SetDatas(*resultCPL->getStringValue(i, "uuid"), *resultCPL->getStringValue(i, "name"));
+        //                cpl->SetCplInfos(*resultCPL->getStringValue(i, "path_cpl"));
+        //                datas += cpl->toXmlString();
+        //            }
+        //        }
+        //    }
+        //    datas += "</cpls>";
+        //    response->setDatas(datas);
+        //}
+        //else {
+        //    response->setStatus(CommandCentralResponse::KO);
+        //    response->setComments("CPLs get failed");
+        //    response->setDatas("<error><code>" + std::to_string(resultCPL->getErrorCode()) + "</code><message>" + resultCPL->getErrorMessage() + "</message></error>");
+        //}
+        //delete cplRepo;
+        //delete cpl;
     }
     else if (cmd->getType() == CommandCentral::UPDATE_RELEASE_CONTENT) {
         MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
@@ -2664,7 +2736,20 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
         }
     }
-    else {
+    else if(cmd->getType() == CommandCentral::CREATE_CONTENT)
+    {
+        try {
+                _boundaryManager.CreateContent();
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Contents get success");
+        }  
+        catch(std::exception e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Content creation failed");
+            response->setDatas("<error><code>102</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::CreateContent() :" + std::string(e.what()), __FILE__, __LINE__);
+        }
+    } else {
         int cmdId;
         if (cmd->getIntParameter("id_content") != -1) {
             cmdId = cmd->getIntParameter("id_content");
@@ -2675,13 +2760,6 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         std::regex id_regex(R"(id_content=\"(\d+)\")");
         std::smatch match;
         CommandCentral::CommandCentralType cmdType = cmd->getType();
-
-        if (cmdType == CommandCentral::CREATE_CONTENT) {
-            configurator = new Configurator(this->_dbConnection);
-        }
-        else { 
-            configurator = this->_contentConfigurator[cmdId]; 
-        }
 
         /*if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) {
             if (cmdType == CommandCentral::CREATE_SYNCLOOP) {
