@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ContentOpsDomain/CIS.h"
+#include "ContentOpsDomain/COD_CIS.h"
 #include "ContentOpsDomain/CPL.h"
 #include "ContentOpsDomain/Sync.h"
 #include "ContentOpsDomain/SyncLoop.h"

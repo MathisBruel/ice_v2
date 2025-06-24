@@ -2605,7 +2605,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         std::string pathCIS = cmd->getStringParameter("release_cis_path");
-        CIS* cis = new CIS();
+        COD_CIS* cis = new COD_CIS();
         cis->SetCISId(contentId, typeId, localisationId);
         cis->SetCISInfos(pathCIS);
         cisRepo->Update(cis);

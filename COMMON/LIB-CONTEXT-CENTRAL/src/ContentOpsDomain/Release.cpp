@@ -23,7 +23,7 @@ Releases::~Releases() {
 }
 void Releases::UploadCIS(std::string CISPath)
 {
-    this->_cis = new CIS();
+    this->_cis = new COD_CIS();
     this->_cis->SetCISInfos(CISPath);
     this->_cis->SetCISId(_releaseId[0], _releaseId[1], _releaseId[2]);
 }

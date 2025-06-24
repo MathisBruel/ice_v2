@@ -2,11 +2,11 @@
 #include <iostream>
 
 class CISRepo;
-class CIS
+class COD_CIS
 {
 public:
-    CIS();
-    ~CIS();
+    COD_CIS();
+    ~COD_CIS();
 
     void SetCISId(int id_content, int id_type, int id_localisation);
     void SetCISInfos(std::string CISPath);

@@ -1,7 +1,7 @@
 #pragma once
 #include "LocalisationMovie.h"
 #include "TypeMovie.h"
-#include "CIS.h"
+#include "COD_CIS.h"
 #include "CPL.h"
 #include "SyncLoop.h"
 #include <map>
@@ -20,7 +20,7 @@ public:
 
     void SetReleaseId(int id_content, TypeMovie typeMovie, LocalisationMovie localisationMovie);
     void SetReleaseInfos(std::string CPLRefPath) {this->_CPLRefPath = CPLRefPath;}
-    void SetCIS(CIS* cis) {this->_cis = cis;}
+    void SetCIS(COD_CIS* cis) {this->_cis = cis;}
     void AddCPL(std::string compositeId, CPLRelease* cpl) {this->_cpls[compositeId] = cpl;}
     void AddSyncLoop(std::string compositeId, SyncLoop* syncLoop) {this->_syncLoops[compositeId] = syncLoop;}
     void DeleteCPL(std::string compositeId) {this->_cpls.erase(compositeId);}
@@ -28,7 +28,7 @@ public:
 
     int* GetReleaseId() {return this->_releaseId;}
     std::string GetCPLRefPath() {return this->_CPLRefPath;}
-    CIS* GetCIS() {return this->_cis;}
+    COD_CIS* GetCIS() {return this->_cis;}
     std::map<std::string, CPLRelease*> GetCPLs() {return this->_cpls;}
     CPLRelease* GetCPL(std::string compositeId) {return this->_cpls[compositeId];}
     std::map<std::string, SyncLoop*> GetSyncLoops() {return this->_syncLoops;}
@@ -36,7 +36,7 @@ public:
 
 private:
     ReleaseRepo* _releaseRepo;
-    CIS* _cis;
+    COD_CIS* _cis;
     std::map<std::string, CPLRelease*> _cpls;
     std::map<std::string, SyncLoop*> _syncLoops;
 

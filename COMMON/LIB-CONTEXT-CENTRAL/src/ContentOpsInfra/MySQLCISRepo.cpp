@@ -3,12 +3,12 @@
 std::string MySQLCISRepo::_database = "ice";
 std::string MySQLCISRepo::_table = "releases";
 
-Query* MySQLCISRepo::MySQLcreate(CIS* cis)
+Query* MySQLCISRepo::MySQLcreate(COD_CIS* cis)
 {
     return MySQLupdate(cis);
 }
 
-Query* MySQLCISRepo::MySQLread(CIS* cis)
+Query* MySQLCISRepo::MySQLread(COD_CIS* cis)
 {
     _CISids = cis->GetCISId();
     Query* readQuery = new Query(Query::SELECT, _database, _table);
@@ -22,7 +22,7 @@ Query* MySQLCISRepo::MySQLread(CIS* cis)
     return readQuery;
 }
 
-Query* MySQLCISRepo::MySQLupdate(CIS* cis)
+Query* MySQLCISRepo::MySQLupdate(COD_CIS* cis)
 {
     _CISids = cis->GetCISId();
     std::string _pathCIS = cis->GetCISPath();
@@ -35,7 +35,7 @@ Query* MySQLCISRepo::MySQLupdate(CIS* cis)
     updateQuery->addWhereParameter("id_localisation", &_CISids[2], "int");
     return updateQuery;
 }
-Query* MySQLCISRepo::MySQLremove(CIS* cis)
+Query* MySQLCISRepo::MySQLremove(COD_CIS* cis)
 {
     cis->SetCISInfos(nullptr);
     return MySQLupdate(cis);

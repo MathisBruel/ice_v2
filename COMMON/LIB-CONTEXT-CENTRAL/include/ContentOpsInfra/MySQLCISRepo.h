@@ -7,15 +7,15 @@
 class MySQLCISRepo : public CISRepo
 {
 public:
-    void Create(CIS* cis) override { _query = MySQLcreate(cis); }
-    void Read(CIS* cis) override { _query = MySQLread(cis); }
-    void Update(CIS* cis) override { _query = MySQLupdate(cis); }
-    void Remove(CIS* cis) override { _query = MySQLremove(cis); }
+    void Create(COD_CIS* cis) override { _query = MySQLcreate(cis); }
+    void Read(COD_CIS* cis) override { _query = MySQLread(cis); }
+    void Update(COD_CIS* cis) override { _query = MySQLupdate(cis); }
+    void Remove(COD_CIS* cis) override { _query = MySQLremove(cis); }
 
-    Query* MySQLcreate(CIS* cis);
-    Query* MySQLread(CIS* cis);
-    Query* MySQLupdate(CIS* cis);
-    Query* MySQLremove(CIS* cis);
+    Query* MySQLcreate(COD_CIS* cis);
+    Query* MySQLread(COD_CIS* cis);
+    Query* MySQLupdate(COD_CIS* cis);
+    Query* MySQLremove(COD_CIS* cis);
 
     Query* GetQuery() { return _query; }
 private:
