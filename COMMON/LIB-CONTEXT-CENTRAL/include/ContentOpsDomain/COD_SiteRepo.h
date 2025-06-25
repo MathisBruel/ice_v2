@@ -1,6 +1,8 @@
 #pragma once
 
-#include "ContentOpsDomain/COD_Site.h"
+class COD_Site;
+class ResultQuery;
+
 class COD_SiteRepo
 {
 public:
@@ -8,4 +10,5 @@ public:
     virtual void Read(COD_Site* site) = 0;
     virtual void Update(COD_Site* site) = 0;
     virtual void Remove(COD_Site* site) = 0;
+    virtual ResultQuery* getSites() = 0;
 };

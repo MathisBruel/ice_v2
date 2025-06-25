@@ -1,31 +1,44 @@
 #include "ContentOpsBoundary/COB_SiteRepo.h"
+#include <stdexcept>
+#include <utility> // Pour std::move
+#include "ContentOpsBoundary/COB_Site.h"
+#include "ResultQuery.h"
+#include "ContentOpsInfra/MySQLSiteRepo.h"
 
-std::vector<COD_Site*> COB_SiteRepo::GetSites(MySQLDBConnection* dbConn)
+COB_SiteRepo::COB_SiteRepo(COD_SiteRepo* siteRepo)
 {
-    std::vector<COD_Site*> sites;
-    // Créer la requête pour récupérer tous les sites
-    Query* query = MySQLread();
-    // Exécuter la requête
-    ResultQuery* result = dbConn->ExecuteQuery(query);
+    _siteRepo = siteRepo;
+}
+
+COB_SiteRepo::~COB_SiteRepo()
+{
+    delete _siteRepo;
+}
+
+
+std::vector<COB_Site> COB_SiteRepo::GetSites()
+{
+    std::vector<COB_Site> sites;
+    ResultQuery* result = _siteRepo->getSites();
     if (!result || !result->isValid()) {
-        delete query;
-        return sites;
+        throw std::runtime_error("Failed to get sites : " + std::string(result->getErrorMessage())); 
     }
     int nbRows = result->getNbRows();
+    sites.reserve(nbRows);
+    
     for (int i = 0; i < nbRows; ++i) {
         int* id = result->getIntValue(i, "id_site");
         std::string* name = result->getStringValue(i, "name");
         int* group = result->getIntValue(i, "id_group");
         int* connection = result->getIntValue(i, "id_connection");
         if (id && name && group && connection) {
-            COD_Site* site = new COD_Site();
-            site->SetSiteId(*id);
-            site->SetDatas(*name, *group, *connection);
-            sites.push_back(site);
+            sites.emplace_back();
+            COB_Site& site = sites.back();
+            site.SetSiteId(*id);
+            site.SetDatas(*name, *group, *connection); 
         }
     }
     delete result;
-    delete query;
-    return sites;
+    return std::move(sites); 
 }
 

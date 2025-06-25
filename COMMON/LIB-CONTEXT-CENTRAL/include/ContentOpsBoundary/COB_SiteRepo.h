@@ -1,12 +1,17 @@
 #pragma once
 
 #include <vector>
-#include "ContentOpsInfra/MySQLSiteRepo.h"
-#include "ContentOpsDomain/COD_Site.h"
-#include "ContentOpsInfra/MySQLDBConnection.h"
+#include "ContentOpsBoundary/COB_Site.h"
+#include "ContentOpsDomain/COD_SiteRepo.h"
 
-class COB_SiteRepo : public MySQLSiteRepo
+class COB_SiteRepo
 {
 public: 
-    std::vector<COD_Site*> GetSites(MySQLDBConnection* dbConn);
+    COB_SiteRepo(COD_SiteRepo* siteRepo);
+    ~COB_SiteRepo();
+
+    std::vector<COB_Site> GetSites();
+
+private:
+    COD_SiteRepo* _siteRepo;
 };

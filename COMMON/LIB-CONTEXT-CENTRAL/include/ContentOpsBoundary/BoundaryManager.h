@@ -1,6 +1,7 @@
 #pragma once
 #include "BoundaryStateManager.h"
 #include <stdexcept>
+#include "ContentOpsBoundary/COB_SiteRepo.h"
 
 using namespace ContentOpsBoundaryEnum;
 
@@ -26,6 +27,6 @@ class BoundaryManager {
     BoundaryManager& operator=(const BoundaryManager&) = delete;
 
     private:
-    BoundaryManager() = default;
-    
+    BoundaryManager();
+    COB_SiteRepo* _siteRepo;
 };
