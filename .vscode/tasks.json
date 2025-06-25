@@ -38,19 +38,28 @@
             "dependsOrder": "sequence"
         },
         {
+            "label": "Just build",
+            "type": "shell",
+            "dependsOn": [
+                "Build WebCentral executable",
+                "Build ICE-MIGRATION executable"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
             "label": "REBUILD Container Configuration Web-Central",
             "type": "shell",
             "dependsOn": [
-                "Container Delete",
+                //"Container Delete",
                 "Build WebCentral executable",
                 "Build ICE-MIGRATION executable",
-                "Container-Image Remove",
-                "Container-Image Remove Central",
-                "Docker container build and run",
-                "Container Create",
-                "Start ICE-SERVICE and ICE-Panel",
-                "Container Config Web-Central",
-                "Start nodeJS Web-Central"
+                //"Container-Image Remove",
+                //"Container-Image Remove Central",
+                //"Docker container build and run",
+                //"Container Create",
+                //"Start ICE-SERVICE and ICE-Panel",
+                //"Container Config Web-Central",
+                //"Start nodeJS Web-Central"
             ],
             "dependsOrder": "sequence"
         },

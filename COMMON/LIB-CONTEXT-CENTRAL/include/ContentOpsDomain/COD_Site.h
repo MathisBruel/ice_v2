@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ContentOpsDomain/COD_SiteRepo.h"
+
 class COD_Site
 {
 public:
@@ -7,9 +9,7 @@ public:
     ~COD_Site();
 
     void SetSiteId(int siteId);
-    void SetSiteName(std::string siteName);
-    void SetSiteGroup(int siteGroup);
-    void SetSiteConnection(int siteConnection);
+    void SetDatas(std::string siteName, int siteGroup, int siteConnection);
 
     int* GetSiteId() {return &this->_siteId;}
     std::string GetSiteName() {return this->_siteName;}
@@ -17,7 +17,7 @@ public:
     int GetSiteConnection() {return this->_siteConnection;}
 
 private:
-    SiteRepo* _siteRepo;
+    COD_SiteRepo* _siteRepo;
     int _siteId;
     std::string _siteName;
     int _siteGroup;
