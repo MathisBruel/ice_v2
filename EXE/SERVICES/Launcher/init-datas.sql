@@ -26,27 +26,29 @@ INSERT INTO `localisation` (`name`) VALUES
 ('AR-AE');
 
 # ------------------------------------------ Données de Test ------------------------------------------
-INSERT INTO `groups` (`name`) VALUES
-("Europe"),
-("Amerique"),
-("Asie"),
-("Afrique"),
-("Oceanie");
 INSERT INTO `groups` (`name`, `id_group_1`) VALUES
-("France", 1),
-("USA", 2),
-("Espagne", 1),
-("Estonie", 1),
-("Inde", 3);
+("ALL", NULL);
+INSERT INTO `groups` (`name`, `id_group_1`) VALUES
+("Europe", 1),
+("Amerique", 1),
+("Asie", 1),
+("Afrique", 1),
+("Oceanie", 1);
+INSERT INTO `groups` (`name`, `id_group_1`) VALUES
+("France", 2),
+("USA", 3),
+("Espagne", 2),
+("Estonie", 2),
+("Inde", 4);
 INSERT INTO connection (`name`) VALUES
 ("SSH"),
 ("VPN");
 INSERT INTO site (`name`, `id_connection`, `id_group`) VALUES
-("Paris", 1, 6),
-("New York", 2, 7),
-("Madrid", 1, 8),
-("Tallinn", 2, 9),
-("Mumbai", 1, 10);
+("Paris", 1, 7),
+("New York", 2, 8),
+("Madrid", 1, 9),
+("Tallinn", 2, 10),
+("Mumbai", 1, 11);
 INSERT INTO default_server_configuration_auditorium () VALUES ();
 INSERT INTO default_server_configuration_hallway () VALUES ();
 INSERT INTO server_pair_configuration (`projection_server_ip`,`auditorium_server_ip`,`id_default_auditorium`,`id_site`,`name`) VALUES
