@@ -15,13 +15,12 @@ COB_SiteRepo::~COB_SiteRepo()
     delete _siteRepo;
 }
 
-
-std::vector<COB_Site> COB_SiteRepo::GetSites()
+std::vector<COB_Site> COB_SiteRepo::GetSites(int groupId)
 {
     std::vector<COB_Site> sites;
-    ResultQuery* result = _siteRepo->getSites();
+    ResultQuery* result = _siteRepo->getSites(groupId);
     if (!result || !result->isValid()) {
-        throw std::runtime_error("Failed to get sites : " + std::string(result->getErrorMessage())); 
+        throw std::runtime_error("Failed to get sites for group " + std::to_string(groupId) + ": " + (result ? result->getErrorMessage() : "null result")); 
     }
     int nbRows = result->getNbRows();
     sites.reserve(nbRows);

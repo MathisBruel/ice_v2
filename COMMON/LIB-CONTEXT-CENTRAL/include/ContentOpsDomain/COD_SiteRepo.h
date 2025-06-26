@@ -10,5 +10,5 @@ public:
     virtual void Read(COD_Site* site) = 0;
     virtual void Update(COD_Site* site) = 0;
     virtual void Remove(COD_Site* site) = 0;
-    virtual ResultQuery* getSites() = 0;
+    virtual ResultQuery* getSites(int groupId) = 0;
 };

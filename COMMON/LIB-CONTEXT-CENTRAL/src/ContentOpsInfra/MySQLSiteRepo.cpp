@@ -42,13 +42,16 @@ Query* MySQLSiteRepo::MySQLread(COD_Site* site)
     return readQuery;
 }
 
-Query* MySQLSiteRepo::MySQLread()
+Query* MySQLSiteRepo::MySQLread(int* groupId)
 {
     Query* readQuery = new Query(Query::SELECT, _database, _table);
     readQuery->addParameter("id_site", nullptr, "int");
     readQuery->addParameter("name", nullptr, "string");
     readQuery->addParameter("id_group", nullptr, "int");
     readQuery->addParameter("id_connection", nullptr, "int");
+    if (groupId != nullptr) {
+        readQuery->addWhereParameter("id_group", groupId, "int");
+    }
     return readQuery;
 }
 
@@ -99,12 +102,14 @@ void MySQLSiteRepo::Remove(COD_Site* site)
     _query = MySQLremove(site);
 }
 
-ResultQuery* MySQLSiteRepo::getSites()
+ResultQuery* MySQLSiteRepo::getSites(int groupId)
 {
     MySQLDBConnection* dbConn = new MySQLDBConnection();
     dbConn->InitConnection();
-    Query* query = MySQLread();
+    int* groupIdPtr = new int(groupId);
+    Query* query = MySQLread(groupIdPtr);
     ResultQuery* result = dbConn->ExecuteQuery(query);
+    delete groupIdPtr;
     delete query;
     delete dbConn;
     return result;

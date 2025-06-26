@@ -24,12 +24,13 @@ public:
     Query* MySQLcreate(COD_Site* site);
     Query* MySQLread(COD_Site* site);
     Query* MySQLread();
+    Query* MySQLread(int* groupId);
     Query* MySQLupdate(COD_Site* site);
     Query* MySQLremove(COD_Site* site);
 
     Query* GetQuery() { return _query; }
 
-    ResultQuery* getSites();
+    ResultQuery* getSites(int groupId) override;
 private:
     static std::string _database;
     static std::string _table;

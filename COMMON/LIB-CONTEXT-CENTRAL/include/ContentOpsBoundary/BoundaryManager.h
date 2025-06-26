@@ -2,6 +2,7 @@
 #include "BoundaryStateManager.h"
 #include <stdexcept>
 #include "ContentOpsBoundary/COB_SiteRepo.h"
+#include "ContentOpsBoundary/COB_GroupRepo.h"
 
 using namespace ContentOpsBoundaryEnum;
 
@@ -12,7 +13,7 @@ class BoundaryManager {
     std::string GetContentReleasesAsXml(int contentId,int typeId, int localizationId);
     std::string GetGroupsAsXml();
     std::string GetGroupAsXml(int groupeId);
-    std::string GetSitesAsXml();
+    std::string GetSitesAsXml(int groupId);
     std::string GetSiteCplsAsXml(int siteId);
     void UpdateContent(int contentId);
     void CreateContent();
@@ -25,8 +26,10 @@ class BoundaryManager {
 
     BoundaryManager(const BoundaryManager&) = delete;
     BoundaryManager& operator=(const BoundaryManager&) = delete;
+    ~BoundaryManager();
 
     private:
     BoundaryManager();
     COB_SiteRepo* _siteRepo;
+    COB_GroupRepo* _groupRepo;
 };

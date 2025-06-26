@@ -2425,7 +2425,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
                 response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
                 Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetGroupsAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
             }
-        } else {
+        } else {  
             try {
                 std::string groupXml = _boundaryManager.GetGroupAsXml(groupId);
                 response->setDatas(groupXml);
@@ -2490,8 +2490,9 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
        // }
     }
     else if (cmd->getType() == CommandCentral::GET_SITES) {
+        int groupId = cmd->getIntParameter("id_group");
         try {
-            std::string sitesXml = _boundaryManager.GetSitesAsXml();
+            std::string sitesXml = _boundaryManager.GetSitesAsXml(groupId);
             response->setDatas(sitesXml);
             response->setStatus(CommandCentralResponse::OK);
             response->setComments("Sites retreived successfully.");
