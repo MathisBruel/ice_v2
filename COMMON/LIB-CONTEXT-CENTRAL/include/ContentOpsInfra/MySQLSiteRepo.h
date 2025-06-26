@@ -31,6 +31,7 @@ public:
     Query* GetQuery() { return _query; }
 
     ResultQuery* getSites(int groupId) override;
+
 private:
     static std::string _database;
     static std::string _table;

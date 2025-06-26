@@ -34,11 +34,6 @@
         groupList.addEventListener("change", function () {
             const id_group = groupList.value;
             var idChildgroup =[parseInt(id_group)];
-            for (const option of groupList.options) {
-                if (option.idParent == id_group) {
-                    idChildgroup.push(parseInt(option.value));
-                }
-            }
             drawSites(idChildgroup);
         });
     });
@@ -48,65 +43,59 @@
         while (containerSites.firstChild) {
             containerSites.removeChild(containerSites.firstChild);
         }
-        var responses = [];
-        for (const id_group of idChildgroup) {
-            const json = { id_group: id_group };
-            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
-            let response = await (await fetch(`/getSites`, options)).json();
-            if (response.ok == true) {
-                responses.push(response);
-            }
-        }
-        for (const response of responses) {
-            if (response.data.sites != "") {
-                for (const site of response.data.sites.site) {
-                    const containerSite = createDOM("div", { class: "ContentDetails" });
-                    const title = createDOM("h2");
-                    title.innerText = site.$.name;
-                    containerSite.appendChild(title);
+        
+        const json = { id_group: idChildgroup[0] };
+        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+        let response = await (await fetch(`/getSites`, options)).json();
+        
+        if (response.ok == true && response.data.sites != "") {
+            for (const site of response.data.sites.site) {
+                const containerSite = createDOM("div", { class: "ContentDetails" });
+                const title = createDOM("h2");
+                title.innerText = site.$.name;
+                containerSite.appendChild(title);
 
-                    const table = createDOM("table");
-                    containerSite.appendChild(table);
+                const table = createDOM("table");
+                containerSite.appendChild(table);
 
-                    const json = { id_site: site.$.id_site };
-                    const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
-                    let response = await (await fetch(`/getCplsSite`, options)).json();
-                    const tr = createDOM("tr", { class: "trHeader" });
-                    table.appendChild(tr);
-                    const thUUID = createDOM("th", {align:"center", valign:"center"});
-                    thUUID.innerText = "CPL-UUID";
-                    tr.appendChild(thUUID);
-                    const thIdRelease = createDOM("th", {align:"center", valign:"center"});
-                    thIdRelease.innerText = "Release ID";
-                    tr.appendChild(thIdRelease);
-                    const thLorem = createDOM("th", {align:"center", valign:"center"});
-                    thLorem.innerText = "Lorem ipsum dolor sit amet";
-                    tr.appendChild(thLorem);
+                const json = { id_site: site.$.id_site };
+                const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                let response = await (await fetch(`/getCplsSite`, options)).json();
+                const tr = createDOM("tr", { class: "trHeader" });
+                table.appendChild(tr);
+                const thUUID = createDOM("th", {align:"center", valign:"center"});
+                thUUID.innerText = "CPL-UUID";
+                tr.appendChild(thUUID);
+                const thIdRelease = createDOM("th", {align:"center", valign:"center"});
+                thIdRelease.innerText = "Release ID";
+                tr.appendChild(thIdRelease);
+                const thLorem = createDOM("th", {align:"center", valign:"center"});
+                thLorem.innerText = "Lorem ipsum dolor sit amet";
+                tr.appendChild(thLorem);
 
-                    const tbody = createDOM("tbody");
-                    table.appendChild(tbody);
-                    if (response.ok == true) {
-                        if (response.data.cpls != "") {
-                            for (const cpl of response.data.cpls.cpl) {
-                                const tr = createDOM("tr");
-                                tbody.appendChild(tr);
-                                const tdUUID = createDOM("td", {align:"center", valign:"center"});
-                                tdUUID.innerText = cpl.$.CPL_uuid;
-                                tr.appendChild(tdUUID);
-                                const tdIdRelease = createDOM("td", {align:"center", valign:"center"});
-                                tdIdRelease.innerText = [cpl.$.id_content, cpl.$.id_type, cpl.$.id_localisation].join("_")
-                                tr.appendChild(tdIdRelease);
-                                tdIdRelease.addEventListener("click", function () {
-                                    window.location.assign("/movies?id=" + cpl.$.id_content)
-                                });
-                                const tdLorem = createDOM("td", {align:"center", valign:"center"});
-                                tdLorem.innerText = cpl.$.CPL_name;
-                                tr.appendChild(tdLorem);
-                            }
+                const tbody = createDOM("tbody");
+                table.appendChild(tbody);
+                if (response.ok == true) {
+                    if (response.data.cpls != "") {
+                        for (const cpl of response.data.cpls.cpl) {
+                            const tr = createDOM("tr");
+                            tbody.appendChild(tr);
+                            const tdUUID = createDOM("td", {align:"center", valign:"center"});
+                            tdUUID.innerText = cpl.$.CPL_uuid;
+                            tr.appendChild(tdUUID);
+                            const tdIdRelease = createDOM("td", {align:"center", valign:"center"});
+                            tdIdRelease.innerText = [cpl.$.id_content, cpl.$.id_type, cpl.$.id_localisation].join("_")
+                            tr.appendChild(tdIdRelease);
+                            tdIdRelease.addEventListener("click", function () {
+                                window.location.assign("/movies?id=" + cpl.$.id_content)
+                            });
+                            const tdLorem = createDOM("td", {align:"center", valign:"center"});
+                            tdLorem.innerText = cpl.$.CPL_name;
+                            tr.appendChild(tdLorem);
                         }
                     }
-                    containerSites.appendChild(containerSite);
                 }
+                containerSites.appendChild(containerSite);
             }
         }
     };

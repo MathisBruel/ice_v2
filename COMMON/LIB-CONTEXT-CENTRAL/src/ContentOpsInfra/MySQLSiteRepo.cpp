@@ -1,4 +1,5 @@
 #include "ContentOpsInfra/MySQLSiteRepo.h"
+#include "Poco/Logger.h"
 
 std::string MySQLSiteRepo::_database = "ice";
 std::string MySQLSiteRepo::_table = "site";
@@ -104,12 +105,39 @@ void MySQLSiteRepo::Remove(COD_Site* site)
 
 ResultQuery* MySQLSiteRepo::getSites(int groupId)
 {
+    
     MySQLDBConnection* dbConn = new MySQLDBConnection();
     dbConn->InitConnection();
-    int* groupIdPtr = new int(groupId);
-    Query* query = MySQLread(groupIdPtr);
+    std::string sql = R"(
+        WITH RECURSIVE group_hierarchy AS (
+            SELECT id_group, id_group_1, name, 0 as level
+            FROM `groups` 
+            WHERE id_group = ?
+            
+            UNION ALL
+            
+            SELECT g.id_group, g.id_group_1, g.name, gh.level + 1
+            FROM `groups` g
+            INNER JOIN group_hierarchy gh ON g.id_group_1 = gh.id_group
+        )
+        SELECT DISTINCT s.id_site, s.name, s.id_group, s.id_connection, gh.level
+        FROM site s
+        INNER JOIN group_hierarchy gh ON s.id_group = gh.id_group
+        ORDER BY gh.level, s.name
+    )";
+    
+    Query* query = new Query(Query::CUSTOM, _database, "");
+    query->setCustomSQL(sql);
+    query->addParameter("?", &groupId, "int");
+    query->addParameter("id_site", nullptr, "int");
+    query->addParameter("name", nullptr, "string");
+    query->addParameter("id_group", nullptr, "int");
+    query->addParameter("id_connection", nullptr, "int");
+    query->addParameter("level", nullptr, "int");
+    
     ResultQuery* result = dbConn->ExecuteQuery(query);
-    delete groupIdPtr;
+    
+    int row = result->getNbRows();
     delete query;
     delete dbConn;
     return result;

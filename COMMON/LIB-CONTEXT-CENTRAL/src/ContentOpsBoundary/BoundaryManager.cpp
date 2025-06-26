@@ -80,7 +80,6 @@ std::string BoundaryManager::GetSitesAsXml(int groupId) {
         std::string errorMsg = "Failed to get sites : " + std::string(e.what());
         throw std::runtime_error(errorMsg); 
     }
-    //throw std::logic_error("GetSitesAsXml not implemented");
 }
 
 std::string BoundaryManager::GetSiteCplsAsXml(int siteId) {
