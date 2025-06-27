@@ -158,8 +158,6 @@
                 const inputCheck = createDOM("input", {type:"checkbox", id:"Check_" + content.$.id_content});
                 inputCheck.addEventListener('change', function(){
                     if (inputCheck.checked == false) { CheckInput.checked = false; }
-                    console.log("contentDetailsTest", content.$.id_content);
-                    console.log("content", content);
                     contentDetailsTest(content.$.id_content);
                 });
                 tdCheck.appendChild(inputCheck);
@@ -361,11 +359,8 @@
         tr.appendChild(thRef);
         tr.appendChild(thAction);
         createTable.appendChild(tr);
-        console.log("content2 -> ", content);
-        console.log("content.releases -> ", content.releases);
 
         for (const release of content.releases) {
-            console.log("release", release);
             const Ids = release.id_release.split("_");
             const tr = createDOM("tr");
             const tdId = createDOM("td", {align:"center", valign:"center"});
