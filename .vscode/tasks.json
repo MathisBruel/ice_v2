@@ -1,7 +1,8 @@
 {
     "version": "2.0.0",
     "tasks": [
-        {   "label": "Container Configuration",
+        {
+            "label": "Container Configuration",
             "command": "docker container stop $(docker ps -a -q) ; docker container rm $(docker ps -a -q) ; docker compose up -d; docker cp BUILD/BIN/ICE-SERVICE ice-server-container-v2:/data/ICE2/ICE-SERVICE ; docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json ; IPS=$(docker exec -it ice-server-container-v2 cat \"/data/ICE2/CONFIG/KinetConfiguration.xml\" | xmlstarlet sel -t -v \"//configuration/panel/@ip\"); for ip in $IPS; do docker run --detach --label panel --label qsdf --net auditorium --ip \"$ip\" gitlab.cgrcinemas.fr:5050/martin.lagrange/iceauditoriumsimulator /IceDeviceEmulator \"$ip\" 192.50.0.1 ; done",
             "type": "shell",
             "args": [],
@@ -13,23 +14,79 @@
             },
             "group": "build"
         },
-        {   "label": "Container Configuration Web-Central",
+        {
+            "label": "Container Configuration Web-Central",
             "type": "shell",
             "dependsOn": [
-                // "Container Stop",
-                // "Container Start",
+                "Container Stop",
+                //"Container Start",
+                //"Container Delete",
+                "Build WebCentral executable",
+                // ---- docker compose up -d ----
+                //"Container Create",
+                //"Build ICE-MIGRATION executable",
+                //"Container-Image Remove",
+                //"Container-Image Remove Central",
+                //"Docker container build and run",
+                "Move files to container",
+                "Container Start",
+                "Start ICE-SERVICE and ICE-Panel",
+                "Container Config Web-Central",
+                //"Set datas in MySQL",
+                "Start nodeJS Web-Central"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "label": "Just build",
+            "type": "shell",
+            "dependsOn": [
+                "Build WebCentral executable",
+                "Build ICE-MIGRATION executable"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "label": "REBUILD Container Configuration Web-Central",
+            "type": "shell",
+            "dependsOn": [
+                "Container Delete",
                 "Build WebCentral executable",
                 "Build ICE-MIGRATION executable",
-                // "Container-Image Remove",
+                "Container-Image Remove",
                 "Container-Image Remove Central",
                 "Docker container build and run",
+                "Container Create",
                 "Start ICE-SERVICE and ICE-Panel",
                 "Container Config Web-Central",
                 "Start nodeJS Web-Central"
             ],
             "dependsOrder": "sequence"
         },
-        {   "label": "Container Stop",
+        {
+            "label": "Container Create",
+            "command": "docker compose up -d",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Container Delete",
+            "type": "shell",
+            "command": "docker compose down",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Container Stop",
             "command": "docker container stop ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; ",
             "type": "shell",
             "args": [],
@@ -41,7 +98,8 @@
             },
             "group": "build"
         },
-        {   "label": "Container Start",
+        {
+            "label": "Container Start",
             "command": "docker start ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; ",
             "type": "shell",
             "args": [],
@@ -53,7 +111,8 @@
             },
             "group": "build"
         },
-        {   "label": "Container Config Web-Central",
+        {
+            "label": "Container Config Web-Central",
             "command": "docker cp BUILD/BIN/ICE-CENTRAL ice-server-container-central-v2:/data/ICE2/ICE-CENTRAL ; docker cp EXE/SERVICES/WebCentral ice-server-container-central-v2:/data/ICE2/ ;",
             "type": "shell",
             "args": [],
@@ -65,7 +124,8 @@
             },
             "group": "build"
         },
-        {   "label": "Start nodeJS Web-Central",
+        {
+            "label": "Start nodeJS Web-Central",
             "command": "docker exec -d -w /data/ICE2/WebCentral ice-server-container-central-v2 /usr/bin/nodejs --inspect=0.0.0.0:9229 javascripts/Main_API.js javascripts/config.json",
             "type": "shell",
             "args": [],
@@ -77,7 +137,8 @@
             },
             "group": "build"
         },
-        {   "label": "Start ICE-SERVICE and ICE-Panel",
+        {
+            "label": "Start ICE-SERVICE and ICE-Panel",
             "command": "docker exec -d ice-panel-container-v2 /IceDeviceEmulator 192.50.50.3 192.50.0.1; docker exec -d ice-server-container-v2 /data/ICE2/ICE-SERVICE configPath:/data/ICE2/CONFIG/; docker exec -d -w /data/ICE2/WebInterface ice-server-container-v2 /usr/bin/nodejs javascripts/Main_API.js javascripts/config.json",
             "type": "shell",
             "args": [],
@@ -89,7 +150,8 @@
             },
             "group": "build"
         },
-        {   "label": "Copy WebCentral NodeJS",
+        {
+            "label": "Copy WebCentral NodeJS",
             "type": "shell",
             "command": "docker cp EXE/SERVICES/WebCentral ice-server-container-central-v2:/data/ICE2/ ; ",
             "args": [],
@@ -101,7 +163,8 @@
             },
             "group": "build"
         },
-        {   "label": "Container-Image Remove",
+        {
+            "label": "Container-Image Remove",
             "command": "docker container stop ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; docker container rm ice-server-container-v2 ice-panel-container-v2 ice-server-container-central-v2; docker rmi -f ice_v2-ice-server-central-v2 ice_v2-ice-server-v2;",
             "type": "shell",
             "args": [],
@@ -113,7 +176,8 @@
             },
             "group": "build"
         },
-        {   "label": "Container-Image Remove Central",
+        {
+            "label": "Container-Image Remove Central",
             "command": "docker container stop ice-server-container-central-v2; docker container rm ice-server-container-central-v2; docker rmi -f ice_v2-ice-server-central-v2;",
             "type": "shell",
             "args": [],
@@ -125,7 +189,8 @@
             },
             "group": "build"
         },
-        {   "label": "Docker container build and run",
+        {
+            "label": "Docker container build and run",
             "command": "docker compose up -d; while ! docker exec ice-server-container-central-v2 sh -c '[ -f /migration/migration-done ]'; do sleep 1; done && docker exec ice-server-container-central-v2 rm -r migration; ",
             "type": "shell",
             "args": [],
@@ -153,7 +218,9 @@
         {
             "label": "Build WebCentral executable",
             "type": "shell",
-            "command": "rm BUILD/BIN/ICE-CENTRAL; cd CMAKE/EXE/SERVICES/CENTRAL; make ICE-CENTRAL; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
+            //"command": "rm BUILD/BIN/ICE-CENTRAL; cd CMAKE/EXE/SERVICES/CENTRAL; make ICE-CENTRAL; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
+            "command": "cd CMAKE/EXE/SERVICES/CENTRAL; set -e; make; cp ICE-CENTRAL ../../../../BUILD/BIN/;",
+            //"command": "./tasks.sh -f build_lib_exe -t CENTRAL",
             "args": [],
             "problemMatcher": [
                 "$tsc"
@@ -171,6 +238,29 @@
             "problemMatcher": [
                 "$tsc"
             ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Move files to container",
+            "type": "shell",
+            "command": "docker cp BUILD/BIN/ICE-SERVICE ice-server-container-v2:/data/ICE2/ICE-SERVICE ; docker cp BUILD/BIN/ICE-CENTRAL ice-server-container-central-v2:/data/ICE2/ICE-CENTRAL ; docker cp EXE/SERVICES/WebCentral ice-server-container-central-v2:/data/ICE2/ ;",
+            "args": [],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Set datas in MySQL",
+            "type": "shell",
+            "command": "mysql -h 127.0.0.1 -P 33061 -u root -padmin < /home/mathis/ice_v2/EXE/SERVICES/Launcher/init-datas.sql",
+            "problemMatcher": [],
             "presentation": {
                 "reveal": "always"
             },

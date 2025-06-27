@@ -17,7 +17,8 @@ public:
         SELECT,
         INSERT,
         UPDATE,
-        REMOVE
+        REMOVE,
+        CUSTOM
     };
 
     Query(TypeQuery type, std::string database, std::string table);
@@ -30,6 +31,10 @@ public:
     std::string getQueryString();
     bool isSelectQuery() {return type == SELECT;}
     bool isInsertQuery() {return type == INSERT;}
+    
+    // Méthodes pour les requêtes personnalisées
+    void setCustomSQL(const std::string& sql) { customSQL = sql; }
+    std::string getCustomSQL() const { return customSQL; }
 
 private:
 
@@ -37,6 +42,7 @@ private:
     TypeQuery type;
     std::string database;
     std::string table;
+    std::string customSQL; // Pour les requêtes personnalisées
 
     // -- association key / type parameters (string, int, double, date)
     std::map<std::string, std::string> schemaParameter;

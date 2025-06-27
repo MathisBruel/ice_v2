@@ -14,7 +14,7 @@ package LIB-CONTEXT-CENTRAL {
             - string _contentTitle
             --
             + Content(string contentTitle)
-            + CreateRelease(int id_movie, int typeMovie, int localisationMovie)
+            + CreateRelease(int id_content, int typeMovie, int localisationMovie)
     
             + SetContentId(int contentId)
             + SetDatas(string contentTitle)
@@ -49,7 +49,7 @@ package LIB-CONTEXT-CENTRAL {
             + UploadSyncLoop(int id_serv_pair_config, string SyncLoopPath)
             + string toXmlString()
 
-            + SetReleaseId(int id_movie, TypeMovie typeMovie, LocalisationMovie localisationMovie)
+            + SetReleaseId(int id_content, TypeMovie typeMovie, LocalisationMovie localisationMovie)
             + SetReleaseInfos(string CPLRefPath)
             + SetCIS(CIS* cis)
             + SetCPL(CPL* cpl)
@@ -102,7 +102,7 @@ package LIB-CONTEXT-CENTRAL {
             --
             + CreateSync(string SyncPath)
 
-            + SetCPLId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+            + SetCPLId(int id_serv_pair_config, int id_content, int id_type, int id_localisation)
             + SetDatas(string CPLUUID, string CPLName)
             + SetCplInfos(string CPLPath)
 
@@ -127,7 +127,7 @@ package LIB-CONTEXT-CENTRAL {
             - int _syncId[4]
             - string _syncPath
             --
-            + SetSyncId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+            + SetSyncId(int id_serv_pair_config, int id_content, int id_type, int id_localisation)
             + SetSyncInfos(string SyncPath)
 
             + int* GetSyncID()
@@ -148,7 +148,7 @@ package LIB-CONTEXT-CENTRAL {
             int _syncLoopId[4]
             string _SyncLoopPath
             --
-            SetSyncLoopId(int id_serv_pair_config, int id_movie, int id_type, int id_localisation)
+            SetSyncLoopId(int id_serv_pair_config, int id_content, int id_type, int id_localisation)
             SetSyncLoopInfos(string SyncLoopPath)
 
             int* GetSyncLoopId()
@@ -280,13 +280,13 @@ package LIB-CONTEXT-CENTRAL {
         }
         struct StatePublishing #LightCyan {
             + entryGuard(FullControl& control)
-            + deleteRelease(Control control, string id_movie, string id_type, string id_localisation)
+            + deleteRelease(Control control, string id_content, string id_type, string id_localisation)
             + react (const CancelEvent&, EventControl& control)
             + react (const CreateReleaseEvent&, EventControl& control)
         }
         struct StateReleaseCreation #LightCyan {
             + entryGuard(FullControl& control)
-            + newRelease(Control control, int id_movie, int id_type, int id_localisation, string cplRefPath)
+            + newRelease(Control control, int id_content, int id_type, int id_localisation, string cplRefPath)
             + react (const ReleaseCreatedEvent&, EventControl& control)
         }
         struct StateUploadCIS #LightCyan {

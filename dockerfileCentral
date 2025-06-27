@@ -5,15 +5,19 @@ RUN mkdir migration
 RUN chown mysql:mysql migration
 RUN chmod 777 migration
 RUN apt-get update
-RUN apt-get install nodejs -y && apt-get install libssl3 -y && apt-get install wget -y && apt-get install libmysqlclient-dev -y
-RUN apt-get install qtbase5-dev qtbase5-dev-tools libqt5sql5 libqt5sql5-sqlite -y && apt-get install libqt5sql5-mysql
+RUN apt-get install nodejs -y && \
+    apt-get install libssl3 -y && \
+    apt-get install wget -y && \
+    apt-get install libmysqlclient-dev -y && \
+    apt-get install qtbase5-dev qtbase5-dev-tools libqt5sql5 libqt5sql5-sqlite -y && \
+    apt-get install libqt5sql5-mysql -y && \
+    apt-get install gdb -y
 COPY BUILD/PACKAGE/CENTRAL/ICE-CENTRAL-2.0.tar.gz /ICE-CENTRAL-2.0.tar.gz
 COPY BUILD/PACKAGE/CENTRAL/install-central.sh /install-central.sh
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb && dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
 RUN mkdir /data && chmod 777 /data
 RUN chmod 777 /install-central.sh
 RUN /bin/bash -c '/install-central.sh'
-RUN apt-get install gdb -y
 COPY EXE/SERVICES/Launcher/init-database.sql /docker-entrypoint-initdb.d/
 COPY EXE/SERVICES/Launcher/init-migration.sh /docker-entrypoint-initdb.d/init-migration.sh
 COPY EXE/SERVICES/Launcher/init-datas.sql /docker-entrypoint-initdb.d/push-new-datas.sql

@@ -41,9 +41,9 @@ namespace Migrations
 				table.id("id_type");
 				table.string("name", 50);
 			});
-			Schema::create("movie", [](Blueprint &table)
+			Schema::create("content", [](Blueprint &table)
 			{
-				table.id("id_movie");
+				table.id("id_content");
 				table.string("title", 50);
 			});
 			Schema::create("default_server_configuration_hallway", [](Blueprint &table)
@@ -76,13 +76,13 @@ namespace Migrations
 			});
 			Schema::create("releases", [](Blueprint &table)
 			{
-				table.unsignedBigInteger("id_movie");
+				table.unsignedBigInteger("id_content");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.string("release_cis_path", 50).defaultValue("NULL").nullable();
 				table.string("release_cpl_ref_path", 50);
-				table.primary({"id_movie", "id_type", "id_localisation"});
-				table.foreign("id_movie").references("id_movie").on("movie");
+				table.primary({"id_content", "id_type", "id_localisation"});
+				table.foreign("id_content").references("id_content").on("content");
 				table.foreign("id_type").references("id_type").on("type");
 				table.foreign("id_localisation").references("id_localisation").on("localisation");
 			});
@@ -133,16 +133,16 @@ namespace Migrations
 			Schema::table("cpl", [](Blueprint &table)
 			{
 				table.unsignedBigInteger("id_serv_pair_config");
-				table.unsignedBigInteger("id_movie");
+				table.unsignedBigInteger("id_content");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.integer("type_cpl").nullable().change();
 				table.integer("id").change();
 				table.string("sha1_sync", 40).nullable().change();
                 table.dropPrimary("id");
-				table.primary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
+				table.primary({"id_serv_pair_config", "id_content", "id_type", "id_localisation"});
 				table.foreign("id_serv_pair_config").references("id_serv_pair_config").on("server_pair_configuration");
-				table.foreign("id_movie").references("id_movie").on("releases");
+				table.foreign("id_content").references("id_content").on("releases");
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");
 			});
@@ -150,25 +150,25 @@ namespace Migrations
 			Schema::create("sync", [](Blueprint &table)
 			{
 				table.unsignedBigInteger("id_serv_pair_config");
-				table.unsignedBigInteger("id_movie");
+				table.unsignedBigInteger("id_content");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.string("path_sync", 50);
-				table.primary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
+				table.primary({"id_serv_pair_config", "id_content", "id_type", "id_localisation"});
 				table.foreign("id_serv_pair_config").references("id_serv_pair_config").on("server_pair_configuration");
-				table.foreign("id_movie").references("id_movie").on("releases");
+				table.foreign("id_content").references("id_content").on("releases");
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");
 			});
 			Schema::create("loopSync", [](Blueprint &table)
 			{
-				table.unsignedBigInteger("id_movie");
+				table.unsignedBigInteger("id_content");
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.unsignedBigInteger("id_serv_pair_config");
 				table.string("path_sync_loop", 50);
-				table.primary({"id_serv_pair_config","id_movie", "id_type", "id_localisation"});
-				table.foreign("id_movie").references("id_movie").on("releases");
+				table.primary({"id_serv_pair_config","id_content", "id_type", "id_localisation"});
+				table.foreign("id_content").references("id_content").on("releases");
 				table.foreign("id_type").references("id_type").on("releases");
 				table.foreign("id_localisation").references("id_localisation").on("releases");
 				table.foreign("id_serv_pair_config").references("id_serv_pair_config").on("hallway_server_configuration");
@@ -177,7 +177,7 @@ namespace Migrations
             BEFORE INSERT ON `sync` \
             FOR EACH ROW \
             BEGIN \
-                IF NOT EXISTS (SELECT * FROM `cpl` WHERE id_serv_pair_config = NEW.id_serv_pair_config && id_type = NEW.id_type && id_movie = NEW.id_movie && id_localisation = NEW.id_localisation) THEN \
+                IF NOT EXISTS (SELECT * FROM `cpl` WHERE id_serv_pair_config = NEW.id_serv_pair_config && id_type = NEW.id_type && id_content = NEW.id_content && id_localisation = NEW.id_localisation) THEN \
                     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Aucun CPL correspondant'; \
                 END IF; \
             END;");
@@ -190,11 +190,11 @@ namespace Migrations
             Schema::table("cpl", [](Blueprint &table)
             {
                 table.dropForeign("cpl_id_serv_pair_config_foreign");
-                table.dropForeign("cpl_id_movie_foreign");
+                table.dropForeign("cpl_id_content_foreign");
                 table.dropForeign("cpl_id_type_foreign");
                 table.dropForeign("cpl_id_localisation_foreign");
-                table.dropPrimary({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
-                table.dropColumns({"id_serv_pair_config", "id_movie", "id_type", "id_localisation"});
+                table.dropPrimary({"id_serv_pair_config", "id_content", "id_type", "id_localisation"});
+                table.dropColumns({"id_serv_pair_config", "id_content", "id_type", "id_localisation"});
             });
 			DB::statement("ALTER TABLE cpl AUTO_INCREMENT =4, MODIFY id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY");
             Schema::dropIfExists("hallway_panel");
@@ -209,7 +209,7 @@ namespace Migrations
             Schema::dropIfExists("site");
             Schema::dropIfExists("default_server_configuration_auditorium");
             Schema::dropIfExists("default_server_configuration_hallway");
-            Schema::dropIfExists("movie");
+            Schema::dropIfExists("content");
             Schema::dropIfExists("type");
             Schema::dropIfExists("localisation");
             Schema::dropIfExists("connection");
