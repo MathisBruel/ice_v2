@@ -1,31 +1,42 @@
 #pragma once
-#include <iostream>
-#include "Query.h"
 
 #include "ContentOpsDomain/COD_ContentRepo.h"
-
-class COD_Content;  
+#include <iostream>
+#include "Query.h"
+#include "ResultQuery.h"
+#include "ContentOpsDomain/COD_Content.h"
+#include "ContentOpsBoundary/COB_Content.h"
+#include "ContentOpsInfra/MySQLDBConnection.h"
+#include <memory>
 
 class MySQLContentRepo : public COD_ContentRepo
 {
 public:
-    void Create(COD_Content* content) override { _query = MySQLcreate(content); }
-    void Read(COD_Content* content) override { _query = MySQLread(content); }
-    void Update(COD_Content* content) override { _query = MySQLupdate(content); }
-    void Remove(COD_Content* content) override { _query = MySQLremove(content); }
-
-    Query* MySQLcreate(COD_Content* content);
-    Query* MySQLread(COD_Content* content);
-    Query* MySQLupdate(COD_Content* content);
-    Query* MySQLremove(COD_Content* content);
+    MySQLContentRepo();
+    virtual ~MySQLContentRepo();
     
-    Query* GetQuery() { return _query; }
+    void Create(COD_Content* content) override;
+    void Read(COD_Content* content) override;
+    void Update(COD_Content* content) override;
+    void Remove(COD_Content* content) override;
+
+    std::unique_ptr<Query> MySQLcreate(COD_Content* content);
+    std::unique_ptr<Query> MySQLread(COD_Content* content);
+    std::unique_ptr<Query> MySQLread();
+    std::unique_ptr<Query> MySQLupdate(COD_Content* content);
+    std::unique_ptr<Query> MySQLremove(COD_Content* content);
+
+    Query* GetQuery() { return _query.get(); }
+    
+    std::unique_ptr<ResultQuery> getContents() override;
+    std::unique_ptr<ResultQuery> getContent(int contentId) override;
 
 private:
     static std::string _database;
     static std::string _table;
 
-    int* _id;
-    std::string _title;
-    Query* _query;
+    int* _contentIds;
+    std::string _contentTitles;
+
+    std::unique_ptr<Query> _query;
 };

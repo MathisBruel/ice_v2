@@ -4,6 +4,7 @@
 #include <memory>
 #include "ContentOpsBoundary/COB_SiteRepo.h"
 #include "ContentOpsBoundary/COB_GroupRepo.h"
+#include "ContentOpsBoundary/COB_ContentRepo.h"
 
 using namespace ContentOpsBoundaryEnum;
 
@@ -33,4 +34,5 @@ class BoundaryManager {
     BoundaryManager();
     std::shared_ptr<COB_SiteRepo> _siteRepo;
     std::shared_ptr<COB_GroupRepo> _groupRepo;
+    std::shared_ptr<COB_ContentRepo> _contentRepo;
 };

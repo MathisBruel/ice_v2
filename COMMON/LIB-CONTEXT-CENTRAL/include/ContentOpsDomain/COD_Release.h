@@ -17,7 +17,7 @@ public:
     void UploadCPL(int id_serv_pair_config, std::string uuid, std::string name, std::string cplPath);
     void UploadSyncLoop(int id_serv_pair_config, std::string SyncLoopPath);
     std::string toXmlString(bool printChild);
-
+    
     void SetReleaseId(int id_content, TypeMovie typeMovie, LocalisationMovie localisationMovie);
     void SetReleaseInfos(std::string CPLRefPath) {this->_CPLRefPath = CPLRefPath;}
     void SetCIS(COD_CIS* cis) {this->_cis = cis;}

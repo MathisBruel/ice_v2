@@ -5,46 +5,104 @@
 std::string MySQLContentRepo::_database = "ice";
 std::string MySQLContentRepo::_table = "content";
 
-Query* MySQLContentRepo::MySQLcreate(COD_Content* content)
+MySQLContentRepo::MySQLContentRepo()
 {
-    _id = content->GetContentId();
-    if (*_id != -1) { return nullptr; }
-    _title = content->GetContentTitle();
+    _query = nullptr;
+}
+
+MySQLContentRepo::~MySQLContentRepo()
+{
+}
+
+std::unique_ptr<Query> MySQLContentRepo::MySQLcreate(COD_Content* content)
+{
+    _contentIds = content->GetContentIdPtr();
+    if (*_contentIds != -1) { return nullptr; }
+    _contentTitles = *content->GetContentTitlePtr();
     
-    Query* createQuery = new Query(Query::INSERT, _database, _table);
-    createQuery->addParameter("title", &_title, "string");
+    std::unique_ptr<Query> createQuery = std::make_unique<Query>(Query::INSERT, _database, _table);
+    createQuery->addParameter("title", &_contentTitles, "string");
     return createQuery;
 }
 
-Query* MySQLContentRepo::MySQLread(COD_Content* content)
+std::unique_ptr<Query> MySQLContentRepo::MySQLread(COD_Content* content)
 {
-    _id = content->GetContentId();
-    Query* readQuery = new Query(Query::SELECT, _database, _table);
+    _contentIds = content->GetContentIdPtr();
+    std::unique_ptr<Query> readQuery = std::make_unique<Query>(Query::SELECT, _database, _table);
     readQuery->addParameter("id_content", nullptr, "int");
     readQuery->addParameter("title", nullptr, "string");
-    if (*_id != -1) {readQuery->addWhereParameter("id_content", &_id, "int");}
+    if (*_contentIds != -1) {readQuery->addWhereParameter("id_content", _contentIds, "int");}
     return readQuery;
 }
 
-Query* MySQLContentRepo::MySQLupdate(COD_Content* content)
+std::unique_ptr<Query> MySQLContentRepo::MySQLread()
 {
-    _id = content->GetContentId();
-    if (*_id == -1) { return nullptr; }
+    std::unique_ptr<Query> readQuery = std::make_unique<Query>(Query::SELECT, _database, _table);
+    readQuery->addParameter("id_content", nullptr, "int");
+    readQuery->addParameter("title", nullptr, "string");
+    return readQuery;
+}
 
-    _title = content->GetContentTitle();
+std::unique_ptr<Query> MySQLContentRepo::MySQLupdate(COD_Content* content)
+{
+    _contentIds = content->GetContentIdPtr();
+    if (*_contentIds == -1) { return nullptr; }
 
-    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
-    updateQuery->addParameter("title", &_id, "string");
-    updateQuery->addWhereParameter("id_content", &_title, "int");
+    _contentTitles = *content->GetContentTitlePtr();
+
+    std::unique_ptr<Query> updateQuery = std::make_unique<Query>(Query::UPDATE, _database, _table);
+    updateQuery->addParameter("title", &_contentTitles, "string");
+    updateQuery->addWhereParameter("id_content", _contentIds, "int");
     return updateQuery;
 }
 
-Query* MySQLContentRepo::MySQLremove(COD_Content* content)
+std::unique_ptr<Query> MySQLContentRepo::MySQLremove(COD_Content* content)
 {
-    _id = content->GetContentId();
-    if (*_id == -1) { return nullptr; }
+    _contentIds = content->GetContentIdPtr();
+    if (*_contentIds == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
-    removeQuery->addWhereParameter("id_content", &_id, "int");
+    std::unique_ptr<Query> removeQuery = std::make_unique<Query>(Query::REMOVE, _database, _table);
+    removeQuery->addWhereParameter("id_content", _contentIds, "int");
     return removeQuery;
+}
+
+void MySQLContentRepo::Create(COD_Content* content) 
+{
+    _query = MySQLcreate(content);
+}
+
+void MySQLContentRepo::Read(COD_Content* content) 
+{
+    _query = MySQLread(content);
+}
+
+void MySQLContentRepo::Update(COD_Content* content) 
+{
+    _query = MySQLupdate(content);
+}
+
+void MySQLContentRepo::Remove(COD_Content* content) 
+{
+    _query = MySQLremove(content);
+}
+
+std::unique_ptr<ResultQuery> MySQLContentRepo::getContents()
+{
+    std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+    dbConn->InitConnection();
+    std::unique_ptr<Query> query = MySQLread();
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
+    return result;
+}
+
+std::unique_ptr<ResultQuery> MySQLContentRepo::getContent(int contentId)
+{
+    std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+    dbConn->InitConnection();
+    std::unique_ptr<Query> query = std::make_unique<Query>(Query::SELECT, _database, _table);
+    query->addParameter("id_content", nullptr, "int");
+    query->addParameter("title", nullptr, "string");
+    query->addWhereParameter("id_content", &contentId, "int");
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
+    return result;
 }

@@ -5,11 +5,15 @@
 #include "ContentOpsInfra/MySQLGroupRepo.h"
 #include "ContentOpsBoundary/COB_Sites.h"
 #include "ContentOpsBoundary/COB_Groups.h"
+#include "ContentOpsBoundary/COB_Content.h"
+#include "ContentOpsInfra/MySQLContentRepo.h"
+#include "ContentOpsBoundary/COB_Contents.h"
 
 BoundaryManager::BoundaryManager()
 {
     _siteRepo = std::make_shared<COB_SiteRepo>(std::make_shared<MySQLSiteRepo>());
     _groupRepo = std::make_shared<COB_GroupRepo>(std::make_shared<MySQLGroupRepo>());
+    _contentRepo = std::make_shared<COB_ContentRepo>(std::make_shared<MySQLContentRepo>());
 }
 
 BoundaryManager::~BoundaryManager()
@@ -17,11 +21,25 @@ BoundaryManager::~BoundaryManager()
 }
 
 std::string BoundaryManager::GetAllContentsAsXml() {
-    throw std::logic_error("GetAllContentsAsXml not implemented");
+    try {
+        COB_Contents contents = _contentRepo->GetContents(); 
+        return contents; 
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get contents : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
 }
 
 std::string BoundaryManager::GetContentAsXml(int contentId) {
-    throw std::logic_error("GetContentAsXml not implemented");
+    try {
+        COB_Content content = _contentRepo->GetContent(contentId);
+        return content;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get content : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
 }
 
 std::string BoundaryManager::GetContentReleasesAsXml(int contentId,int typeId, int localizationId) {
