@@ -6,6 +6,6 @@
 class COB_Site : public COD_Site
 {
 public:
-    std::string toXmlString() const;
-
+    COB_Site(int siteId, std::string siteName, int siteGroup, int siteConnection);
+    operator std::string() const;
 };

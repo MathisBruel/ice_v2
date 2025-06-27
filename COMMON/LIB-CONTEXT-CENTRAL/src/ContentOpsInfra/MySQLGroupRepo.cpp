@@ -93,18 +93,18 @@ void MySQLGroupRepo::Remove(COD_Group* group)
     _query = MySQLremove(group);
 }
 
-ResultQuery* MySQLGroupRepo::getGroups()
+std::unique_ptr<ResultQuery> MySQLGroupRepo::getGroups()
 {
     MySQLDBConnection* dbConn = new MySQLDBConnection();
     dbConn->InitConnection();
     Query* query = MySQLread();
-    ResultQuery* result = dbConn->ExecuteQuery(query);
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query));
     delete query;
     delete dbConn;
     return result;
 }
 
-ResultQuery* MySQLGroupRepo::getGroup(int groupId)
+std::unique_ptr<ResultQuery> MySQLGroupRepo::getGroup(int groupId)
 {
     MySQLDBConnection* dbConn = new MySQLDBConnection();
     dbConn->InitConnection();
@@ -115,7 +115,7 @@ ResultQuery* MySQLGroupRepo::getGroup(int groupId)
     readQuery->addParameter("id_group_1", nullptr, "int");
     readQuery->addWhereParameter("id_group", &groupId, "int");
     
-    ResultQuery* result = dbConn->ExecuteQuery(readQuery);
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(readQuery));
     delete readQuery;
     delete dbConn;
     return result;

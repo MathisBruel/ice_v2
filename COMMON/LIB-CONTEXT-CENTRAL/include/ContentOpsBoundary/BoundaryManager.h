@@ -1,6 +1,7 @@
 #pragma once
 #include "BoundaryStateManager.h"
 #include <stdexcept>
+#include <memory>
 #include "ContentOpsBoundary/COB_SiteRepo.h"
 #include "ContentOpsBoundary/COB_GroupRepo.h"
 
@@ -30,6 +31,6 @@ class BoundaryManager {
 
     private:
     BoundaryManager();
-    COB_SiteRepo* _siteRepo;
-    COB_GroupRepo* _groupRepo;
+    std::shared_ptr<COB_SiteRepo> _siteRepo;
+    std::shared_ptr<COB_GroupRepo> _groupRepo;
 };

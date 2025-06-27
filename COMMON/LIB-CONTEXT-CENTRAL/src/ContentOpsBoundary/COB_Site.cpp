@@ -1,7 +1,12 @@
 #include "ContentOpsBoundary/COB_Site.h"
 #include <string>
 
-std::string COB_Site::toXmlString() const
+COB_Site::COB_Site(int siteId, std::string siteName, int siteGroup, int siteConnection)
+    : COD_Site(siteId, siteName, siteGroup, siteConnection)
+{
+}
+
+COB_Site::operator std::string() const
 {
     std::string xml = "<site";
     xml += " id_site=\"" + std::to_string(this->GetSiteId()) + "\"";

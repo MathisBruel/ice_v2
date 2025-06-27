@@ -8,6 +8,7 @@
 #include "ContentOpsBoundary/COB_Site.h"
 #include "ResultQuery.h"
 #include "ContentOpsInfra/MySQLDBConnection.h"
+#include <memory>
 
 
 class MySQLSiteRepo : public COD_SiteRepo
@@ -30,7 +31,7 @@ public:
 
     Query* GetQuery() { return _query; }
 
-    ResultQuery* getSites(int groupId) override;
+    std::unique_ptr<ResultQuery> getSites(int groupId) override;
 
 private:
     static std::string _database;

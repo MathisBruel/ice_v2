@@ -1,19 +1,14 @@
 #include "ContentOpsDomain/COD_Group.h"
 
-COD_Group::COD_Group()
+COD_Group::COD_Group(int groupId, std::string groupName, int groupParent)
 {
-    this->_groupId = -1;
-    this->_groupName = "";
-    this->_groupParent = -1;
-    this->_groupRepo = nullptr;
+    this->_groupId = groupId;
+    this->_groupName = groupName;
+    this->_groupParent = groupParent;
 }
 
 COD_Group::~COD_Group()
 {
-    if (this->_groupRepo != nullptr)
-    {
-        delete this->_groupRepo;
-    }
 }
 
 void COD_Group::SetGroupId(int groupId)

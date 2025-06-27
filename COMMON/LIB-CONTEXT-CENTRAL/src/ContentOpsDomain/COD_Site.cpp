@@ -1,18 +1,14 @@
 #include "ContentOpsDomain/COD_Site.h"
 
-COD_Site::COD_Site()
+COD_Site::COD_Site(int siteId, std::string siteName, int siteGroup, int siteConnection)
 {
-    this->_siteId = -1;
-    this->_siteName = "";
-    this->_siteGroup = -1;
-    this->_siteConnection = -1;
+    this->_siteId = siteId;
+    this->_siteName = siteName;
+    this->_siteGroup = siteGroup;
+    this->_siteConnection = siteConnection;
 }
 COD_Site::~COD_Site()
 {
-    if (this->_siteRepo != nullptr)
-    {
-        delete this->_siteRepo;
-    }
 }
 
 

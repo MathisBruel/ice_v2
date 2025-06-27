@@ -3,17 +3,17 @@
 #include "ContentOpsInfra/MySQLSiteRepo.h"
 #include "ContentOpsBoundary/COB_Group.h"
 #include "ContentOpsInfra/MySQLGroupRepo.h"
+#include "ContentOpsBoundary/COB_Sites.h"
+#include "ContentOpsBoundary/COB_Groups.h"
 
 BoundaryManager::BoundaryManager()
 {
-    _siteRepo = new COB_SiteRepo(new MySQLSiteRepo());
-    _groupRepo = new COB_GroupRepo(new MySQLGroupRepo());
+    _siteRepo = std::make_shared<COB_SiteRepo>(std::make_shared<MySQLSiteRepo>());
+    _groupRepo = std::make_shared<COB_GroupRepo>(std::make_shared<MySQLGroupRepo>());
 }
 
 BoundaryManager::~BoundaryManager()
 {
-    delete _siteRepo;
-    delete _groupRepo;
 }
 
 std::string BoundaryManager::GetAllContentsAsXml() {
@@ -30,17 +30,8 @@ std::string BoundaryManager::GetContentReleasesAsXml(int contentId,int typeId, i
 
 std::string BoundaryManager::GetGroupsAsXml() {
     try {
-        std::vector<COB_Group> groups = _groupRepo->GetGroups(); 
-        std::string xml = "<groups>";
-        
-        size_t estimatedSize = groups.size() * 100; 
-        xml.reserve(estimatedSize);
-        
-        for (const COB_Group& group : groups) { 
-            xml += group.toXmlString();
-        }
-        xml += "</groups>";
-        return xml; 
+        COB_Groups groups = _groupRepo->GetGroups(); 
+        return groups; 
     }
     catch(const std::exception& e) { 
         std::string errorMsg = "Failed to get groups : " + std::string(e.what());
@@ -51,10 +42,7 @@ std::string BoundaryManager::GetGroupsAsXml() {
 std::string BoundaryManager::GetGroupAsXml(int groupeId) {
     try {
         COB_Group group = _groupRepo->GetGroup(groupeId);
-        std::string xml = "<groups>";
-        xml += group.toXmlString();
-        xml += "</groups>";
-        return xml;
+        return group;
     }
     catch(const std::exception& e) { 
         std::string errorMsg = "Failed to get group : " + std::string(e.what());
@@ -64,17 +52,8 @@ std::string BoundaryManager::GetGroupAsXml(int groupeId) {
 
 std::string BoundaryManager::GetSitesAsXml(int groupId) {
     try {
-        std::vector<COB_Site> sites = _siteRepo->GetSites(groupId); 
-        std::string xml = "<sites>";
-        
-        size_t estimatedSize = sites.size() * 100; 
-        xml.reserve(estimatedSize);
-        
-        for (const COB_Site& site : sites) { 
-            xml += site.toXmlString();
-        }
-        xml += "</sites>";
-        return xml; 
+        COB_Sites sites = _siteRepo->GetSites(groupId); 
+        return sites;
     }
     catch(const std::exception& e) { 
         std::string errorMsg = "Failed to get sites : " + std::string(e.what());

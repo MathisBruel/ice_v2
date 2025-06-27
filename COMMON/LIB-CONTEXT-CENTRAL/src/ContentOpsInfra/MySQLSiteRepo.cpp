@@ -103,7 +103,7 @@ void MySQLSiteRepo::Remove(COD_Site* site)
     _query = MySQLremove(site);
 }
 
-ResultQuery* MySQLSiteRepo::getSites(int groupId)
+std::unique_ptr<ResultQuery> MySQLSiteRepo::getSites(int groupId)
 {
     
     MySQLDBConnection* dbConn = new MySQLDBConnection();
@@ -135,7 +135,7 @@ ResultQuery* MySQLSiteRepo::getSites(int groupId)
     query->addParameter("id_connection", nullptr, "int");
     query->addParameter("level", nullptr, "int");
     
-    ResultQuery* result = dbConn->ExecuteQuery(query);
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query));
     
     int row = result->getNbRows();
     delete query;

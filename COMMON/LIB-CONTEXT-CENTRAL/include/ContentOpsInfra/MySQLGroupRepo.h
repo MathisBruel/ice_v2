@@ -8,6 +8,7 @@
 #include "ContentOpsBoundary/COB_Group.h"
 #include "ResultQuery.h"
 #include "ContentOpsInfra/MySQLDBConnection.h"
+#include <memory>
 
 class MySQLGroupRepo : public COD_GroupRepo
 {
@@ -28,8 +29,8 @@ public:
 
     Query* GetQuery() { return _query; }
 
-    ResultQuery* getGroups();
-    ResultQuery* getGroup(int groupId);
+    std::unique_ptr<ResultQuery> getGroups() override;
+    std::unique_ptr<ResultQuery> getGroup(int groupId) override;
 private:
     static std::string _database;
     static std::string _table;

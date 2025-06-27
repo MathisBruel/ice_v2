@@ -3,16 +3,17 @@
 #include <vector>
 #include "ContentOpsBoundary/COB_Group.h"
 #include "ContentOpsDomain/COD_GroupRepo.h"
+#include "ContentOpsBoundary/COB_Groups.h"
 
 class COB_GroupRepo
 {
 public: 
-    COB_GroupRepo(COD_GroupRepo* groupRepo);
+    COB_GroupRepo(std::shared_ptr<COD_GroupRepo> groupRepo);
     ~COB_GroupRepo();
 
-    std::vector<COB_Group> GetGroups();
+    COB_Groups GetGroups();
     COB_Group GetGroup(int groupId);
 
 private:
-    COD_GroupRepo* _groupRepo;
+    std::shared_ptr<COD_GroupRepo> _groupRepo;
 }; 

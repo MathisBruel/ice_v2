@@ -6,5 +6,6 @@
 class COB_Group : public COD_Group
 {
 public:
-    std::string toXmlString() const;
+    COB_Group(int groupId, std::string groupName, int groupParent);
+    operator std::string() const;
 }; 
