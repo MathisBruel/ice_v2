@@ -99,7 +99,7 @@ ResultQuery* DatabaseConnector::executeQuery(Query* query)
         Poco::Logger::get("DatabaseConnector").error(e.what(), __FILE__, __LINE__);
     }
 
-    if (query->isSelectQuery()) {
+    if (query->isSelectQuery() || !query->getCustomSQL().empty()) {
         Poco::Data::RecordSet records(statement);
 
         for (int i = 0; i < records.rowCount(); i++) {

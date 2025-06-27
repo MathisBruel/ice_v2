@@ -59,7 +59,10 @@ int* ResultQuery::getIntValue(int idx, std::string key)
         Poco::Logger::get("ResultQuery").error("Param is not int type !", __FILE__, __LINE__);
         return nullptr;
     }
-
+    std::map<std::string, void* >::iterator itValue = valueParameter.at(idx).find(key);
+    if (itValue->second == nullptr) {
+        return nullptr;
+    }
     int* param = static_cast<int*>(valueParameter.at(idx).find(key)->second);
     return param;
 }
@@ -80,7 +83,10 @@ double* ResultQuery::getDoubleValue(int idx, std::string key)
         Poco::Logger::get("ResultQuery").error("Param is not double type !", __FILE__, __LINE__);
         return nullptr;
     }
-
+    std::map<std::string, void* >::iterator itValue = valueParameter.at(idx).find(key);
+    if (itValue->second == nullptr) {
+        return nullptr;
+    }
     double* param = static_cast<double*>(valueParameter.at(idx).find(key)->second);
     return param;
 }
@@ -101,7 +107,10 @@ std::string* ResultQuery::getStringValue(int idx, std::string key)
         Poco::Logger::get("ResultQuery").error("Param is not double type !", __FILE__, __LINE__);
         return nullptr;
     }
-
+    std::map<std::string, void* >::iterator itValue = valueParameter.at(idx).find(key);
+    if (itValue->second == nullptr) {
+        return nullptr;
+    }
     std::string* param = static_cast<std::string*>(valueParameter.at(idx).find(key)->second);
     return param;
 }
@@ -122,7 +131,10 @@ Poco::DateTime* ResultQuery::getDateValue(int idx, std::string key)
         Poco::Logger::get("ResultQuery").error("Param is not date type !", __FILE__, __LINE__);
         return nullptr;
     }
-
+    std::map<std::string, void* >::iterator itValue = valueParameter.at(idx).find(key);
+    if (itValue->second == nullptr) {
+        return nullptr;
+    }
     if (valueParameter.at(idx).find(key)->second == "") {
         return nullptr;
     }

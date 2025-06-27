@@ -479,6 +479,89 @@ CommandCentral::CommandCentralType CommandCentral::generateFromString(std::strin
         return GET_FILE;
     }
 
+
+    // -- State Machine Interaction
+    else if (typeStr == "CREATE_CONTENT") {
+        return CREATE_CONTENT;
+    }
+    else if (typeStr == "CREATE_RELEASE") {
+        return CREATE_RELEASE;
+    }
+    else if (typeStr == "RELEASE_CREATED") {
+        return RELEASE_CREATED;
+    }
+    else if (typeStr == "CIS_CREATED") {
+        return CIS_CREATED;
+    }
+    else if (typeStr == "CREATE_CPL") {
+        return CREATE_CPL;
+    }
+    else if (typeStr == "CREATE_SYNCLOOP") {
+        return CREATE_SYNCLOOP;
+    }
+    else if (typeStr == "CPL_CREATED") {
+        return CPL_CREATED;
+    }
+    else if (typeStr == "SYNC_CREATED") {
+        return SYNC_CREATED;
+    }
+    else if (typeStr == "SYNCLOOP_CREATED") {
+        return SYNCLOOP_CREATED;
+    }
+    else if (typeStr == "IMPORT_TO_PROD") {
+        return IMPORT_TO_PROD;
+    }
+    else if (typeStr == "CANCEL") {
+        return CANCEL;
+    }
+
+    // -- Getters State Machine
+    else if (typeStr == "GET_CONTENT") {
+        return GET_CONTENT;
+    }
+    else if (typeStr == "GET_RELEASES_CONTENT") {
+        return GET_RELEASES_CONTENT;
+    }
+    else if (typeStr == "DELETE_RELEASE_CONTENT") {
+        return DELETE_RELEASE_CONTENT;
+    }
+    else if (typeStr == "GET_GROUPS_FILTER") {
+        return GET_GROUPS_FILTER;
+    }
+    else if (typeStr == "GET_SITES") {
+        return GET_SITES;
+    }
+    else if (typeStr == "GET_CPLS_SITE") {
+        return GET_CPLS_SITE;
+    }
+    else if (typeStr == "UPDATE_RELEASE_CONTENT") {
+        return UPDATE_RELEASE_CONTENT;
+    }
+    else if (typeStr == "UPDATE_CIS") {
+        return UPDATE_CIS;
+    }
+    else if (typeStr == "GET_RELEASE_CPLS") {
+        return GET_RELEASE_CPLS;
+    }
+    else if (typeStr == "GET_RELEASE_SYNCS") {
+        return GET_RELEASE_SYNCS;
+    }
+    else if (typeStr == "GET_RELEASE_SYNCLOOPS") {
+        return GET_RELEASE_SYNCLOOPS;
+    }
+    else if (typeStr == "GET_SERVER_PAIR") {
+        return GET_SERVER_PAIR;
+    }
+    else if (typeStr == "DELETE_RELEASE_CPL") {
+        return DELETE_RELEASE_CPL;
+    }
+    else if (typeStr == "DELETE_RELEASE_SYNC") {
+        return DELETE_RELEASE_SYNC;
+    }
+    else if (typeStr == "DELETE_RELEASE_SYNCLOOP") {
+        return DELETE_RELEASE_SYNCLOOP;
+    }
+
     // -- DEFAULT
     else {
         return UNKNOW_COMMAND;
@@ -665,6 +748,88 @@ std::string CommandCentral::generateToString(CommandCentral::CommandCentralType 
     }
     else if (type == GET_FILE) {
         return "GET_FILE";
+    }
+
+    // -- State Machine Interaction
+    else if (type == CREATE_CONTENT) {
+        return "CREATE_CONTENT";
+    }
+    else if (type == CREATE_RELEASE) {
+        return "CREATE_RELEASE";
+    }
+    else if (type == RELEASE_CREATED) {
+        return "RELEASE_CREATED";
+    }
+    else if (type == CIS_CREATED) {
+        return "CIS_CREATED";
+    }
+    else if (type == CREATE_CPL) {
+        return "CREATE_CPL";
+    }
+    else if (type == CREATE_SYNCLOOP) {
+        return "CREATE_SYNCLOOP";
+    }
+    else if (type == CPL_CREATED) {
+        return "CPL_CREATED";
+    }
+    else if (type == SYNC_CREATED) {
+        return "SYNC_CREATED";
+    }
+    else if (type == SYNCLOOP_CREATED) {
+        return "SYNCLOOP_CREATED";
+    }
+    else if (type == IMPORT_TO_PROD) {
+        return "IMPORT_TO_PROD";
+    }
+    else if (type == CANCEL) {
+        return "CANCEL";
+    }
+
+        // -- Getters State Machine
+    else if (type == GET_CONTENT) {
+        return "GET_CONTENT";
+    }
+    else if (type == GET_RELEASES_CONTENT) {
+        return "GET_RELEASES_CONTENT";
+    }
+    else if (type == DELETE_RELEASE_CONTENT) {
+        return "DELETE_RELEASE_CONTENT";
+    }
+    else if (type == GET_GROUPS_FILTER) {
+        return "GET_GROUPS_FILTER";
+    }
+    else if (type == GET_SITES) {
+        return "GET_SITES";
+    }
+    else if (type == GET_CPLS_SITE) {
+        return "GET_CPLS_SITE";
+    }
+    else if (type == UPDATE_RELEASE_CONTENT) {
+        return "UPDATE_RELEASE_CONTENT";
+    }
+    else if (type == UPDATE_CIS) {
+        return "UPDATE_CIS";
+    }
+    else if (type == GET_RELEASE_CPLS) {
+        return "GET_RELEASE_CPLS";
+    }
+    else if (type == GET_RELEASE_SYNCS) {
+        return "GET_RELEASE_SYNCS";
+    }
+    else if (type == GET_RELEASE_SYNCLOOPS) {
+        return "GET_RELEASE_SYNCLOOPS";
+    }
+    else if (type == GET_SERVER_PAIR) {
+        return "GET_SERVER_PAIR";
+    }
+    else if (type == DELETE_RELEASE_CPL) {
+        return "DELETE_RELEASE_CPL";
+    }
+    else if (type == DELETE_RELEASE_SYNC) {
+        return "DELETE_RELEASE_SYNC";
+    }
+    else if (type == DELETE_RELEASE_SYNCLOOP) {
+        return "DELETE_RELEASE_SYNCLOOP";
     }
 
     // -- DEFAULT

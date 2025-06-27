@@ -1,0 +1,104 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="sites">
+    <h1>Sites</h1>
+    <div id="message-box" class="success"></div>
+    <ul class="ul-model">
+        <div class="BlockLabel">
+            <label>Filtre</label>
+            <select id="groupList"></select>
+        </div>
+        <div class="ul-model" id="sitesList"></div>
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const json = { id_group: -1 };
+        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+        let response = await (await fetch(`/getGroupsFilter`, options)).json();
+        const groupList = document.getElementById("groupList");
+        if (response.ok == true) {
+            const option = createDOM("option", { value: -1, text: "filtre", selected: true, style:"display:none" });
+            groupList.appendChild(option);
+            for (const group of response.data.groups.group) {
+                idParent = group.$.id_group_1 != null ? group.$.id_group_1 : -1
+                const option = createDOM("option", { idParent: idParent });
+                option.value = group.$.id_group;
+                option.idParent = idParent;
+                option.text = group.$.name;
+                groupList.appendChild(option);
+            }
+        }
+        groupList.addEventListener("change", function () {
+            const id_group = groupList.value;
+            var idChildgroup =[parseInt(id_group)];
+            drawSites(idChildgroup);
+        });
+    });
+
+    async function drawSites(idChildgroup) {
+        const containerSites = document.getElementById("sitesList");
+        while (containerSites.firstChild) {
+            containerSites.removeChild(containerSites.firstChild);
+        }
+        
+        const json = { id_group: idChildgroup[0] };
+        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+        let response = await (await fetch(`/getSites`, options)).json();
+        
+        if (response.ok == true && response.data.sites != "") {
+            for (const site of response.data.sites.site) {
+                const containerSite = createDOM("div", { class: "ContentDetails" });
+                const title = createDOM("h2");
+                title.innerText = site.$.name;
+                containerSite.appendChild(title);
+
+                const table = createDOM("table");
+                containerSite.appendChild(table);
+
+                const json = { id_site: site.$.id_site };
+                const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                let response = await (await fetch(`/getCplsSite`, options)).json();
+                const tr = createDOM("tr", { class: "trHeader" });
+                table.appendChild(tr);
+                const thUUID = createDOM("th", {align:"center", valign:"center"});
+                thUUID.innerText = "CPL-UUID";
+                tr.appendChild(thUUID);
+                const thIdRelease = createDOM("th", {align:"center", valign:"center"});
+                thIdRelease.innerText = "Release ID";
+                tr.appendChild(thIdRelease);
+                const thLorem = createDOM("th", {align:"center", valign:"center"});
+                thLorem.innerText = "Lorem ipsum dolor sit amet";
+                tr.appendChild(thLorem);
+
+                const tbody = createDOM("tbody");
+                table.appendChild(tbody);
+                if (response.ok == true) {
+                    if (response.data.cpls != "") {
+                        for (const cpl of response.data.cpls.cpl) {
+                            const tr = createDOM("tr");
+                            tbody.appendChild(tr);
+                            const tdUUID = createDOM("td", {align:"center", valign:"center"});
+                            tdUUID.innerText = cpl.$.CPL_uuid;
+                            tr.appendChild(tdUUID);
+                            const tdIdRelease = createDOM("td", {align:"center", valign:"center"});
+                            tdIdRelease.innerText = [cpl.$.id_content, cpl.$.id_type, cpl.$.id_localisation].join("_")
+                            tr.appendChild(tdIdRelease);
+                            tdIdRelease.addEventListener("click", function () {
+                                window.location.assign("/movies?id=" + cpl.$.id_content)
+                            });
+                            const tdLorem = createDOM("td", {align:"center", valign:"center"});
+                            tdLorem.innerText = cpl.$.CPL_name;
+                            tr.appendChild(tdLorem);
+                        }
+                    }
+                }
+                containerSites.appendChild(containerSite);
+            }
+        }
+    };
+</script>
+
+<%- include ("../foot") %>

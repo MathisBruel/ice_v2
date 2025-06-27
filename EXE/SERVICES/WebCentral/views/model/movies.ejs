@@ -1,0 +1,419 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="content" style="overflow-y: hidden;">
+    <h1>Contents</h1>
+    <div class="BlockTop">
+        <div id="message-box" class="success"></div>
+        <img class="image-line-add" src="/add.png" alt="add" style="margin-left: 46%; display: none;">
+    </div>
+    <ul class="ul-model" id="ul-content">
+        <div class="contentContainer" id="content-liste"></div>
+        <div class="contentContainer" id="content-details"></div>
+    </ul>
+</div>
+
+<script>
+    const contentLocalisation = {1:"France", 2:"USA", 3:"Espagne", 4:"Estonie", 5:"Inde", 6:"AR-KSA", 7:"AR-AE"}
+    const contentType = {1:"Long Métrage", 2:"Court Métrage", 3:"Trailer", 4:"Test", 5:"Transitionnel", 6:"Classification",
+                         7:"Teaser", 8:"Code de conduite", 9:"Annonce d'intérêt public", 10:"Publicité", 11:"Clip", 
+                         12:"Promo", 13:"Carte stéréo 3D", 14:"Episode", 15:"Points forts", 16:"Evenements"};
+    
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id_content = urlParams.get('id');
+    document.addEventListener('DOMContentLoaded', async function(){
+        let response = await ( getContents(id_content) );
+        if (response.ok == true) {
+            drawContentslist(response.data.contents); 
+            const imgAdd = document.querySelector(".image-line-add");
+            imgAdd.style.display = "block";
+            imgAdd.addEventListener('click', async function(){
+                const tbody = document.getElementById("tbody-content-liste");
+                if (tbody.querySelector("#create") == null) {
+                    const CreateContent_tr = createDOM("tr");
+                    const CreateContent_tdCheck = createDOM("td", {align:"center", valign:"center"});
+                    const CreateContent_tdcreate = createDOM("img", {class:"image-line-add", src:"/add.png", id:"create"});
+                    CreateContent_tdCheck.appendChild(CreateContent_tdcreate);
+                    CreateContent_tr.appendChild(CreateContent_tdCheck);
+                    const CreateContent_tdId = createDOM("td", {align:"center", valign:"center"});
+                    CreateContent_tdId.innerHTML = "-1";
+                    CreateContent_tr.appendChild(CreateContent_tdId);
+                    const CreateContent_tdContent = createDOM("td", {align:"center", valign:"center"});
+                    const CreateContent_inputContent = createDOM("input", {type:"text", id:"contentTitle" });
+                    CreateContent_tdContent.appendChild(CreateContent_inputContent);
+                    CreateContent_tr.appendChild(CreateContent_tdContent);
+                    const CreateContent_tdState = createDOM("td", {align:"center", valign:"center"});                     
+                    CreateContent_tdState.innerHTML = "createMovie";
+                    CreateContent_tr.appendChild(CreateContent_tdState);
+                    const CreateContent_tdLock = createDOM("td", {align:"center", valign:"center"});
+                    const CreateContent_CheckInput = createDOM("input", {type:"checkbox", disabled:true});
+                    CreateContent_tdLock.appendChild(CreateContent_CheckInput);
+                    CreateContent_tr.appendChild(CreateContent_tdLock);
+                    tbody.appendChild(CreateContent_tr);
+
+                    CreateContent_tdcreate.addEventListener('click', async function(){
+                        const content = document.getElementById("contentTitle");
+                        if (content.value == ""){
+                            content.style.backgroundColor = "red";
+                            showErrorMessage("message-box", "Content is empty");
+                        }
+                        else {
+                            const json = {contentTitle:content.value};
+                            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+                            const result = await fetch(`/createContent`, options);
+                            if (result.ok == true) {
+                                const body = await result.json();
+                                if (body.code == 200) { 
+                                    window.location.assign("/movies?id=" + body.data.content.$.id_content);
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                    window.location.reload();
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", result.message);
+                            }
+                        }
+                    });
+                }
+                const contentContainer = document.getElementById("content-liste");
+                contentContainer.scrollTop = contentContainer.scrollHeight;
+            });
+            if (response.data.contents == "") {
+                imgAdd.dispatchEvent(new Event('click'));
+            }
+            if (id_content != null) {
+                const inputCheck = document.getElementById("Check_" + id_content);
+                inputCheck.checked = true;
+                const event_change = new Event('change');
+                inputCheck.dispatchEvent(event_change);
+            }
+        }
+    });
+
+    async function getContents(idContent) {
+        let response;
+        if (idContent == null) {
+            idContent = -1;
+        }
+        else {
+            idContent = parseInt(idContent);
+        }
+        try {
+            const json = JSON.stringify({ id: -1 });
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            response = await ( await fetch(`/getContents`, options) ).json();
+        }
+        catch(error){
+            showErrorMessage(id_error, error, DEFAULT_DELAY);
+        }
+        return response;
+        
+    }
+
+    function drawContentslist(contents) {
+        const contentContainer = document.getElementById("content-liste");
+
+        const TableContents = createDOM("table");
+        contentContainer.appendChild(TableContents);
+        const tr = createDOM("tr", {class:"trHeader"});
+        const thCheck = createDOM("th");
+        const CheckInput = createDOM("input", {type:"checkbox"});
+        CheckInput.addEventListener('change', function(){
+            let tbody = document.getElementById("tbody-content-liste");
+            for (let i = 0; i < tbody.children.length; i++) {   
+                CheckboxContent = tbody.children[i].children[0].children[0];
+                State = CheckboxContent.checked;
+                CheckboxContent.checked = CheckInput.checked;
+                if (State == !CheckInput.checked) {
+                    CheckboxContent.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+        thCheck.appendChild(CheckInput);
+        const thId = createDOM("th");
+        thId.innerHTML = "Id";
+        const thContent = createDOM("th");
+        thContent.innerHTML = "Content";
+        const thState = createDOM("th");
+        thState.innerHTML = "State";
+        const thLock = createDOM("th");
+        thLock.innerHTML = "&#128274";
+        tr.appendChild(thCheck);
+        tr.appendChild(thId);
+        tr.appendChild(thContent);
+        tr.appendChild(thState);
+        tr.appendChild(thLock);
+        TableContents.appendChild(tr);
+
+        const tbody = createDOM("tbody", {id:"tbody-content-liste"});
+        if (contents != "") {
+            for (const content of contents.content) {
+                const tr = createDOM("tr");
+                tbody.appendChild(tr);
+
+                const tdCheck = createDOM("td", {align:"center", valign:"center"});
+                const inputCheck = createDOM("input", {type:"checkbox", id:"Check_" + content.$.id_content});
+                inputCheck.addEventListener('change', function(){
+                    if (inputCheck.checked == false) { CheckInput.checked = false; }
+                    contentDetailsTest(content.$.id_content);
+                });
+                tdCheck.appendChild(inputCheck);
+                tr.appendChild(tdCheck);
+                
+                const tdId = createDOM("td", {align:"center", valign:"center"});
+                tdId.innerHTML = content.$.id_content;
+                tr.appendChild(tdId);
+
+                const tdContent = createDOM("td", {align:"center", valign:"center", id:"contentTitle_" + content.$.id_content});
+                tdContent.innerHTML = content.$.title;
+
+                tdContent.addEventListener('click', function(event){
+                    inputCheck.checked = !inputCheck.checked;
+                    const event_change = new Event('change');
+                    inputCheck.dispatchEvent(event_change);
+                });
+                tr.appendChild(tdContent);
+                
+                const tdState = createDOM("td", {align:"center", valign:"center"});
+                // tdState.innerHTML = content.$.state == null ? "createMovie": content.$.state;
+                tdState.addEventListener('click', function(event){
+                    inputCheck.checked = !inputCheck.checked;
+                    const event_change = new Event('change');
+                    inputCheck.dispatchEvent(event_change);
+                });
+                tr.appendChild(tdState);
+                
+                const tdLock = createDOM("td", {align:"center", valign:"center"});
+                const inputLock = createDOM("input", {type:"checkbox"});
+                inputLock.checked = content.$.Locked;
+                tdLock.appendChild(inputLock);
+                tr.appendChild(tdLock);
+
+            }
+        }
+        TableContents.appendChild(tbody);
+    }
+
+    async function contentDetailsTest(id_content) {
+        const inputCheckbox = document.getElementById("Check_" + id_content);
+        const contentTitle = document.getElementById("contentTitle_" + id_content);
+        const contentDetails = document.getElementById("content_" + id_content);
+        if (inputCheckbox.checked && contentDetails == null) {
+            const json = {"id_content":id_content};
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+            const response = await ( await fetch(`/getReleasesContent`, options) ).json();
+
+            const releasesdetails = []
+
+            if (response.data.releases != "") {
+                for (const release of response.data.releases.release) {
+                    releasesdetails.push({"id_release": [id_content, release.$.id_type, release.$.id_localisation].join("_"), 
+                                          "localisation": contentLocalisation[release.$.id_localisation], 
+                                          "type":contentType[release.$.id_type], 
+                                          "ref":release.$.release_cpl_ref_path});
+                }
+            }
+            const content = {"title":contentTitle.innerText, "id_content":id_content, "releases":releasesdetails};
+            drawContentDetails(content, document.getElementById("content-details"));
+        }
+        else {
+            if (contentDetails != null) {
+                contentDetails.remove();
+            }
+        }   
+    }
+
+    function drawContentDetails(content, contentsContainer) {
+
+        const contentReleaseContainer = createDOM("div", {class:"ContentDetails", id : "content_" + content.id_content});
+        contentsContainer.appendChild(contentReleaseContainer);
+        const contentTop = createDOM("div", {class:"BlockTop"});
+        contentReleaseContainer.appendChild(contentTop);
+
+        const contentTitle = createDOM("h2");
+        contentTitle.innerHTML = content.title;
+        contentTop.appendChild(contentTitle);
+        
+        const ReleaseAdd = createDOM("img", {class:"image-line-add", src:"/add.png", id:"create"});
+        contentTop.appendChild(ReleaseAdd);
+        ReleaseAdd.addEventListener("click", async function(){
+            const ContentDetailsTable = document.getElementById("content_" + content.id_content).querySelectorAll("#createRelease");
+            if (ContentDetailsTable.length < 1) {
+                const CreateRelease_tr = createDOM("tr");
+                
+                const CreateRelease_tdId = createDOM("td", {align:"center", valign:"center", id: "createReleaseId_" + content.id_content});
+                CreateRelease_tdId.innerHTML = content.id_content + "_-1_-1";
+                CreateRelease_tr.appendChild(CreateRelease_tdId);
+
+                const CreateRelease_tdType = createDOM("td", {align:"center", valign:"center"});
+                const CreateRelease_tdTypeSelect = createDOM("select", {id:"createReleaseTypeSelect_" + content.id_content});
+                const optionType = createDOM("option", {value:"-1", selected:true, style:"display:none"});
+                optionType.innerHTML =  "Type"
+                CreateRelease_tdTypeSelect.appendChild(optionType);
+                for (const key in contentType) {
+                    if (contentType.hasOwnProperty(key)) {
+                        const optionType = createDOM("option", {value:key});
+                        optionType.innerHTML =  contentType[key];
+                        CreateRelease_tdTypeSelect.appendChild(optionType);
+                    }
+                }
+                CreateRelease_tdTypeSelect.addEventListener('change', function(){
+                    IdsRelease(content.id_content);
+                });
+                CreateRelease_tdType.appendChild(CreateRelease_tdTypeSelect);
+                CreateRelease_tr.appendChild(CreateRelease_tdType);
+                
+                const CreateRelease_tdLocalisation = createDOM("td", {align:"center", valign:"center"});
+                const CreateRelease_tdLocalisationSelect = createDOM("select", {id:"createReleaseLocalisationSelect_" + content.id_content});
+                const optionLocalisation = createDOM("option", {value:"-1", selected:true, style:"display:none"});
+                optionLocalisation.innerHTML =  "Localisation"
+                CreateRelease_tdLocalisationSelect.appendChild(optionLocalisation);
+                for (const key in contentLocalisation) {
+                    if (contentLocalisation.hasOwnProperty(key)) {
+                        const optionLocalisation = createDOM("option", {value:key});
+                        optionLocalisation.innerHTML =  contentLocalisation[key];
+                        CreateRelease_tdLocalisationSelect.appendChild(optionLocalisation);
+                    }
+                }
+                CreateRelease_tdLocalisationSelect.addEventListener('change', function(){
+                    IdsRelease(content.id_content);
+                });
+                CreateRelease_tdLocalisation.appendChild(CreateRelease_tdLocalisationSelect);
+                CreateRelease_tr.appendChild(CreateRelease_tdLocalisation)
+                
+                const CreateRelease_tdRef = createDOM("td", {align:"center", valign:"center"});
+                const CreateRelease_inputRef = createDOM("input", {type:"text", id:"createReleaseRef_" + content.id_content});
+                CreateRelease_tdRef.appendChild(CreateRelease_inputRef);
+                CreateRelease_tr.appendChild(CreateRelease_tdRef);
+                
+                const CreateRelease_tdAction = createDOM("td", {align:"center", valign:"center"});
+                const CreateRelease_tdActionImg = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createRelease"});
+                CreateRelease_tdAction.appendChild(CreateRelease_tdActionImg);
+                CreateRelease_tr.appendChild(CreateRelease_tdAction);
+                const check_column = document.getElementById("Add_" + content.id_content);
+                check_column.className = "check-column";
+                
+                CreateRelease_tdActionImg.addEventListener('click', async function() {
+                    const Ids = document.getElementById("createReleaseId_" + content.id_content).innerText.split("_");
+                    const selectLocalisation = document.getElementById("createReleaseLocalisationSelect_" + content.id_content);
+                    const selectType = document.getElementById("createReleaseTypeSelect_" + content.id_content);
+                    const Refpath = document.getElementById("createReleaseRef_" + content.id_content);
+                    selectType.style.backgroundColor = "";
+                    selectLocalisation.style.backgroundColor = "";
+                    Refpath.style.backgroundColor = "";
+                    if (selectType.value == -1) {
+                        selectType.style.backgroundColor = "red";
+                        showErrorMessage("message-box", "Type is empty");
+                    }
+                    else if (selectLocalisation.value == -1) {
+                        selectLocalisation.style.backgroundColor = "red";
+                        showErrorMessage("message-box", "Localisation is empty");
+                    }
+                    else if (Refpath.value == "") {
+                        Refpath.style.backgroundColor = "red";
+                        showErrorMessage("message-box", "Ref is empty");
+                    }
+                    else {
+                        const json = {"id_content":content.id_content, "id_type":selectType.value, "id_localisation":selectLocalisation.value, "cplRefPath":Refpath.value};
+                        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+                        const result = await fetch(`/createReleases`, options);
+                        if (result.ok == true) {
+                            const body = await result.json();
+                            if (body.code == 200) {
+                                window.location.assign("/contentRelease?id_content=" + content.id_content + "&id_type=" + selectType.value + "&id_localisation=" + selectLocalisation.value + "&contentTitle=" + content.title);
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", result.message);
+                        }
+                    }
+                });
+                createTable.appendChild(CreateRelease_tr);
+            }
+        });
+
+        const TableContainer = createDOM("div", {class:"TableContainer"});
+        contentReleaseContainer.appendChild(TableContainer);
+
+        const createTable = createDOM("table");
+        TableContainer.appendChild(createTable);
+        const tr = createDOM("tr");
+        const thId = createDOM("th");
+        thId.innerHTML = "Release Id";
+        const thType = createDOM("th");
+        thType.innerHTML = "Type";
+        const thLocalisation = createDOM("th");
+        thLocalisation.innerHTML = "Localisation";
+        const thRef = createDOM("th");
+        thRef.innerHTML = "Ref";
+        const thAction = createDOM("th", {id: "Add_" + content.id_content, class:"check-column" + (content.releases == "" ? " check-column-first" : "")});
+        tr.appendChild(thId);
+        tr.appendChild(thType);
+        tr.appendChild(thLocalisation);
+        tr.appendChild(thRef);
+        tr.appendChild(thAction);
+        createTable.appendChild(tr);
+
+        for (const release of content.releases) {
+            const Ids = release.id_release.split("_");
+            const tr = createDOM("tr");
+            const tdId = createDOM("td", {align:"center", valign:"center"});
+            tdId.innerHTML = release.id_release;
+            tr.appendChild(tdId);
+            tdId.addEventListener('click', function(){
+                window.location.assign("/contentRelease?id_content=" + Ids[0] + "&id_type=" + Ids[1] + "&id_localisation=" + Ids[2] + "&contentTitle=" + content.title);
+            });
+            const tdType = createDOM("td", {align:"center", valign:"center"});
+            tdType.innerHTML = release.type;
+            tr.appendChild(tdType);
+            const tdLocalisation = createDOM("td", {align:"center", valign:"center"});
+            tdLocalisation.innerHTML = release.localisation;
+            tr.appendChild(tdLocalisation);
+            const tdRef = createDOM("td", {align:"center", valign:"center"});
+            tdRef.innerHTML = release.ref;
+            tr.appendChild(tdRef);
+            const tdAction = createDOM("td", {align:"center", valign:"center"});
+            const tdActionImg = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"delete"});
+            tdActionImg.addEventListener('click', async function(){
+                if (confirm("Confirme la suppression de la release : " + release.id_release + " ?")) {
+                    const json = {id_content:Ids[0], id_type:Ids[1], id_localisation:Ids[2], typeOfElement:"RELEASE"};
+                    const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
+                    const result = await fetch(`/deleteReleases`, options);
+                    if (result.ok == true) {
+                        const body = await result.json();
+                        if (body.code == 200) {
+                            window.location.assign("/movies?id=" + content.id_content);
+                        }
+                        else {
+                            showErrorMessage("message-box", body.message);
+                        }
+                    }
+                    else {
+                        showErrorMessage("message-box", result.message);
+                    }
+                }
+            });
+            tdAction.appendChild(tdActionImg);
+            tr.appendChild(tdAction);
+            createTable.appendChild(tr);
+        }
+        if (content.releases == "") {
+            ReleaseAdd.dispatchEvent(new Event('click'));
+        }
+    }
+    
+    function IdsRelease(id_content) {
+        const IdsRelease = document.getElementById("createReleaseId_" + id_content);
+        const id_localisation = document.getElementById("createReleaseLocalisationSelect_" + id_content).value;
+        const id_type = document.getElementById("createReleaseTypeSelect_" + id_content).value;
+        IdsRelease.innerHTML = id_content + "_" + id_type + "_" + id_localisation;
+    }
+</script>
+
+<%- include ("../foot") %>

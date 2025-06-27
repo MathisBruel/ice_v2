@@ -1,3 +1,4 @@
+const { randomInt } = require("crypto");
 const HttpClient = require("./httpClient");
 
 class IceAPI {
@@ -36,7 +37,15 @@ class IceAPI {
     async getCpls(values) {
         return await this.client.sendGetCommands(this.token, 'GET_CPLS', values);
     }
-
+    async getSites(values) {
+        return await this.client.sendGetCommands(this.token, 'GET_SITES', values);
+    }
+    async getCplsSite(values) {
+        return await this.client.sendGetCommands(this.token, 'GET_CPLS_SITE', values);
+    }
+    async getGroupsFilter(values) {
+        return await this.client.sendGetCommands(this.token, 'GET_GROUPS_FILTER', values);
+    }
 
     async createGroup(values) {
         return await this.client.sendPostCommands(this.token, 'INSERT_GROUP', values);
@@ -171,6 +180,65 @@ class IceAPI {
     }
     async deleteCut(values) {
         return await this.client.sendPostCommands(this.token, 'DELETE_CUT', values);
+    }
+
+    // -- CONTENT
+
+    async createContent (values) { 
+        return await this.client.sendPostCommands(this.token, 'CREATE_CONTENT', values);
+    }
+    async getContents (values) { 
+        return await this.client.sendGetCommands(this.token, 'GET_CONTENT', values);
+    }
+    async createReleases (values) { 
+        return await this.client.sendPostCommands(this.token, 'CREATE_RELEASE', values);    
+    }
+    async getReleasesContent (values) { 
+
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASES_CONTENT', values);
+    }
+    async deleteReleases (values) { 
+        
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_CONTENT', values);
+    }
+    async updateReleaseContent (values) {
+        return await this.client.sendPostCommands(this.token, 'UPDATE_RELEASE_CONTENT', values);
+    }
+    async insertCIS (values) {
+        return await this.client.sendPostCommands(this.token, 'CIS_CREATED', values);
+    }
+    async updateCIS (values) {
+        return await this.client.sendPostCommands(this.token, 'UPDATE_CIS', values);
+    }
+   async addSyncLoopToRelease (values) {
+        return await this.client.sendPostCommands(this.token, 'CREATE_SYNCLOOP', values);
+    }
+    async getSyncLoop (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASE_SYNCLOOPS', values);
+    }
+    async deleteSyncLoop (values) {
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_SYNCLOOP', values);
+    }
+    async addCplToRelease (values) {
+        return await this.client.sendPostCommands(this.token, 'CREATE_CPL', values);
+    }
+    async getCpl (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASE_CPLS', values);
+    }
+    async deleteCpl (values) {
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_CPL', values);
+    }
+    async addSyncToCpl (values) {
+        return await this.client.sendPostCommands(this.token, 'SYNC_CREATED', values);
+    }
+    async getSync (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_RELEASE_SYNCS', values);
+    }
+    async deleteSync (values) {
+        return await this.client.sendPostCommands(this.token, 'DELETE_RELEASE_SYNC', values);
+    }
+    async getServPair (values) {
+        return await this.client.sendGetCommands(this.token, 'GET_SERVER_PAIR', values);
     }
 }
 

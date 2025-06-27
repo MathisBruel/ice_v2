@@ -178,8 +178,8 @@ std::string Query::getQueryString()
                 else if (itSchema->second == "null") {
                     query += "NULL";
                 }
+                query += " AND ";
             }
-            query += " AND ";
         }
         query = query.substr(0, query.size()-5);
         query += ")";
@@ -224,6 +224,47 @@ std::string Query::getQueryString()
         }
         query = query.substr(0, query.size()-5);
         query += ")";
+    }
+    
+    // -- format : Requête SQL personnalisée
+    else if (type == CUSTOM) {
+        if (customSQL.empty()) {
+            Poco::Logger::get("Query").error("Error generation query : custom SQL is empty !", __FILE__, __LINE__);
+            return "";
+        }
+        
+        query = customSQL;
+        
+        std::map<std::string, std::string>::iterator itSchema;
+        for (itSchema = schemaParameter.begin(); itSchema != schemaParameter.end(); itSchema++) {
+            size_t pos = query.find("?");
+            if (pos != std::string::npos) {
+                void* value = valueParameter.find(itSchema->first)->second;
+                std::string replacement;
+                
+                if (itSchema->second == "string") {
+                    std::string* valueString = static_cast<std::string*>(value);
+                    replacement = "\"" + *valueString + "\"";
+                }
+                else if (itSchema->second == "int") {
+                    int* valueInt = static_cast<int*>(value);
+                    replacement = std::to_string(*valueInt);
+                }
+                else if (itSchema->second == "double") {
+                    double* valueDouble = static_cast<double*>(value);
+                    replacement = std::to_string(*valueDouble);
+                }
+                else if (itSchema->second == "date") {
+                    Poco::DateTime* valueDate = static_cast<Poco::DateTime*>(value);
+                    replacement = "'" + std::to_string(valueDate->year()) + "-" + std::to_string(valueDate->month()) + "-" + std::to_string(valueDate->day()) + "'";
+                }
+                else if (itSchema->second == "null") {
+                    replacement = "NULL";
+                }
+                
+                query.replace(pos, 1, replacement);
+            }
+        }
     }
 
     return query;

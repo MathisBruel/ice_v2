@@ -11,6 +11,7 @@ EXE/UNITY/[Bb]uild/
 EXE/UNITY/[Bb]uilds/
 EXE/UNITY/[Ll]ogs/
 EXE/UNITY/.vsconfig
+EXTERN/TINYORM/*
 /[Uu]ser[Ss]ettings/
 
 ExportedObj/

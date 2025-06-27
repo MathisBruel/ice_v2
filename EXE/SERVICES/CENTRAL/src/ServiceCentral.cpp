@@ -131,6 +131,7 @@ bool ServiceCentral::initThreads()
 {
     contextThread = new ContextCentralThread();
     contextThread->startThread();
+    
     releaseThread = new ReleasePrepareThread();
     //releaseThread->startThread();
     serversThread = new StateServerThread();

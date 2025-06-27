@@ -1,11 +1,30 @@
 @startuml State Diagram Content (WebCentral)
 title Content in WebCentral - State Diagram
-[*] --> Idle
-Idle --> ContentInit : InitContent
+[*] --> StateContentInit : StateMachine Started
+state StatePublishing {
+    state fork_start <<fork>>
+    state fork_join <<join>>
+    StateContentInit --> fork_start : ContentInit
+    fork_start --> StateUploadCIS
+    state StateSyncCreate {
+        fork_start --> StateIdleSync
+        StateIdleSync --> StateCPL : CreateCPL
+        StateCPL --> StateSync : CreateSync
+        StateIdleSync --> StateSyncLoop : CreateSync
+        StateSync --> fork_join : SyncCreated
+        StateSyncLoop --> fork_join : SyncCreated
+    }
+    StateUploadCIS --> fork_join : PushCIS
+}
+StatePublishing --> StateCancel : Cancel
+fork_join --> StateInProd: Publish
+StatePublishing --> StateReleaseCreation : CreateRelease
+StateReleaseCreation --> StatePublishing[H*] : ReleaseCreated
+
+@enduml
+/'
 state InProd
 state ReleaseCreation
-state Publishing {
-    state fork_state <<fork>>
     state join_state <<join>>
     state SyncCreate { 
         state IdleSync
@@ -20,18 +39,13 @@ state Publishing {
     fork_state --> IdleSync
     UploadCIS --> join_state : Upload
     join_state --> InProd
-}
 
 ContentInit --> Publishing : Publish
-Publishing --> ReleaseCreation : CreateRelease
-ReleaseCreation --> Publishing[H*] : ReleaseCreated
 ' Publishing --> Cancel
 ' Cancel --> [*]
 InProd --> [*] : Stop
 
-@enduml
 
-/'
 @startuml State Diagram Movie (WebCentral)
 title Movie in WebCentral - State Diagram
 [*] --> Idle

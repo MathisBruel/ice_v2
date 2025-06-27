@@ -85,6 +85,8 @@ public:
 
     std::vector<int> associateRelatedCinema(std::shared_ptr<Release> release);
 
+    DatabaseConnector* getDatabaseConnector() {return database;}
+
 private:
 
     CentralContext();

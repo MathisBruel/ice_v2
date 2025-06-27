@@ -67,17 +67,38 @@
                 }
             ]
         },
-        {   "name": "(NodeJS) Web Central",
-            "type": "node",
+        {  "name": "(Native) Web Central REBUILD",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/Main_API.js",
-            "args": [ "${workspaceFolder}/EXE/SERVICES/WebCentral/javascripts/config.json" ],
-            "runtimeExecutable": "/usr/bin/nodejs",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Start nodeJS Web-Central",
-            "stopOnEntry": false,
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "program": "/data/ICE2/ICE-CENTRAL",
+            "cwd": "/",
+            "args": [
+                "configPath:/data/ICE2/CONFIG/"
+            ],
+            "stopAtEntry": false,
+            "environment": [],
+            "preLaunchTask": "REBUILD Container Configuration Web-Central",
+            "externalConsole": true,
+            "pipeTransport": {
+                "debuggerPath": "/usr/bin/gdb",
+                "pipeProgram": "docker",
+                "pipeArgs": [
+                    "exec",
+                    "-i",
+                    "ice-server-container-central-v2",
+                    "sh",
+                    "-c"
+                ],
+                "pipeCwd": "${workspaceRoot}"
+            },
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         },
         {
             "name": "Attach NodeJS",
@@ -88,11 +109,21 @@
             "localRoot": "${workspaceFolder}/EXE/SERVICES/WebCentral",
             "port": 9229, // Port du serveur Node.js à l'intérieur du conteneur Docker
             "restart": true
+        },
+        {
+            "name": "Just build",
+            "preLaunchTask": "Just build",
+            "type": "node",
+            "request": "launch",
         }
     ],
     "compounds": [
         {  "name": "WebCentral",
             "configurations": ["(Native) Web Central","Attach NodeJS"],
+            "stopAll": true
+        },
+        {  "name": "WebCentral REBUILD",
+            "configurations": ["(Native) Web Central REBUILD","Attach NodeJS"],
             "stopAll": true
         }
     ]

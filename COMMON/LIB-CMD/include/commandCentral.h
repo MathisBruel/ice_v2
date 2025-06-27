@@ -100,6 +100,40 @@ public:
         // -- specific REPO service
         GET_FILE,
 
+        // ------------------------
+        // -- State Machine Interaction
+        // ------------------------
+        CREATE_CONTENT,
+        CREATE_RELEASE,
+        RELEASE_CREATED,
+        CIS_CREATED,
+        CREATE_CPL,
+        CREATE_SYNCLOOP,
+        CPL_CREATED,
+        SYNC_CREATED,
+        SYNCLOOP_CREATED,
+        IMPORT_TO_PROD,
+        CANCEL,
+
+        // ------------------------
+        // -- Getters State Machine 
+        // ------------------------
+        GET_CONTENT,
+        GET_RELEASES_CONTENT,
+        DELETE_RELEASE_CONTENT,
+        GET_GROUPS_FILTER,
+        GET_SITES,
+        GET_CPLS_SITE,
+        UPDATE_RELEASE_CONTENT,
+        UPDATE_CIS,
+        GET_RELEASE_CPLS,
+        GET_RELEASE_SYNCS,
+        GET_RELEASE_SYNCLOOPS,
+        GET_SERVER_PAIR,
+        DELETE_RELEASE_CPL,
+        DELETE_RELEASE_SYNC,
+        DELETE_RELEASE_SYNCLOOP,
+        
         // -- DEFAULT
         UNKNOW_COMMAND
     };

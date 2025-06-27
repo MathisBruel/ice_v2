@@ -1,0 +1,20 @@
+#pragma once
+enum TypeMovie {
+    FEATURE = 0,
+    SHORT_FILM,
+    TRAILER,
+    TEST,
+    TRANSITIONAL,
+    CLASSIFICATION,
+    TEASER,
+    CONDUCT_CODE,
+    PUBLIC_SERVICE_ANNOUNCEMENT,
+    ADVERTISEMENT,
+    CLIP,
+    PROMOTIONAL,
+    STEREO_3D_CARD,
+    EPISODE,
+    STRONG_POINT,
+    EVENT,
+    UNKNOW_TYPE = -1
+};

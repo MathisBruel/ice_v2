@@ -222,6 +222,9 @@ class Main_API {
         this.app.get('/cut', this.restrictPage.bind(this), function(request, response){ response.render('model/cut'); }.bind(this));
         this.app.get('/delivery', this.restrictPage.bind(this), function(request, response){ response.render('model/delivery'); }.bind(this));
         this.app.get('/synchro', this.restrictPage.bind(this), function(request, response){ response.render('model/synchro'); }.bind(this));
+        this.app.get('/sites', this.restrictPage.bind(this), function(request, response){ response.render('model/sites'); }.bind(this));
+        this.app.get('/movies', this.restrictPage.bind(this), function(request, response){ response.render('model/movies'); }.bind(this));
+        this.app.get('/contentRelease', this.restrictPage.bind(this), function(request, response){ response.render('model/content_release'); }.bind(this));
 
         // -- GET API
         this.app.post('/getGroups', this.restrictPage.bind(this), function(request, response){ this.giveGroups(request, response); }.bind(this));
@@ -232,6 +235,9 @@ class Main_API {
         this.app.post('/getReleases', this.restrictPage.bind(this), function(request, response){ this.giveReleases(request, response); }.bind(this));
         this.app.post('/getScripts', this.restrictPage.bind(this), function(request, response){ this.giveScripts(request, response); }.bind(this));
         this.app.post('/getCpls', this.restrictPage.bind(this), function(request, response){ this.giveCpls(request, response); }.bind(this));
+        this.app.post('/getSites', this.restrictPage.bind(this), function(request, response){ this.giveSites(request, response); }.bind(this));
+        this.app.post('/getCplsSite', this.restrictPage.bind(this), function(request, response){ this.giveCplsSite(request, response); }.bind(this));
+        this.app.post('/getGroupsFilter', this.restrictPage.bind(this), function(request, response){ this.giveGroupsFilter(request, response); }.bind(this));
 
         // -- GROUPS
         this.app.post('/createGroup', this.restrictPage.bind(this), function(request, response){ this.createGroup(request, response); }.bind(this));
@@ -277,6 +283,25 @@ class Main_API {
         this.app.post('/updateCut', this.restrictPage.bind(this), function(request, response){ this.updateCut(request, response); }.bind(this));
         this.app.post('/deleteCut', this.restrictPage.bind(this), function(request, response){ this.deleteCut(request, response); }.bind(this));
         
+        // -- CONTENT
+        this.app.post('/createContent', this.restrictPage.bind(this), function(request, response){ this.createContent(request, response); }.bind(this));
+        this.app.post('/getContents', this.restrictPage.bind(this), function(request, response){ this.getContents(request, response); }.bind(this));
+        this.app.post('/createReleases', this.restrictPage.bind(this), function(request, response){ this.createReleases(request, response); }.bind(this));
+        this.app.post('/updateReleases', this.restrictPage.bind(this), function(request, response){ this.updateReleaseContent(request, response); }.bind(this));
+        this.app.post('/getReleasesContent', this.restrictPage.bind(this), function(request, response){ this.getReleasesContent(request, response); }.bind(this));
+        this.app.post('/deleteReleases', this.restrictPage.bind(this), function(request, response){ this.deleteReleases(request, response); }.bind(this));
+        this.app.post('/createCIS', this.restrictPage.bind(this), function(request, response){ this.insertCIS(request, response); }.bind(this));
+        this.app.post('/updateCIS', this.restrictPage.bind(this), function(request, response){ this.updateCIS(request, response); }.bind(this));
+        this.app.post('/createSyncLoop', this.restrictPage.bind(this), function(request, response){ this.addSyncLoop(request, response); }.bind(this));
+        this.app.post('/deleteSyncLoop', this.restrictPage.bind(this), function(request, response){ this.deleteSyncLoop(request, response); }.bind(this));
+        this.app.post('/getSyncLoop', this.restrictPage.bind(this), function(request, response){ this.getSyncLoop(request, response); }.bind(this));
+        this.app.post('/createNewCPL', this.restrictPage.bind(this), function(request, response){ this.addCpl(request, response); }.bind(this));
+        this.app.post('/deleteReleaseCPL', this.restrictPage.bind(this), function(request, response){ this.deleteCpl(request, response); }.bind(this));
+        this.app.post('/getCPL', this.restrictPage.bind(this), function(request, response){ this.getCpl(request, response); }.bind(this));
+        this.app.post('/createSync', this.restrictPage.bind(this), function(request, response){ this.addSync(request, response); }.bind(this));
+        this.app.post('/deleteSync', this.restrictPage.bind(this), function(request, response){ this.deleteSync(request, response); }.bind(this));
+        this.app.post('/getSync', this.restrictPage.bind(this), function(request, response){ this.getSync(request, response); }.bind(this));
+        this.app.post('/getServerPair', this.restrictPage.bind(this), function(request, response){ this.getServPair(request, response); }.bind(this));
         // -- LINKS
         this.app.post('/linkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.linkCinemaToGroup(request, response); }.bind(this));
         this.app.post('/unlinkCinemaToGroup', this.restrictPage.bind(this), function(request, response){ this.unlinkCinemaToGroup(request, response); }.bind(this));
@@ -352,7 +377,6 @@ class Main_API {
     async giveGroups(request, response) {
         try {
             const result = await this.client.getGroups(request.body);
-            console.log(request.body);
             response.json(result);
         }
         catch(err){
@@ -420,6 +444,33 @@ class Main_API {
         }
         catch(err){
             this.onError(response, err, 'giveCpls');
+        }
+    }
+    async giveSites(request, response) {
+        try {
+            const result = await this.client.getSites(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveSites');
+        }
+    }
+    async giveCplsSite(request, response) {
+        try {
+            const result = await this.client.getCplsSite(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveCplsSite');
+        }
+    }
+    async giveGroupsFilter(request, response) {
+        try {
+            const result = await this.client.getGroupsFilter(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveGroupsFilter');
         }
     }
 
@@ -721,7 +772,170 @@ class Main_API {
             this.onError(response, err, 'deleteCut');
         }
     }
-
+    // -- CONTENT
+    async createContent(request, response) {
+        try {
+            const result = await this.client.createContent(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'createContent');
+        }
+    }
+    async getContents(request, response) {
+        try {
+            const result = await this.client.getContents(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getContents');
+        }
+    }
+    async createReleases(request, response) {
+        try {
+            const result = await this.client.createReleases(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'createReleases');
+        }
+    }
+    async getReleasesContent(request, response) {
+        try {
+            const result = await this.client.getReleasesContent(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getReleasesContent');
+        }
+    }
+    async deleteReleases(request, response) {
+        try {
+            const result = await this.client.deleteReleases(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteReleases');
+        }
+    }
+    async updateReleaseContent(request, response) {
+        try {
+            const result = await this.client.updateReleaseContent(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'updateReleaseContent');
+        }
+    }
+    async insertCIS(request, response) {
+        try {
+            const result = await this.client.insertCIS(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'insertCIS');
+        }
+    }
+    async updateCIS(request, response) {
+        try {
+            const result = await this.client.updateCIS(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'updateCIS');
+        }
+    }
+    async addSyncLoop(request, response) {
+        try {
+            const result = await this.client.addSyncLoopToRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'addSyncLoopToRelease');
+        }
+    }
+    async deleteSyncLoop (request, response) {
+        try {
+            const result = await this.client.deleteSyncLoop(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteSyncLoop');
+        }
+    }
+    async getSyncLoop(request, response) {
+        try {
+            const result = await this.client.getSyncLoop(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getSyncLoop');
+        }
+    }
+    async addCpl(request, response) {
+        try {
+            const result = await this.client.addCplToRelease(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'addCplToRelease');
+        }
+    }
+    async deleteCpl (request, response) {
+        try {
+            const result = await this.client.deleteCpl(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteCpl');
+        }
+    }
+    async getCpl(request, response) {
+        try {
+            const result = await this.client.getCpl(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'getCpl');
+        }
+    }
+    async addSync(request, response) {
+        try {
+            const result = await this.client.addSyncToCpl(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'addSyncToCpl');
+        }
+    }
+    async deleteSync (request, response) {
+        try {
+            const result = await this.client.deleteSync(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'deleteSync');
+        }
+    }
+    async getSync(request, response) {
+        try {
+            const result = await this.client.getSync(request.body);
+            response.json(result);
+        } 
+        catch(err){
+            this.onError(response, err, 'getSync');
+        }
+    }
+    async getServPair(request, response) {
+        try {
+            const result = await this.client.getServPair(request.body);
+            response.json(result);
+        } 
+        catch(err){
+            this.onError(response, err, 'getServPair');
+        }
+    }
+    
     // -- LINKS
     async linkCinemaToGroup(request, response) {
         try {

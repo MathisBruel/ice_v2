@@ -1,0 +1,634 @@
+<%- include ("../head") %>
+<%- include ("../navigation") %>
+
+<div class="block" id="release">
+    <h1>Release n°<p style="display: inline;" id="releaseNum"></p></h1>
+    <h2>Info</h2>
+    <div class="ul-model" id="infoBox" style="display: flex; width: 90%; margin: 0 2%;">
+        <div class="BlockLabel">
+            <label for="title">Titre</label>
+            <input type="text" id="title" readonly/>
+        </div>
+        <div class="BlockLabel">
+            <label for="type">Type</label>
+            <input type="text" id="type" readonly/>
+        </div>
+        <div class="BlockLabel">
+            <label for="Localisation">Localisation</label>
+            <input type="text" id="Localisation" readonly/>
+        </div>
+        <div class="BlockLabel">
+            <label for="cplRefPath">CPL ref path</label>
+            <input type="text" id="cplRefPath"/>
+        </div>
+    </div>
+    <h2>CIS</h2>
+    <div class="ul-model" id="cisBox" style="display: flex; width: 90%; margin: 0 2%;"></div>
+    <h2>CPL / SYNC / SYNCLOOP</h2>
+    <div class="ul-model" id="cplBox"></div>
+    <div id="message-box" class="success"></div>
+</div>
+
+<script>
+    const contentLocalisation = {1:"France", 2:"USA", 3:"Espagne", 4:"Estonie", 5:"Inde", 6:"AR-KSA", 7:"AR-AE"}
+    const contentType = {1:"Long Métrage", 2:"Court Métrage", 3:"Trailer", 4:"Test", 5:"Transitionnel", 6:"Classification",
+                         7:"Teaser", 8:"Code de conduite", 9:"Annonce d'intérêt public", 10:"Publicité", 11:"Clip", 
+                         12:"Promo", 13:"Carte stéréo 3D", 14:"Episode", 15:"Points forts", 16:"Evenements"};
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id_content = urlParams.get('id_content');
+    const id_type = urlParams.get('id_type');
+    const id_localisation = urlParams.get('id_localisation');
+    const contentTitle = urlParams.get('contentTitle');
+    document.addEventListener('DOMContentLoaded', async function(){
+        if (id_content == null || id_type == null || id_localisation == null) { window.location.assign("/movies"); }
+        const numRelease = document.getElementById("releaseNum");
+        numRelease.innerHTML = id_content + "-" + id_type + "-" + id_localisation;
+        const inputType = document.getElementById("type");
+        inputType.value = contentType[id_type];
+        const inputLocalisation = document.getElementById("Localisation");
+        inputLocalisation.value = contentLocalisation[id_localisation];
+        const inputTitle = document.getElementById("title");
+        inputTitle.value = contentTitle;
+        const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation };
+        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+        let response = await (await fetch(`/getReleasesContent`, options)).json();
+        if (response.ok == true) {
+            if (response.data.releases != "") {
+                const infoBox = document.getElementById("infoBox");
+                const updateImg = createDOM("img", {class:"image-line-add", src:"/add.png", id:"update"});
+                updateImg.addEventListener("click", async function(){
+                    const release_cpl_ref_path = document.getElementById("cplRefPath");
+                    if (release_cpl_ref_path.value == "") { 
+                        release_cpl_ref_path.style.backgroundColor = "red";
+                        showErrorMessage("message-box", "Content is empty");
+                    }
+                    else if (release_cpl_ref_path.value == response.data.releases.release[0].$.release_cpl_ref_path) {
+                        release_cpl_ref_path.style.backgroundColor = "orange";
+                        showErrorMessage("message-box", "No changes detected");
+                    }
+                    else {
+                        const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cpl_ref_path: release_cpl_ref_path.value };
+                        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                        let response = await (await fetch(`/updateReleases`, options)).json();
+                        if (response.ok == true) {
+                            const body = await response.json();
+                            if (body.code == 200) { 
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", response.message);
+                        }
+                    }
+                });
+                infoBox.appendChild(updateImg);
+                const inputIdMovie = document.getElementById("cplRefPath");
+                inputIdMovie.value = response.data.releases.release[0].$.release_cpl_ref_path;
+
+                const cisBox = document.getElementById("cisBox");
+                const containerCis = createDOM("div", { class: "BlockLabel", style:"width: 25%;" });
+                const labelCis = createDOM("label", { for: "cisPath" });
+                labelCis.innerHTML = "CIS Path";
+                let cispathValue = response.data.releases.release[0].$.release_cis_path;
+                const inputCisPath = createDOM("input", { type: "text", id: "cisPath"});
+                inputCisPath.value = cispathValue;
+                containerCis.appendChild(labelCis);
+                containerCis.appendChild(inputCisPath);
+                cisBox.appendChild(containerCis);
+                const cisPath = document.getElementById("cisPath");
+                if (cispathValue == "NULL") { 
+                    inputCisPath.value = "";
+                    const createImgCIS = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createCIS"});
+                    cisBox.appendChild(createImgCIS);
+                    createImgCIS.addEventListener("click", async function(){
+                        if (cisPath.value == "") { 
+                            inputCisPath.style.backgroundColor = "red";
+                            showErrorMessage("message-box", "Content is empty");
+                        }
+                        else {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
+                            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                            let response = await fetch(`/createCIS`, options);
+                            if (response.ok == true) {
+                                const body = await response.json();
+                                if (body.code == 200) { 
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", response.message);
+                            }
+                        }
+                    });
+                }
+                else {
+                    const updateImgCIS = createDOM("img", {class:"image-line-add", src:"/add.png", id:"updateCIS"});
+                    cisBox.appendChild(updateImgCIS);
+                    updateImgCIS.addEventListener("click", async function(){
+                        if (cisPath.value == "") { 
+                            cisPath.style.backgroundColor = "red";
+                            showErrorMessage("message-box", "Content is empty");
+                        }
+                        else if (cisPath.value == response.data.releases.release[0].$.release_cis_path) {
+                            cisPath.style.backgroundColor = "orange";
+                            showErrorMessage("message-box", "No changes detected");
+                        }
+                        else {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
+                            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                            let response = await (await fetch(`/updateCIS`, options)).json();
+                            if (response.ok == true) {
+                                const body = await response.json();
+                                if (body.code == 200) { 
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", response.message);
+                            }
+                        }
+                    });
+                }
+                const cplBox = document.getElementById("cplBox");
+                const selectCpl = createDOM("select", {id:"selectCpl", style:" margin-left: 2%; width: 180px; font-size: 16px;"});
+                const option = createDOM("option", {value:-1, text:"Choissier votre option", selected:true, style:"display:none"});
+                selectCpl.appendChild(option);
+                const optionCPL = createDOM("option", {value:1, text:"CPL/Sync"});
+                selectCpl.appendChild(optionCPL);
+                const optionSyncLoop = createDOM("option", {value:2, text:"SyncLoop"});
+                selectCpl.appendChild(optionSyncLoop);
+                cplBox.appendChild(selectCpl);
+                selectCpl.addEventListener("change", function(){
+                    let seletValue = selectCpl.value;
+                    selectCpl.remove();
+                    if (seletValue == 1) {
+                        disaplyCPL(cplBox);
+                    }
+                    else {
+                        disaplySyncLoop(cplBox);
+                    }
+                });
+            }
+        }
+    });
+    async function disaplyCPL(box) {
+        const cplContainer = createDOM("div", {class:"releaseDetailsContainer"});
+        box.appendChild(cplContainer);
+
+        const cplTable = createDOM("table", { id:"cplTable"});
+        cplContainer.appendChild(cplTable);
+
+        const cplTableHead = createDOM("thead", {class: "trHeader"});
+        cplTable.appendChild(cplTableHead);
+        const cplTableHeadRow = createDOM("tr");
+        cplTableHead.appendChild(cplTableHeadRow);
+        const cplIdCell = createDOM("th", {class:"idCell"});
+        cplTableHeadRow.appendChild(cplIdCell);
+        cplIdCell.innerText = "CPL ID";
+        const cplUuidCell = createDOM("th");
+        cplTableHeadRow.appendChild(cplUuidCell);
+        cplUuidCell.innerText = "CPL UUID";
+        const cplNameCell = createDOM("th");
+        cplTableHeadRow.appendChild(cplNameCell);
+        cplNameCell.innerText = "CPL Name";
+        const cplPathCell = createDOM("th");
+        cplTableHeadRow.appendChild(cplPathCell);
+        cplPathCell.innerText = "CPL Path";
+        const cplActionCell = createDOM("th", {class: "actionCell"});
+        cplTableHeadRow.appendChild(cplActionCell);
+        const imgAddCpl = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createCPL"});
+        cplActionCell.appendChild(imgAddCpl);
+        const servPairJson = {id_serv_pair_config : -1};
+        const servPairOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(servPairJson) };
+        let servPairResponse = await (await fetch(`/getServerPair`, servPairOptions)).json();
+        let servPairs = [];
+        if (servPairResponse.ok) {
+            if (servPairResponse.data.servPairs != "") {
+                for (const servPair of servPairResponse.data.servPairs.servPair) {
+                    servPairs.push({id_serv_pair_config: servPair.$.id_serv_pair_config, name: servPair.$.name});
+                }
+            }
+        }
+        const cplJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
+        const cplOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cplJson) };
+        let cplResponse = await (await fetch(`/getCPL`, cplOptions)).json();
+        let cplIds = [];
+        if (cplResponse.ok == true) {
+            if (cplResponse.data.cpls != "") { 
+                for (const cpl of cplResponse.data.cpls.cpl) {
+                    const cplTableRow = createDOM("tr");
+                    cplTable.appendChild(cplTableRow);
+                    const cplIdCell = createDOM("td", {align:"center", valign:"center"});
+                    cplTableRow.appendChild(cplIdCell);
+                    let id = cpl.$.id_serv_pair_config + "_" + cpl.$.id_content + "_" + cpl.$.id_type + "_" + cpl.$.id_localisation;
+                    cplIds.push(id);
+                    servPairs = servPairs.filter(servPair => servPair.id_serv_pair_config != cpl.$.id_serv_pair_config);
+                    cplIdCell.innerText = id;
+                    const cplUuidCell = createDOM("td", {align:"center", valign:"center"});
+                    cplTableRow.appendChild(cplUuidCell);
+                    cplUuidCell.innerText = cpl.$.CPL_uuid;
+                    const cplNameCell = createDOM("td", {align:"center", valign:"center"});
+                    cplTableRow.appendChild(cplNameCell);
+                    cplNameCell.innerText = cpl.$.CPL_name;
+                    const cplPathCell = createDOM("td", {align:"center", valign:"center"});
+                    cplTableRow.appendChild(cplPathCell);
+                    cplPathCell.innerText = cpl.$.CPL_path;
+                    const cplActionCell = createDOM("td", {class: "actionCell"});
+                    cplTableRow.appendChild(cplActionCell);
+                    const imgDeleteCpl = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"removeCPLRow"});
+                    cplActionCell.appendChild(imgDeleteCpl);
+                    imgDeleteCpl.addEventListener("click", async function(){ 
+                        if (confirm("Confirme la suppression du cpl : " + cpl.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: cpl.$.id_serv_pair_config, typeOfElement:"CPL" };
+                            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                            let response = await fetch(`/deleteReleaseCPL`, options);
+                            if (response.ok == true) {
+                                const body = await response.json();
+                                if (body.code == 200) { 
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", response.message);
+                            }
+                        }
+                    });
+                }
+                disaplySync(box, true,cplIds);
+            }
+            else {
+                disaplySync(box, false,[]);
+            }
+        }
+        imgAddCpl.addEventListener("click", async function(){
+            const imageAdd = document.getElementById("createCPL");
+            imageAdd.style.display = "none";
+            const newCplRow = createDOM("tr");
+            cplTable.appendChild(newCplRow);
+            const newCplIdCell = createDOM("td", {align:"center", valign:"center"});
+            newCplRow.appendChild(newCplIdCell);
+            const newCplIdSelect = createDOM("select", {id:"newCplIdSelect"});
+            newCplIdCell.appendChild(newCplIdSelect);
+            if (servPairs.length == 0) {
+                const option = createDOM("option", {value:-1, text:"No Server Pair available", selected:true, style:"display:none"});
+                newCplIdSelect.appendChild(option);
+            }
+            else {
+                const option = createDOM("option", {value:-1, text:"Choissier votre SeverPair", selected:true, style:"display:none"});
+                newCplIdSelect.appendChild(option);
+                for (const servPair of servPairs) {
+                    const option = createDOM("option", {value:servPair.id_serv_pair_config, text:servPair.name});
+                    newCplIdSelect.appendChild(option);
+                }
+            }
+            const newCplUuidCell = createDOM("td", {align:"center", valign:"center"});
+            newCplRow.appendChild(newCplUuidCell);
+            const newCplUuidInput = createDOM("input", {type:"text", id:"newCplUuidInput"});
+            newCplUuidCell.appendChild(newCplUuidInput);
+            const newCplNameCell = createDOM("td", {align:"center", valign:"center"});
+            newCplRow.appendChild(newCplNameCell);
+            const newCplNameInput = createDOM("input", {type:"text", id:"newCplNameInput"});
+            newCplNameCell.appendChild(newCplNameInput);
+            const newCplPathCell = createDOM("td", {align:"center", valign:"center"});
+            newCplRow.appendChild(newCplPathCell);
+            const newCplPathInput = createDOM("input", {type:"text", id:"newCplPathInput"});
+            newCplPathCell.appendChild(newCplPathInput);
+            const newCplActionCell = createDOM("td", {class: "actionCell"});
+            newCplRow.appendChild(newCplActionCell);
+            const imgAddCpl = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createCPLRow"});
+            newCplActionCell.appendChild(imgAddCpl);
+            imgAddCpl.addEventListener("click", async function(){
+                const newCplIdSelect = document.getElementById("newCplIdSelect");
+                const newCplUuidInput = document.getElementById("newCplUuidInput");
+                const newCplNameInput = document.getElementById("newCplNameInput");
+                const newCplPathInput = document.getElementById("newCplPathInput");
+                newCplIdSelect.style.backgroundColor = "";
+                newCplUuidInput.style.backgroundColor = "";
+                newCplNameInput.style.backgroundColor = "";
+                newCplPathInput.style.backgroundColor = "";
+                if (newCplIdSelect.value == -1) {
+                    newCplIdSelect.style.backgroundColor = "red";
+                    showErrorMessage("message-box", "Content is empty");
+                }
+                else if (newCplUuidInput.value == "") {
+                    newCplUuidInput.style.backgroundColor = "red";
+                    showErrorMessage("message-box", "Content is empty");
+                }
+                else if (newCplNameInput.value == "") {
+                    newCplNameInput.style.backgroundColor = "red";
+                    showErrorMessage("message-box", "Content is empty");
+                }
+                else if (newCplPathInput.value == "") {
+                    newCplPathInput.style.backgroundColor = "red";
+                    showErrorMessage("message-box", "Content is empty");
+                }
+                else {
+                    const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newCplIdSelect.value, CPL_uuid: newCplUuidInput.value, CPL_name: newCplNameInput.value, CPL_path: newCplPathInput.value };
+                    const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                    let response = await fetch(`/createNewCPL`, options);
+                    if (response.ok == true) {
+                        const body = await response.json();
+                        if (body.code == 200) { 
+                            window.location.reload();
+                        }
+                        else {
+                            showErrorMessage("message-box", body.message);
+                        }
+                    }
+                    else {
+                        showErrorMessage("message-box", response.message);
+                    }
+                }
+            });
+        });
+        if (cplResponse.data.cpls == "") { imgAddCpl.dispatchEvent(new Event('click')); }
+    }
+    async function disaplySync(box,active,cplIds) {
+        const syncContainer = createDOM("div", {class:"releaseDetailsContainer"});
+        box.appendChild(syncContainer);
+        const syncTable = createDOM("table", {id:"syncTable"});
+        syncContainer.appendChild(syncTable);
+
+        const syncTableHead = createDOM("thead", {class: "trHeader"});
+        syncTable.appendChild(syncTableHead);
+        const syncTableHeadRow = createDOM("tr");
+        syncTableHead.appendChild(syncTableHeadRow);
+        const syncIdCell = createDOM("th", {class:"idCell"});
+        syncTableHeadRow.appendChild(syncIdCell);
+        syncIdCell.innerText = "Sync ID";
+        const syncPathCell = createDOM("th");
+        syncTableHeadRow.appendChild(syncPathCell);
+        syncPathCell.innerText = "Sync Path";
+        const syncActionCell = createDOM("th", {class: "actionCell"});
+        syncTableHeadRow.appendChild(syncActionCell);
+        const imgAddSync = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSync"});
+        syncActionCell.appendChild(imgAddSync);
+        const syncJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
+        const syncOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncJson) };
+        let syncResponse = await (await fetch(`/getSync`, syncOptions)).json();
+
+        const syncTableBody = createDOM("tbody");
+        syncTable.appendChild(syncTableBody);
+        if (syncResponse.ok == true) {
+            if (syncResponse.data.syncs != "") {
+                for (const sync of syncResponse.data.syncs.sync) {
+                    const syncTableRow = createDOM("tr");
+                    syncTableBody.appendChild(syncTableRow);
+                    const syncIdCell = createDOM("td", {align:"center", valign:"center"});
+                    syncTableRow.appendChild(syncIdCell);
+                    cplIds = cplIds.filter(cplId => cplId != sync.$.id_serv_pair_config + "_" + sync.$.id_content + "_" + sync.$.id_type + "_" + sync.$.id_localisation);
+                    syncIdCell.innerText = sync.$.id_serv_pair_config + "_" + sync.$.id_content + "_" + sync.$.id_type + "_" + sync.$.id_localisation;
+                    const syncPathCell = createDOM("td", {align:"center", valign:"center"});
+                    syncTableRow.appendChild(syncPathCell);
+                    syncPathCell.innerText = sync.$.path_sync;
+                    const syncActionCell = createDOM("td", {class: "actionCell"});
+                    syncTableRow.appendChild(syncActionCell);
+                    const imgDeleteSync = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"removeSyncRow"});
+                    syncActionCell.appendChild(imgDeleteSync);
+                    imgDeleteSync.addEventListener("click", async function(){
+                        if (confirm("Confirme la suppression du sync : " + sync.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: sync.$.id_serv_pair_config, typeOfElement:"SYNC" };
+                            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                            let response = await fetch(`/deleteSync`, options);
+                            if (response.ok == true) {
+                                const body = await response.json();
+                                if (body.code == 200) {
+                                    window.location.reload();
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", response.message);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        if (active) {
+            imgAddSync.addEventListener("click", async function(){
+                const imageAdd = document.getElementById("createSync");
+                imageAdd.style.display = "none";
+                const newSyncRow = createDOM("tr");
+                syncTable.appendChild(newSyncRow);
+                const newSyncIdCell = createDOM("td", {align:"center", valign:"center"});
+                newSyncRow.appendChild(newSyncIdCell);
+                const newSyncIdSelect = createDOM("select", {type:"text", id:"newSyncIdSelect"});
+                newSyncIdCell.appendChild(newSyncIdSelect);
+                if (cplIds.length == 0) {
+                    const option = createDOM("option", {value:-1, text:"No CPL available", selected:true, style:"display:none"});
+                    newSyncIdSelect.appendChild(option);
+                }
+                else {
+                    const option = createDOM("option", {value:-1, text:"Choissier votre CPL", selected:true, style:"display:none"});
+                    newSyncIdSelect.appendChild(option);
+                    for (const cplId of cplIds) {
+                        const option = createDOM("option", {value:cplId, text:cplId});
+                        newSyncIdSelect.appendChild(option);
+                    }
+                }
+                const newSyncPathCell = createDOM("td", {align:"center", valign:"center"});
+                newSyncRow.appendChild(newSyncPathCell);
+                const newSyncPathInput = createDOM("input", {type:"text", id:"newSyncPathInput"});
+                newSyncPathCell.appendChild(newSyncPathInput);
+                const newSyncActionCell = createDOM("td", {class: "actionCell"});
+                newSyncRow.appendChild(newSyncActionCell);
+                const imgAddSync = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSyncRow"});
+                newSyncActionCell.appendChild(imgAddSync);
+                imgAddSync.addEventListener("click", async function(){
+                    const newSyncIdSelect = document.getElementById("newSyncIdSelect");
+                    const newSyncPathInput = document.getElementById("newSyncPathInput");
+                    newSyncIdSelect.style.backgroundColor = "";
+                    newSyncPathInput.style.backgroundColor = "";
+                    if (newSyncIdSelect.value == -1) {
+                        newSyncIdInput.style.backgroundColor = "red";
+                        showErrorMessage("message-box", "Content is empty");
+                    }
+                    else if (newSyncPathInput.value == "") {
+                        newSyncPathInput.style.backgroundColor = "red";
+                        showErrorMessage("message-box", "Content is empty");
+                    }
+                    else {
+                        let cplId = newSyncIdSelect.value.split("_");
+                        const syncJson = { id_content: cplId[1], id_type: cplId[2], id_localisation: cplId[3], id_serv_pair_config: cplId[0], path_sync: newSyncPathInput.value };
+                        const syncOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncJson) };
+                        let syncResponse = await fetch(`/createSync`, syncOptions);
+                        if (syncResponse.ok == true) {
+                            const body = await syncResponse.json();
+                            if (body.code == 200) { 
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", syncResponse.message);
+                        }
+                    }
+                });
+            });
+            if (syncResponse.data.syncs == "") { imgAddSync.dispatchEvent(new Event('click')); }
+        }
+        else {
+            imgAddSync.style.display = "none";
+        }
+    }
+    async function disaplySyncLoop(box) {
+        const syncLoopContainer = createDOM("div", {class:"releaseDetailsContainer"});
+        box.appendChild(syncLoopContainer);
+        const syncLoopTable = createDOM("table", {id:"syncLoopTable", style:"width: 75%;"});
+        syncLoopContainer.appendChild(syncLoopTable);
+        const syncLoopTableHead = createDOM("thead", {class: "trHeader"});
+        syncLoopTable.appendChild(syncLoopTableHead);
+        const syncLoopTableHeadRow = createDOM("tr");
+        syncLoopTableHead.appendChild(syncLoopTableHeadRow);
+        const syncLoopIdCell = createDOM("th", {style:"width: 130px;"});
+        syncLoopTableHeadRow.appendChild(syncLoopIdCell);
+        syncLoopIdCell.innerText = "SyncLoop ID";
+        const syncLoopPathCell = createDOM("th");
+        syncLoopTableHeadRow.appendChild(syncLoopPathCell);
+        syncLoopPathCell.innerText = "SyncLoop Path";
+        const syncLoopActionCell = createDOM("th", {class: "actionCell"});
+        syncLoopTableHeadRow.appendChild(syncLoopActionCell);
+        const imgAddSyncLoop = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSyncLoop"});
+        syncLoopActionCell.appendChild(imgAddSyncLoop);
+        
+        const servPairJson = {id_serv_pair_config : -1};
+        const servPairOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(servPairJson) };
+        let servPairResponse = await (await fetch(`/getServerPair`, servPairOptions)).json();
+        let servPairs = [];
+        if (servPairResponse.ok) {
+            if (servPairResponse.data.servPairs != "") {
+                for (const servPair of servPairResponse.data.servPairs.servPair) {
+                    servPairs.push({id_serv_pair_config: servPair.$.id_serv_pair_config, name: servPair.$.name});
+                }
+            }
+        }
+
+        const syncLoopJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
+        const syncLoopOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncLoopJson) };
+        let syncLoopResponse = await (await fetch(`/getSyncLoop`, syncLoopOptions)).json(); 
+
+        const syncLoopTableBody = createDOM("tbody");
+        syncLoopTable.appendChild(syncLoopTableBody);
+        if (syncLoopResponse.ok){
+            if (syncLoopResponse.data.syncLoops != "") {
+                for (const syncLoop of syncLoopResponse.data.syncLoops.syncLoop) {
+                    const syncLoopTableRow = createDOM("tr");
+                    syncLoopTableBody.appendChild(syncLoopTableRow);
+                    const syncLoopIdCell = createDOM("td", {align:"center", valign:"center"});
+                    syncLoopTableRow.appendChild(syncLoopIdCell);
+                    servPairs = servPairs.filter(servPair => servPair.id_serv_pair_config != syncLoop.$.id_serv_pair_config);
+                    syncLoopIdCell.innerText = syncLoop.$.id_serv_pair_config + "_" + syncLoop.$.id_content + "_" + syncLoop.$.id_type + "_" + syncLoop.$.id_localisation;
+                    const syncLoopPathCell = createDOM("td", {align:"center", valign:"center"});
+                    syncLoopTableRow.appendChild(syncLoopPathCell);
+                    syncLoopPathCell.innerText = syncLoop.$.path_sync_loop;
+                    const syncLoopActionCell = createDOM("td", {class: "actionCell"});
+                    syncLoopTableRow.appendChild(syncLoopActionCell);
+                    const imgDeleteSyncLoop = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"deleteSyncLoop"});
+                    syncLoopActionCell.appendChild(imgDeleteSyncLoop);
+                    imgDeleteSyncLoop.addEventListener("click", async function(){
+                        if (confirm("Confirme la suppression du sync : " + syncLoop.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: syncLoop.$.id_serv_pair_config, typeOfElement:"SYCLOOP" };
+                            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                            let response = await fetch(`/deleteSyncLoop`, options);
+                            if (response.ok == true) {
+                                const body = await response.json();
+                                if (body.code == 200) {
+                                    window.location.reload();   
+                                }
+                                else {
+                                    showErrorMessage("message-box", body.message);
+                                }
+                            }
+                            else {
+                                showErrorMessage("message-box", response.message);
+                            }
+                        }   
+                    });
+                }
+            }
+        }
+        imgAddSyncLoop.addEventListener("click", async function() {
+            const imageAdd = document.getElementById("createSyncLoop");
+            imageAdd.style.display = "none";
+            const newSyncLoopRow = createDOM("tr");
+            syncLoopTable.appendChild(newSyncLoopRow);
+            const newSyncLoopIdCell = createDOM("td", {align:"center", valign:"center"});
+            newSyncLoopRow.appendChild(newSyncLoopIdCell);
+            const newSyncLoopIdSelect = createDOM("select", {type:"text", id:"newSyncLoopIdSelect"});
+            newSyncLoopIdCell.appendChild(newSyncLoopIdSelect);
+            if (servPairs.length == 0) {
+                const option = createDOM("option", {value:-1, text:"No Server Pair available", selected:true, style:"display:none"});
+                newSyncLoopIdSelect.appendChild(option);
+            }
+            else {
+                const option = createDOM("option", {value:-1, text:"Choissier votre SeverPair", selected:true, style:"display:none"});
+                newSyncLoopIdSelect.appendChild(option);
+                for (const servPair of servPairs) {
+                    const option = createDOM("option", {value:servPair.id_serv_pair_config, text:servPair.name});
+                    newSyncLoopIdSelect.appendChild(option);
+                }
+            }
+            const newSyncLoopPathCell = createDOM("td", {align:"center", valign:"center"});
+            newSyncLoopRow.appendChild(newSyncLoopPathCell);
+            const newSyncLoopPathInput = createDOM("input", {type:"text", id:"newSyncLoopPathInput"});
+            newSyncLoopPathCell.appendChild(newSyncLoopPathInput);
+            const newSyncLoopActionCell = createDOM("td", {class: "actionCell"});
+            newSyncLoopRow.appendChild(newSyncLoopActionCell);
+            const imgAddSyncLoop = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSyncLoopRow"});
+            newSyncLoopActionCell.appendChild(imgAddSyncLoop);
+            imgAddSyncLoop.addEventListener("click", async function(){
+                const newSyncLoopIdSelect = document.getElementById("newSyncLoopIdSelect");
+                const newSyncLoopPathInput = document.getElementById("newSyncLoopPathInput");
+                newSyncLoopIdSelect.style.backgroundColor = "";
+                newSyncLoopPathInput.style.backgroundColor = "";
+                if (newSyncLoopIdSelect.value == -1) {
+                    newSyncLoopIdInput.style.backgroundColor = "red";
+                    showErrorMessage("message-box", "Content is empty");
+                }
+                else if (newSyncLoopPathInput.value == "") {
+                    newSyncLoopPathInput.style.backgroundColor = "red";
+                    showErrorMessage("message-box", "Content is empty");
+                }
+                else {
+                    const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newSyncLoopIdSelect.value, path_syncloop: newSyncLoopPathInput.value };
+                    const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+                    let response = await fetch(`/createSyncLoop`, options);
+                    if (response.ok == true) {
+                        const body = await response.json();
+                        if (body.code == 200) { 
+                            window.location.reload();
+                        }
+                        else {
+                            showErrorMessage("message-box", body.message);
+                        }
+                    }
+                    else {
+                        showErrorMessage("message-box", response.message);
+                    }
+                }
+            });
+        });
+        if (syncLoopResponse.data.syncLoops == "") { imgAddSyncLoop.dispatchEvent(new Event('click')); }
+
+    }
+</script>
+
+<%- include ("../foot") %>
