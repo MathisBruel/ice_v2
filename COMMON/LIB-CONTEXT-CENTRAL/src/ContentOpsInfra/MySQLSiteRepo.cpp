@@ -11,12 +11,9 @@ MySQLSiteRepo::MySQLSiteRepo()
 
 MySQLSiteRepo::~MySQLSiteRepo()
 {
-    if (_query != nullptr) {
-        delete _query;
-    }
 }
 
-Query* MySQLSiteRepo::MySQLcreate(COD_Site* site)
+std::unique_ptr<Query> MySQLSiteRepo::MySQLcreate(COD_Site* site)
 {
     _siteIds = site->GetSiteIdPtr();
     if (*_siteIds != -1) { return nullptr; }
@@ -24,17 +21,17 @@ Query* MySQLSiteRepo::MySQLcreate(COD_Site* site)
     _siteGroups = &site->GetSiteGroupRef();
     _siteConnections = &site->GetSiteConnectionRef();
     
-    Query* createQuery = new Query(Query::INSERT, _database, _table);
+    std::unique_ptr<Query> createQuery = std::make_unique<Query>(Query::INSERT, _database, _table);
     createQuery->addParameter("name", &_siteNames, "string");
     createQuery->addParameter("id_group", _siteGroups, "int");
     createQuery->addParameter("id_connection", _siteConnections, "int");
     return createQuery;
 }
 
-Query* MySQLSiteRepo::MySQLread(COD_Site* site)
+std::unique_ptr<Query> MySQLSiteRepo::MySQLread(COD_Site* site)
 {
     _siteIds = site->GetSiteIdPtr();
-    Query* readQuery = new Query(Query::SELECT, _database, _table);
+    std::unique_ptr<Query> readQuery = std::make_unique<Query>(Query::SELECT, _database, _table);
     readQuery->addParameter("id_site", nullptr, "int");
     readQuery->addParameter("name", nullptr, "string");
     readQuery->addParameter("id_group", nullptr, "int");
@@ -43,9 +40,9 @@ Query* MySQLSiteRepo::MySQLread(COD_Site* site)
     return readQuery;
 }
 
-Query* MySQLSiteRepo::MySQLread(int* groupId)
+std::unique_ptr<Query> MySQLSiteRepo::MySQLread(int* groupId)
 {
-    Query* readQuery = new Query(Query::SELECT, _database, _table);
+    std::unique_ptr<Query> readQuery = std::make_unique<Query>(Query::SELECT, _database, _table);
     readQuery->addParameter("id_site", nullptr, "int");
     readQuery->addParameter("name", nullptr, "string");
     readQuery->addParameter("id_group", nullptr, "int");
@@ -56,7 +53,7 @@ Query* MySQLSiteRepo::MySQLread(int* groupId)
     return readQuery;
 }
 
-Query* MySQLSiteRepo::MySQLupdate(COD_Site* site)
+std::unique_ptr<Query> MySQLSiteRepo::MySQLupdate(COD_Site* site)
 {
     _siteIds = site->GetSiteIdPtr();
     if (*_siteIds == -1) { return nullptr; }
@@ -65,7 +62,7 @@ Query* MySQLSiteRepo::MySQLupdate(COD_Site* site)
     _siteGroups = &site->GetSiteGroupRef();
     _siteConnections = &site->GetSiteConnectionRef();
 
-    Query* updateQuery = new Query(Query::UPDATE, _database, _table);
+    std::unique_ptr<Query> updateQuery = std::make_unique<Query>(Query::UPDATE, _database, _table);
     updateQuery->addParameter("name", &_siteNames, "string");
     updateQuery->addParameter("id_group", _siteGroups, "int");
     updateQuery->addParameter("id_connection", _siteConnections, "int");
@@ -73,12 +70,12 @@ Query* MySQLSiteRepo::MySQLupdate(COD_Site* site)
     return updateQuery;
 }
 
-Query* MySQLSiteRepo::MySQLremove(COD_Site* site)
+std::unique_ptr<Query> MySQLSiteRepo::MySQLremove(COD_Site* site)
 {
     _siteIds = site->GetSiteIdPtr();
     if (*_siteIds == -1) { return nullptr; }
 
-    Query* removeQuery = new Query(Query::REMOVE, _database, _table);
+    std::unique_ptr<Query> removeQuery = std::make_unique<Query>(Query::REMOVE, _database, _table);
     removeQuery->addWhereParameter("id_site", _siteIds, "int");
     return removeQuery;
 }
@@ -105,8 +102,7 @@ void MySQLSiteRepo::Remove(COD_Site* site)
 
 std::unique_ptr<ResultQuery> MySQLSiteRepo::getSites(int groupId)
 {
-    
-    MySQLDBConnection* dbConn = new MySQLDBConnection();
+    std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
     dbConn->InitConnection();
     std::string sql = R"(
         WITH RECURSIVE group_hierarchy AS (
@@ -126,7 +122,7 @@ std::unique_ptr<ResultQuery> MySQLSiteRepo::getSites(int groupId)
         ORDER BY gh.level, s.name
     )";
     
-    Query* query = new Query(Query::CUSTOM, _database, "");
+    std::unique_ptr<Query> query = std::make_unique<Query>(Query::CUSTOM, _database, "");
     query->setCustomSQL(sql);
     query->addParameter("?", &groupId, "int");
     query->addParameter("id_site", nullptr, "int");
@@ -135,11 +131,8 @@ std::unique_ptr<ResultQuery> MySQLSiteRepo::getSites(int groupId)
     query->addParameter("id_connection", nullptr, "int");
     query->addParameter("level", nullptr, "int");
     
-    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query));
-    
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
     int row = result->getNbRows();
-    delete query;
-    delete dbConn;
     return result;
 }
 

@@ -21,14 +21,14 @@ public:
     void Update(COD_Group* group) override;
     void Remove(COD_Group* group) override;
 
-    Query* MySQLcreate(COD_Group* group);
-    Query* MySQLread(COD_Group* group);
-    Query* MySQLread();
-    Query* MySQLupdate(COD_Group* group);
-    Query* MySQLremove(COD_Group* group);
+    std::unique_ptr<Query> MySQLcreate(COD_Group* group);
+    std::unique_ptr<Query> MySQLread(COD_Group* group);
+    std::unique_ptr<Query> MySQLread();
+    std::unique_ptr<Query> MySQLupdate(COD_Group* group);
+    std::unique_ptr<Query> MySQLremove(COD_Group* group);
 
-    Query* GetQuery() { return _query; }
-
+    std::unique_ptr<Query> GetQuery() { return std::move(_query); }
+    
     std::unique_ptr<ResultQuery> getGroups() override;
     std::unique_ptr<ResultQuery> getGroup(int groupId) override;
 private:
@@ -39,5 +39,5 @@ private:
     int* _groupParents;
     std::string _groupNames;
 
-    Query* _query;
+    std::unique_ptr<Query> _query;
 }; 

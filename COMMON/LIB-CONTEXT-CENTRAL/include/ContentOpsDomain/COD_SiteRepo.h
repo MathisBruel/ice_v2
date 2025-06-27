@@ -8,6 +8,7 @@ class ResultQuery;
 class COD_SiteRepo
 {
 public:
+    virtual ~COD_SiteRepo() = default;
     virtual void Create(COD_Site* site) = 0;
     virtual void Read(COD_Site* site) = 0;
     virtual void Update(COD_Site* site) = 0;

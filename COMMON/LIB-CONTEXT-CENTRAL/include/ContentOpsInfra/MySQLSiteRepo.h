@@ -22,14 +22,14 @@ public:
     void Update(COD_Site* site) override;
     void Remove(COD_Site* site) override;
 
-    Query* MySQLcreate(COD_Site* site);
-    Query* MySQLread(COD_Site* site);
-    Query* MySQLread();
-    Query* MySQLread(int* groupId);
-    Query* MySQLupdate(COD_Site* site);
-    Query* MySQLremove(COD_Site* site);
+    std::unique_ptr<Query> MySQLcreate(COD_Site* site);
+    std::unique_ptr<Query> MySQLread(COD_Site* site);
+    std::unique_ptr<Query> MySQLread();
+    std::unique_ptr<Query> MySQLread(int* groupId);
+    std::unique_ptr<Query> MySQLupdate(COD_Site* site);
+    std::unique_ptr<Query> MySQLremove(COD_Site* site);
 
-    Query* GetQuery() { return _query; }
+    std::unique_ptr<Query> GetQuery() { return std::move(_query); }
 
     std::unique_ptr<ResultQuery> getSites(int groupId) override;
 
@@ -42,5 +42,5 @@ private:
     int* _siteConnections;
     std::string _siteNames;
 
-    Query* _query;
+    std::unique_ptr<Query> _query;
 };
