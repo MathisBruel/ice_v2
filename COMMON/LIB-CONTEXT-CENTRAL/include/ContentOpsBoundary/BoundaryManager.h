@@ -6,6 +6,8 @@
 #include "ContentOpsBoundary/COB_GroupRepo.h"
 #include "ContentOpsBoundary/COB_ContentRepo.h"
 #include "ContentOpsBoundary/COB_ReleaseRepo.h"
+#include "ContentOpsBoundary/COB_LocalisationRepo.h"
+#include "ContentOpsBoundary/COB_TypeRepo.h"
 
 using namespace ContentOpsBoundaryEnum;
 
@@ -19,6 +21,8 @@ class BoundaryManager {
     std::string GetGroupAsXml(int groupeId);
     std::string GetSitesAsXml(int groupId);
     std::string GetSiteCplsAsXml(int siteId);
+    std::string GetLocalisationsAsXml();
+    std::string GetTypesAsXml();
     void UpdateContent(int contentId);
     void CreateContent();
 
@@ -38,4 +42,6 @@ class BoundaryManager {
     std::shared_ptr<COB_GroupRepo> _groupRepo;
     std::shared_ptr<COB_ContentRepo> _contentRepo;
     std::shared_ptr<COB_ReleaseRepo> _releaseRepo;
+    std::shared_ptr<COB_LocalisationRepo> _localisationRepo;
+    std::shared_ptr<COB_TypeRepo> _typeRepo;
 };

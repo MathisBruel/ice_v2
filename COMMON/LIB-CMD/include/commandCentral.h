@@ -133,6 +133,8 @@ public:
         DELETE_RELEASE_CPL,
         DELETE_RELEASE_SYNC,
         DELETE_RELEASE_SYNCLOOP,
+        GET_LOCALISATIONS,
+        GET_TYPES,
         
         // -- DEFAULT
         UNKNOW_COMMAND

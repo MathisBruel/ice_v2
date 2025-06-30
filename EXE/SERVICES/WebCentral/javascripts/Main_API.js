@@ -238,6 +238,8 @@ class Main_API {
         this.app.post('/getSites', this.restrictPage.bind(this), function(request, response){ this.giveSites(request, response); }.bind(this));
         this.app.post('/getCplsSite', this.restrictPage.bind(this), function(request, response){ this.giveCplsSite(request, response); }.bind(this));
         this.app.post('/getGroupsFilter', this.restrictPage.bind(this), function(request, response){ this.giveGroupsFilter(request, response); }.bind(this));
+        this.app.post('/getLocalisations', this.restrictPage.bind(this), function(request, response){ this.giveLocalisations(request, response); }.bind(this));
+        this.app.post('/getTypes', this.restrictPage.bind(this), function(request, response){ this.giveTypes(request, response); }.bind(this));
 
         // -- GROUPS
         this.app.post('/createGroup', this.restrictPage.bind(this), function(request, response){ this.createGroup(request, response); }.bind(this));
@@ -471,6 +473,24 @@ class Main_API {
         }
         catch(err){
             this.onError(response, err, 'giveGroupsFilter');
+        }
+    }
+    async giveLocalisations(request, response) {
+        try {
+            const result = await this.client.getLocalisations(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveLocalisations');
+        }
+    }
+    async giveTypes(request, response) {
+        try {
+            const result = await this.client.getTypes(request.body);
+            response.json(result);
+        }
+        catch(err){
+            this.onError(response, err, 'giveTypes');
         }
     }
 

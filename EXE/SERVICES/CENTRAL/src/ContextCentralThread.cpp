@@ -2764,6 +2764,34 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setDatas("<error><code>102</code><message>" + std::string(e.what())+ "</message></error>");
             Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::CreateContent() :" + std::string(e.what()), __FILE__, __LINE__);
         }
+    }
+    else if (cmd->getType() == CommandCentral::GET_LOCALISATIONS) {
+        try {
+            std::string localisationsXml = _boundaryManager.GetLocalisationsAsXml();
+            response->setDatas(localisationsXml);
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Localisations retrieved successfully.");
+        }
+        catch(std::exception e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Failed to get localisations");
+            response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetLocalisationsAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
+        }
+    }
+    else if (cmd->getType() == CommandCentral::GET_TYPES) {
+        try {
+            std::string typesXml = _boundaryManager.GetTypesAsXml();
+            response->setDatas(typesXml);
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Types retrieved successfully.");
+        }
+        catch(std::exception e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Failed to get types");
+            response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetTypesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
+        }
     } else {
         int cmdId;
         if (cmd->getIntParameter("id_content") != -1) {

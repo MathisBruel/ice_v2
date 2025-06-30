@@ -10,6 +10,10 @@
 #include "ContentOpsBoundary/COB_Contents.h"
 #include "ContentOpsBoundary/COB_ReleaseRepo.h"
 #include "ContentOpsInfra/MySQLReleaseRepo.h"
+#include "ContentOpsBoundary/COB_LocalisationRepo.h"
+#include "ContentOpsInfra/MySQLLocalisationRepo.h"
+#include "ContentOpsBoundary/COB_TypeRepo.h"
+#include "ContentOpsInfra/MySQLTypeRepo.h"
 
 BoundaryManager::BoundaryManager()
 {
@@ -17,6 +21,8 @@ BoundaryManager::BoundaryManager()
     _groupRepo = std::make_shared<COB_GroupRepo>(std::make_shared<MySQLGroupRepo>());
     _contentRepo = std::make_shared<COB_ContentRepo>(std::make_shared<MySQLContentRepo>());
     _releaseRepo = std::make_shared<COB_ReleaseRepo>(std::make_shared<MySQLReleaseRepo>());
+    _localisationRepo = std::make_shared<COB_LocalisationRepo>(std::make_shared<MySQLLocalisationRepo>());
+    _typeRepo = std::make_shared<COB_TypeRepo>(std::make_shared<MySQLTypeRepo>());
 }
 
 BoundaryManager::~BoundaryManager()
@@ -103,4 +109,36 @@ void BoundaryManager::UpdateContent(int contentId) {
 
 void BoundaryManager::CreateContent() {
     throw std::logic_error("CreateContent not implemented");
+}
+
+std::string BoundaryManager::GetLocalisationsAsXml() {
+    try {
+        std::vector<COB_Localisation> localisations = _localisationRepo->GetLocalisations();
+        std::string xml = "<localisations>";
+        for (const auto& localisation : localisations) {
+            xml += static_cast<std::string>(localisation);
+        }
+        xml += "</localisations>";
+        return xml;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get localisations : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetTypesAsXml() {
+    try {
+        std::vector<COB_Type> types = _typeRepo->GetTypes();
+        std::string xml = "<types>";
+        for (const auto& type : types) {
+            xml += static_cast<std::string>(type);
+        }
+        xml += "</types>";
+        return xml;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get types : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
 }

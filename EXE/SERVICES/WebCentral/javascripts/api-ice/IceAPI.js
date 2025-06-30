@@ -47,6 +47,13 @@ class IceAPI {
         return await this.client.sendGetCommands(this.token, 'GET_GROUPS_FILTER', values);
     }
 
+    async getLocalisations(values) {
+        return await this.client.sendGetCommands(this.token, 'GET_LOCALISATIONS', values);
+    }
+    async getTypes(values) {
+        return await this.client.sendGetCommands(this.token, 'GET_TYPES', values);
+    }
+
     async createGroup(values) {
         return await this.client.sendPostCommands(this.token, 'INSERT_GROUP', values);
     }

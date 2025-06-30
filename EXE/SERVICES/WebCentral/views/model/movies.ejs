@@ -14,15 +14,19 @@
 </div>
 
 <script>
-    const contentLocalisation = {1:"France", 2:"USA", 3:"Espagne", 4:"Estonie", 5:"Inde", 6:"AR-KSA", 7:"AR-AE"}
-    const contentType = {1:"Long Métrage", 2:"Court Métrage", 3:"Trailer", 4:"Test", 5:"Transitionnel", 6:"Classification",
-                         7:"Teaser", 8:"Code de conduite", 9:"Annonce d'intérêt public", 10:"Publicité", 11:"Clip", 
-                         12:"Promo", 13:"Carte stéréo 3D", 14:"Episode", 15:"Points forts", 16:"Evenements"};
+    // Variables globales pour stocker les données dynamiques
+    let contentLocalisation = {};
+    let contentType = {};
     
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const id_content = urlParams.get('id');
+    
     document.addEventListener('DOMContentLoaded', async function(){
+        // Charger les données de localisation et type au démarrage
+        await loadLocalisations();
+        await loadTypes();
+        
         let response = await ( getContents(id_content) );
         if (response.ok == true) {
             drawContentslist(response.data.contents); 
@@ -92,6 +96,93 @@
             }
         }
     });
+
+    // Fonction pour charger les localisations depuis l'API
+    async function loadLocalisations() {
+        try {
+            const json = JSON.stringify({});
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            const response = await fetch(`/getLocalisations`, options);
+            const result = await response.json();
+            
+            if (result.ok && result.data && result.data.localisations) {
+                contentLocalisation = {};
+                if (result.data.localisations.localisation) {
+                    // Si c'est un tableau
+                    if (Array.isArray(result.data.localisations.localisation)) {
+                        for (const loc of result.data.localisations.localisation) {
+                            contentLocalisation[loc.$.id] = loc.$.name;
+                        }
+                    } else {
+                        // Si c'est un seul élément
+                        contentLocalisation[result.data.localisations.localisation.$.id] = result.data.localisations.localisation.$.name;
+                    }
+                }
+            }
+        } catch(error) {
+            console.error("Erreur lors du chargement des localisations:", error);
+        }
+    }
+
+    // Fonction pour charger les types depuis l'API
+    async function loadTypes() {
+        try {
+            const json = JSON.stringify({});
+            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+            const response = await fetch(`/getTypes`, options);
+            const result = await response.json();
+            
+            if (result.ok && result.data && result.data.types) {
+                contentType = {};
+                if (result.data.types.type) {
+                    // Si c'est un tableau
+                    if (Array.isArray(result.data.types.type)) {
+                        for (const type of result.data.types.type) {
+                            contentType[type.$.id] = type.$.name;
+                        }
+                    } else {
+                        // Si c'est un seul élément
+                        contentType[result.data.types.type.$.id] = result.data.types.type.$.name;
+                    }
+                }
+            }
+        } catch(error) {
+            console.error("Erreur lors du chargement des types:", error);
+        }
+    }
+
+    // Fonction pour remplir un sélecteur avec les données dynamiques
+    function fillSelectWithData(selectElement, dataObject, placeholderText) {
+        // Vider le sélecteur sauf la première option
+        while (selectElement.children.length > 1) {
+            selectElement.removeChild(selectElement.lastChild);
+        }
+        
+        // Ajouter les options
+        for (const key in dataObject) {
+            if (dataObject.hasOwnProperty(key)) {
+                const option = createDOM("option", {value: key});
+                option.innerHTML = dataObject[key];
+                selectElement.appendChild(option);
+            }
+        }
+    }
+
+    // Fonction pour obtenir le nom d'une localisation avec fallback
+    function getLocalisationName(id, fallbackName) {
+        if (fallbackName && fallbackName.trim() !== "") {
+            return fallbackName;
+        }
+        return contentLocalisation[id] || `Localisation ${id}`;
+    }
+
+    // Fonction pour obtenir le nom d'un type avec fallback
+    function getTypeName(id, fallbackName) {
+        if (fallbackName && fallbackName.trim() !== "") {
+            return fallbackName;
+        }
+        return contentType[id] || `Type ${id}`;
+    }
 
     async function getContents(idContent) {
         let response;
@@ -210,8 +301,8 @@
             if (response.data.releases != "") {
                 for (const release of response.data.releases.release) {
                     releasesdetails.push({"id_release": [id_content, release.$.id_type, release.$.id_localisation].join("_"), 
-                                          "localisation": release.$.localisation_name || contentLocalisation[release.$.id_localisation], 
-                                          "type": release.$.type_name || contentType[release.$.id_type], 
+                                          "localisation": release.$.localisation_name || getLocalisationName(release.$.id_localisation, null), 
+                                          "type": release.$.type_name || getTypeName(release.$.id_type, null), 
                                           "ref":release.$.release_cpl_ref_path});
                 }
             }
@@ -251,13 +342,7 @@
                 const optionType = createDOM("option", {value:"-1", selected:true, style:"display:none"});
                 optionType.innerHTML =  "Type"
                 CreateRelease_tdTypeSelect.appendChild(optionType);
-                for (const key in contentType) {
-                    if (contentType.hasOwnProperty(key)) {
-                        const optionType = createDOM("option", {value:key});
-                        optionType.innerHTML =  contentType[key];
-                        CreateRelease_tdTypeSelect.appendChild(optionType);
-                    }
-                }
+                fillSelectWithData(CreateRelease_tdTypeSelect, contentType, "Type");
                 CreateRelease_tdTypeSelect.addEventListener('change', function(){
                     IdsRelease(content.id_content);
                 });
@@ -269,13 +354,7 @@
                 const optionLocalisation = createDOM("option", {value:"-1", selected:true, style:"display:none"});
                 optionLocalisation.innerHTML =  "Localisation"
                 CreateRelease_tdLocalisationSelect.appendChild(optionLocalisation);
-                for (const key in contentLocalisation) {
-                    if (contentLocalisation.hasOwnProperty(key)) {
-                        const optionLocalisation = createDOM("option", {value:key});
-                        optionLocalisation.innerHTML =  contentLocalisation[key];
-                        CreateRelease_tdLocalisationSelect.appendChild(optionLocalisation);
-                    }
-                }
+                fillSelectWithData(CreateRelease_tdLocalisationSelect, contentLocalisation, "Localisation");
                 CreateRelease_tdLocalisationSelect.addEventListener('change', function(){
                     IdsRelease(content.id_content);
                 });

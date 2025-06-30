@@ -561,6 +561,12 @@ CommandCentral::CommandCentralType CommandCentral::generateFromString(std::strin
     else if (typeStr == "DELETE_RELEASE_SYNCLOOP") {
         return DELETE_RELEASE_SYNCLOOP;
     }
+    else if (typeStr == "GET_LOCALISATIONS") {
+        return GET_LOCALISATIONS;
+    }
+    else if (typeStr == "GET_TYPES") {
+        return GET_TYPES;
+    }
 
     // -- DEFAULT
     else {
@@ -830,6 +836,12 @@ std::string CommandCentral::generateToString(CommandCentral::CommandCentralType 
     }
     else if (type == DELETE_RELEASE_SYNCLOOP) {
         return "DELETE_RELEASE_SYNCLOOP";
+    }
+    else if (type == GET_LOCALISATIONS) {
+        return "GET_LOCALISATIONS";
+    }
+    else if (type == GET_TYPES) {
+        return "GET_TYPES";
     }
 
     // -- DEFAULT
