@@ -1,3 +1,4 @@
+SET NAMES 'utf8mb4';
 use `ice`;
 INSERT INTO `type` (`name`) VALUES 
 ("Long Métrage"),
