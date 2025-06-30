@@ -72,7 +72,7 @@
                 const thLorem = createDOM("th", {align:"center", valign:"center"});
                 thLorem.innerText = "Lorem ipsum dolor sit amet";
                 tr.appendChild(thLorem);
-
+                console.log(response);
                 const tbody = createDOM("tbody");
                 table.appendChild(tbody);
                 if (response.ok == true) {

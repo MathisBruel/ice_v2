@@ -16,10 +16,10 @@
         }
     });
 
-    async function getCpls(idCpl) {
+    async function getCpls(uuidCpl) {
         var response;
         try {
-            const json = JSON.stringify({ id:idCpl });
+            const json = JSON.stringify({ uuid: uuidCpl });
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
             response = await ( await fetch(`/getCpls`, options) ).json();
         }
@@ -43,7 +43,7 @@
         const liAdd = createDOM("li", {className:"list-item-add"});
         const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
         imgAdd.addEventListener('click', async function(){
-            window.location.assign("/cpl?id=-1");
+            window.location.assign("/cpl?uuid=-1");
         });
         liAdd.appendChild(imgAdd);
         tabCpls.appendChild(liAdd);
@@ -55,18 +55,19 @@
     
                 // -- clickable
                 const li = document.createElement("li");
-                li.addEventListener('click', async function(){
-                    window.location.assign("/cpl?id=" + li.id);
-                });
+                
                 li.className = "li-model";
-                li.id = cpl.$.id;
+                li.id = cpl.$.CPL_uuid;
+                li.addEventListener('click', async function(){
+                    window.location.assign("/cpl?uuid=" + li.id);
+                });
                 const imageCpl = document.createElement("img");
                 imageCpl.className = "image-line";
                 imageCpl.src = "cpl.png";
                 li.appendChild(imageCpl);
                 const nameDom = document.createElement("div");
                 nameDom.className = "param";
-                nameDom.innerText = cpl.$.name;
+                nameDom.innerText = cpl.$.CPL_name;
                 li.appendChild(nameDom);
                 const imageDescr = document.createElement("img");
                 imageDescr.className = "image-line";
@@ -74,7 +75,7 @@
                 li.appendChild(imageDescr);
                 const descrDom = document.createElement("div");
                 descrDom.className = "param";
-                descrDom.innerText = cpl.$.uuid;
+                descrDom.innerText = cpl.$.CPL_uuid;
                 li.appendChild(descrDom);
                 tabCpls.appendChild(li);
                 

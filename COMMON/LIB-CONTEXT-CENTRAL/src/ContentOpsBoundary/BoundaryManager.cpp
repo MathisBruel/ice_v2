@@ -14,6 +14,8 @@
 #include "ContentOpsInfra/MySQLLocalisationRepo.h"
 #include "ContentOpsBoundary/COB_TypeRepo.h"
 #include "ContentOpsInfra/MySQLTypeRepo.h"
+#include "ContentOpsBoundary/COB_CplRepo.h"
+#include "ContentOpsInfra/MySQLCplRepo.h"
 
 BoundaryManager::BoundaryManager()
 {
@@ -23,6 +25,7 @@ BoundaryManager::BoundaryManager()
     _releaseRepo = std::make_shared<COB_ReleaseRepo>(std::make_shared<MySQLReleaseRepo>());
     _localisationRepo = std::make_shared<COB_LocalisationRepo>(std::make_shared<MySQLLocalisationRepo>());
     _typeRepo = std::make_shared<COB_TypeRepo>(std::make_shared<MySQLTypeRepo>());
+    _cplRepo = std::make_shared<COB_CplRepo>(std::make_shared<MySQLCplRepo>());
 }
 
 BoundaryManager::~BoundaryManager()
@@ -100,7 +103,13 @@ std::string BoundaryManager::GetSitesAsXml(int groupId) {
 }
 
 std::string BoundaryManager::GetSiteCplsAsXml(int siteId) {
-    throw std::logic_error("GetSiteCplsAsXml not implemented");
+    try {
+        return _cplRepo->GetCplsBySiteAsXml(siteId);
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get cpls for site " + std::to_string(siteId) + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
 }
 
 void BoundaryManager::UpdateContent(int contentId) {
@@ -139,6 +148,66 @@ std::string BoundaryManager::GetTypesAsXml() {
     }
     catch(const std::exception& e) { 
         std::string errorMsg = "Failed to get types : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetCplsAsXml() {
+    try {
+        return _cplRepo->GetCplsAsXml();
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get cpls : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetCplAsXml(int id) {
+    try {
+        return _cplRepo->GetCplAsXml(id);
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get cpl " + std::to_string(id) + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetCplAsXmlByUuid(const std::string& uuid) {
+    try {
+        return _cplRepo->GetCplAsXmlByUuid(uuid);
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get cpl with uuid " + uuid + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetCplsByScriptAsXml(int scriptId) {
+    try {
+        return _cplRepo->GetCplsByScriptAsXml(scriptId);
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get cpls for script " + std::to_string(scriptId) + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetCplsByReleaseAsXml(int releaseId) {
+    try {
+        return _cplRepo->GetCplsByReleaseAsXml(releaseId);
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get cpls for release " + std::to_string(releaseId) + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetUnlinkedCplsAsXml() {
+    try {
+        return _cplRepo->GetUnlinkedCplsAsXml();
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get unlinked cpls : " + std::string(e.what());
         throw std::runtime_error(errorMsg); 
     }
 }

@@ -8,6 +8,7 @@
 #include "ContentOpsBoundary/COB_ReleaseRepo.h"
 #include "ContentOpsBoundary/COB_LocalisationRepo.h"
 #include "ContentOpsBoundary/COB_TypeRepo.h"
+#include "ContentOpsBoundary/COB_CplRepo.h"
 
 using namespace ContentOpsBoundaryEnum;
 
@@ -23,6 +24,12 @@ class BoundaryManager {
     std::string GetSiteCplsAsXml(int siteId);
     std::string GetLocalisationsAsXml();
     std::string GetTypesAsXml();
+    std::string GetCplsAsXml();
+    std::string GetCplAsXml(int id);
+    std::string GetCplAsXmlByUuid(const std::string& uuid);
+    std::string GetCplsByScriptAsXml(int scriptId);
+    std::string GetCplsByReleaseAsXml(int releaseId);
+    std::string GetUnlinkedCplsAsXml();
     void UpdateContent(int contentId);
     void CreateContent();
 
@@ -44,4 +51,5 @@ class BoundaryManager {
     std::shared_ptr<COB_ReleaseRepo> _releaseRepo;
     std::shared_ptr<COB_LocalisationRepo> _localisationRepo;
     std::shared_ptr<COB_TypeRepo> _typeRepo;
+    std::shared_ptr<COB_CplRepo> _cplRepo;
 };

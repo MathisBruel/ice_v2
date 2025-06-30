@@ -37,7 +37,7 @@ Query* Cpl::createQuery()
     Query* createQuery = new Query(Query::INSERT, database, table);
     createQuery->addParameter("name", &name, "string");
     createQuery->addParameter("uuid", &uuid, "string");
-    createQuery->addParameter("type", &typeCpl, "int");
+    createQuery->addParameter("type_cpl", &typeCpl, "int");
     createQuery->addParameter("path_cpl", &pathCpl, "string");
     createQuery->addParameter("path_sync", &pathSync, "string");
     createQuery->addParameter("sha1_sync", &sha1Sync, "string");
@@ -52,7 +52,7 @@ Query* Cpl::updateQuery()
     Query* updateQuery = new Query(Query::UPDATE, database, table);
     updateQuery->addParameter("name", &name, "string");
     updateQuery->addParameter("uuid", &uuid, "string");
-    updateQuery->addParameter("type", &typeCpl, "int");
+    updateQuery->addParameter("type_cpl", &typeCpl, "int");
     updateQuery->addParameter("path_cpl", &pathCpl, "string");
     updateQuery->addParameter("path_sync", &pathSync, "string");
     updateQuery->addParameter("sha1_sync", &sha1Sync, "string");
@@ -75,7 +75,7 @@ Query* Cpl::getQuery(int* id)
     getQuery->addParameter("id", nullptr, "int");
     getQuery->addParameter("name", nullptr, "string");
     getQuery->addParameter("uuid", nullptr, "string");
-    getQuery->addParameter("type", nullptr, "int");
+    getQuery->addParameter("type_cpl", nullptr, "int");
     getQuery->addParameter("path_cpl", nullptr, "string");
     getQuery->addParameter("path_sync", nullptr, "string");
     getQuery->addParameter("sha1_sync", nullptr, "string");
@@ -91,7 +91,7 @@ std::map<int, std::shared_ptr<Cpl>> Cpl::loadListFromResult(ResultQuery* result)
         cpl->id = *result->getIntValue(i, "id");
         cpl->name = *result->getStringValue(i, "name");
         cpl->uuid = *result->getStringValue(i, "uuid");
-        cpl->typeCpl = (Cpl::CplType)(*result->getIntValue(i, "type"));
+        cpl->typeCpl = (Cpl::CplType)(*result->getIntValue(i, "type_cpl"));
         cpl->pathCpl = *result->getStringValue(i, "path_cpl");
         cpl->pathSync = *result->getStringValue(i, "path_sync");
         cpl->sha1Sync = *result->getStringValue(i, "sha1_sync");
@@ -108,7 +108,7 @@ std::shared_ptr<Cpl> Cpl::loadFromResult(ResultQuery* result)
     cpl->id = *result->getIntValue(0, "id");
     cpl->name = *result->getStringValue(0, "name");
     cpl->uuid = *result->getStringValue(0, "uuid");
-    cpl->typeCpl = (Cpl::CplType)(*result->getIntValue(0, "type"));
+    cpl->typeCpl = (Cpl::CplType)(*result->getIntValue(0, "type_cpl"));
     cpl->pathCpl = *result->getStringValue(0, "path_cpl");
     cpl->pathSync = *result->getStringValue(0, "path_sync");
     cpl->sha1Sync = *result->getStringValue(0, "sha1_sync");

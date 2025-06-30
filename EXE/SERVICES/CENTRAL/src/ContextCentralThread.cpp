@@ -633,142 +633,38 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int id = cmd->getIntParameter("id");
         int id_script = cmd->getIntParameter("id_script");
         int id_release = cmd->getIntParameter("id_release");
+        std::string uuid = cmd->getStringParameter("uuid");
 
-        if (id != -1) {
-
-            Query* query = Cpl::getQuery(&id);
-            ResultQuery* result = context->executeQuery(query);
-
-            if (result->isValid()) {
-                std::shared_ptr<Cpl> cpl = Cpl::loadFromResult(result);
-                std::string datas = cpl->toXmlString();
-                response->setDatas(datas);
-                response->setStatus(CommandCentralResponse::OK);
+        try {
+            std::string datas;
+            
+            if (id != -1) {
+                datas = BoundaryManager::GetInstance().GetCplAsXml(id);
                 response->setComments("GET_CPL achieved !");
             }
-            else {
-                response->setStatus(CommandCentralResponse::OK);
-                response->setComments("GET_CPL achieved !");
+            else if (!uuid.empty() && uuid != "-1") {
+                datas = BoundaryManager::GetInstance().GetCplAsXmlByUuid(uuid);
+                response->setComments("GET_CPL by UUID achieved !");
             }
-
-            delete query;
-            delete result;
-        }
-        else if (id_script != -1) {
-            Query* query = Cpl::getQuery();
-            ResultQuery *result = context->executeQuery(query);
-            Query* queryLink = LinkParam::getQueryDst(LinkParam::CPL_SCRIPT, &id_script);
-            ResultQuery *resultLink = context->executeQuery(queryLink);
-
-            if (result->isValid()) {
-                std::map<int, std::shared_ptr<Cpl>> cpls = Cpl::loadListFromResult(result);
-                std::vector<std::shared_ptr<LinkParam>> links = LinkParam::loadListFromResult(resultLink, LinkParam::CPL_SCRIPT);
-                std::string datas = "<cpls>";
-
-                for (std::shared_ptr<LinkParam> link : links) {
-                    std::map<int, std::shared_ptr<Cpl>>::iterator it = cpls.find(link->getSrcId());
-                    if (it != cpls.end()) {
-                        datas += it->second->toXmlString();
-                    }
-                }
-                datas += "</cpls>";
-                response->setDatas(datas);
-                response->setStatus(CommandCentralResponse::OK);
+            else if (id_script != -1) {
+                datas = BoundaryManager::GetInstance().GetCplsByScriptAsXml(id_script);
                 response->setComments("GET_CPLS for script achieved !");
             }
-            else {
-                response->setStatus(CommandCentralResponse::KO);
-                response->setComments("GET_CPLS for script failed !");
-            }
-
-            delete query;
-            delete queryLink;
-            delete result;
-            delete resultLink;
-        }
-        else if (id_release != -1) {
-            Query* query = Cpl::getQuery();
-            ResultQuery *result = context->executeQuery(query);
-            Query* queryLink = LinkParam::getQueryDst(LinkParam::CPL_RELEASE, &id_release);
-            ResultQuery *resultLink = context->executeQuery(queryLink);
-
-            if (result->isValid()) {
-                std::map<int, std::shared_ptr<Cpl>> cpls = Cpl::loadListFromResult(result);
-                std::vector<std::shared_ptr<LinkParam>> links = LinkParam::loadListFromResult(resultLink, LinkParam::CPL_RELEASE);
-                std::string datas = "<cpls>";
-
-                for (std::shared_ptr<LinkParam> link : links) {
-                    std::map<int, std::shared_ptr<Cpl>>::iterator it = cpls.find(link->getSrcId());
-                    if (it != cpls.end()) {
-                        datas += it->second->toXmlString();
-                    }
-                }
-                datas += "</cpls>";
-                response->setDatas(datas);
-                response->setStatus(CommandCentralResponse::OK);
+            else if (id_release != -1) {
+                datas = BoundaryManager::GetInstance().GetCplsByReleaseAsXml(id_release);
                 response->setComments("GET_CPLS for release achieved !");
             }
             else {
-                response->setStatus(CommandCentralResponse::KO);
-                response->setComments("GET_CPLS for release failed !");
+                datas = BoundaryManager::GetInstance().GetUnlinkedCplsAsXml();
+                response->setComments("GET_CPLS for unlinked achieved !");
             }
-
-            delete query;
-            delete queryLink;
-            delete result;
-            delete resultLink;
+            
+            response->setDatas(datas);
+            response->setStatus(CommandCentralResponse::OK);
         }
-        else {
-            Query* query = Cpl::getQuery();
-            ResultQuery *result = context->executeQuery(query);
-            Query* queryLinkRelease = LinkParam::getQuery(LinkParam::CPL_RELEASE);
-            ResultQuery *resultLinkRelease = context->executeQuery(queryLinkRelease);
-            Query* queryLinkScript = LinkParam::getQuery(LinkParam::CPL_SCRIPT);
-            ResultQuery *resultLinkScript = context->executeQuery(queryLinkScript);
-
-            if (result->isValid()) {
-                std::map<int, std::shared_ptr<Cpl>> cpls = Cpl::loadListFromResult(result);
-                std::vector<std::shared_ptr<LinkParam>> linksRelease = LinkParam::loadListFromResult(resultLinkRelease, LinkParam::CPL_RELEASE);
-                std::vector<std::shared_ptr<LinkParam>> linksScript = LinkParam::loadListFromResult(resultLinkScript, LinkParam::CPL_SCRIPT);
-                std::string datas = "<cpls>";
-
-                std::map<int, std::shared_ptr<Cpl>>::iterator it;
-                for (it = cpls.begin(); it != cpls.end(); it++) {
-                    bool foundInScript = false;
-                    for (std::shared_ptr<LinkParam> link : linksScript) {
-                        if (link->getSrcId() == it->first) {
-                            foundInScript = true;
-                            break;
-                        }
-                    }
-                    bool foundInRelease = false;
-                    for (std::shared_ptr<LinkParam> link : linksRelease) {
-                        if (link->getSrcId() == it->first) {
-                            foundInRelease = true;
-                            break;
-                        }
-                    }
-
-                    if (!foundInRelease && !foundInScript) {
-                        datas += it->second->toXmlString();
-                    }
-                }
-                datas += "</cpls>";
-                response->setDatas(datas);
-                response->setStatus(CommandCentralResponse::OK);
-                response->setComments("GET_CPLS for release achieved !");
-            }
-            else {
-                response->setStatus(CommandCentralResponse::KO);
-                response->setComments("GET_CPLS for release failed !");
-            }
-
-            delete query;
-            delete queryLinkRelease;
-            delete queryLinkScript;
-            delete result;
-            delete resultLinkRelease;
-            delete resultLinkScript;
+        catch(const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("GET_CPLS failed: " + std::string(e.what()));
         }
     }
     else if (cmd->getType() == CommandCentral::GET_CUT) {
@@ -2369,7 +2265,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         //    releaseRepo->Read(release);
         //    Query* query = releaseRepo->GetQuery();
         //    ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
-//
+        //
         //    if (result != nullptr && result->isValid()) {
         //        response->setStatus(CommandCentralResponse::OK);
         //        response->setComments("Releases get success");

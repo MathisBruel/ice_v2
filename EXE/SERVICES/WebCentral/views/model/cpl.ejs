@@ -73,18 +73,18 @@
     const modal = document.getElementById("loading");
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const id = urlParams.get('id');
+    const uuid = urlParams.get('uuid');
 
     // -- load cinemas at init of page
     document.addEventListener('DOMContentLoaded', async function(){
 
-        if (id != -1) {
+        if (uuid != -1 && uuid != null) {
             document.getElementById("create").style.display = "none";
             
-            const json = {id: id};
+            const json = {uuid: uuid};
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
             const result = await (await fetch(`/getCpls`, options)).json();
-
+            console.log(result);
             if (result.ok == true) {
 
                 const cpl = result.data.cpl;
@@ -92,8 +92,8 @@
                 document.getElementById("cpl_file").setAttribute("hidden", true);
                 document.getElementById("sync_file").setAttribute("hidden", true);
 
-                document.getElementById("name").value = cpl.$.name;
-                document.getElementById("uuid").value = cpl.$.uuid;
+                document.getElementById("name").value = cpl.$.CPL_name;
+                document.getElementById("uuid").value = cpl.$.CPL_uuid;
                 document.getElementById("path_cpl").value = cpl.$.pathCpl;
                 document.getElementById("path_sync").value = cpl.$.pathSync;
                 document.getElementById("sha1_sync").value = cpl.$.sha1Sync;
@@ -116,13 +116,13 @@
 
         const name = document.getElementById("name").value;
         const path = "/var/ICE2/CPLS/";
-        const uuid = document.getElementById("uuid").value;
+        const uuidValue = document.getElementById("uuid").value;
 
         if (name == "") {
             document.getElementById("name").style.backgroundColor = "red";
             showErrorMessage("message-box", "Field name is empty !");
         }
-        else if (uuid == "") {
+        else if (uuidValue == "") {
             document.getElementById("uuid").style.backgroundColor = "red";
             showErrorMessage("message-box", "Field uuid is empty !");
         }
@@ -135,7 +135,7 @@
             formData.append("fileCpl", fileCpl);
             formData.append("fileSync", fileSync);
             formData.append("name", name);
-            formData.append("uuid", uuid);
+            formData.append("uuid", uuidValue);
             formData.append("path", path);
             formData.append("cpl_name", fileCpl.name);
             if (fileSync != undefined) { formData.append("sync_name", fileSync.name); }
@@ -169,16 +169,15 @@
     document.getElementById("update").addEventListener('click', async function(){
 
         const name = document.getElementById("name").value;
-        const uuid = document.getElementById("uuid").value;
+        const uuidValue = document.getElementById("uuid").value;
         const path_cpl = document.getElementById("path_cpl").value;
         const path_sync = document.getElementById("path_sync").value;
         const sha1_sync = document.getElementById("sha1_sync").value;
         const type_cpl = document.getElementById("type_cpl").value;
 
         const json = {
-            id: id,
-            name: name,
             uuid: uuid,
+            name: name,
             type: type_cpl,
             path_cpl: path_cpl,
             path_sync: path_sync,
@@ -207,7 +206,7 @@
         const path_sync = document.getElementById("path_sync").value;
 
         const json = {
-            id: id,
+            uuid: uuid,
             path_cpl: path_cpl,
             path_sync: path_sync
         };
