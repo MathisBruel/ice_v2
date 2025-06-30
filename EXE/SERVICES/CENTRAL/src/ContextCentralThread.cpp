@@ -2332,18 +2332,32 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
-        try {
-            std::string releasesXml = _boundaryManager.GetContentReleasesAsXml(contentId,typeId,localisationId);
-            response->setDatas(releasesXml);
-            response->setStatus(CommandCentralResponse::OK);
-            response->setComments("Releases retrieved successfully.");
-        }
-        catch(std::exception e) {
-            response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Failed to get releases");
-            response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
-            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetContentReleasesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
-        
+        if (typeId == -1 || localisationId == -1) {
+            try {
+                std::string releasesXml = _boundaryManager.GetContentReleasesAsXml(contentId);
+                response->setDatas(releasesXml);
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Releases retrieved successfully.");
+            }
+            catch(std::exception e) {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Failed to get releases - 1");
+                response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+                Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetContentReleasesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
+            }
+        }else {
+            try {
+                std::string releasesXml = _boundaryManager.GetContentReleasesAsXml(contentId,typeId,localisationId);
+                response->setDatas(releasesXml);
+                response->setStatus(CommandCentralResponse::OK);
+                response->setComments("Releases retrieved successfully.");
+            }
+            catch(std::exception e) {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Failed to get releases - 2");
+                response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
+                Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetContentReleasesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
+            }
         }
         //MySQLReleaseRepo* releaseRepo = new MySQLReleaseRepo();
         //int cmdId = cmd->getIntParameter("id_content");

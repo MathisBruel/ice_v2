@@ -124,15 +124,17 @@ std::unique_ptr<ResultQuery> MySQLSiteRepo::getSites(int groupId)
     
     std::unique_ptr<Query> query = std::make_unique<Query>(Query::CUSTOM, _database, "");
     query->setCustomSQL(sql);
-    query->addParameter("?", &groupId, "int");
+
     query->addParameter("id_site", nullptr, "int");
     query->addParameter("name", nullptr, "string");
     query->addParameter("id_group", nullptr, "int");
     query->addParameter("id_connection", nullptr, "int");
     query->addParameter("level", nullptr, "int");
     
+    
+    query->addParameter("groupId", &groupId, "int");
+    
     std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
-    int row = result->getNbRows();
     return result;
 }
 

@@ -22,7 +22,7 @@ struct StateContentInit : StateTemplate {
             if (control.context().content) {
                 this->response.cmdStatus = "OK";
                 this->response.cmdComment = "Content created";
-                this->response.cmdDatasXML = control.context().content->toXmlString(false);
+                //TODO: this->response.cmdDatasXML = control.context().content->toXmlString(false);
                 return this->response;
             }
             this->response.cmdStatus = "KO";
@@ -230,7 +230,7 @@ struct StateCPL : StateTemplate {
     void newCPLFile(Control control, int id_serv_pair_config, std::string CPL_name, std::string CPL_uuid, std::string CPL_path) {
         control.context().release->UploadCPL(id_serv_pair_config, CPL_name, CPL_uuid, CPL_path);
         MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
-        int* releaseId = control.context().release->GetReleaseId();
+        const int* releaseId = control.context().release->GetReleaseId();
         std::string compositeId = std::to_string(id_serv_pair_config) + "_" 
                                 + std::to_string(releaseId[0]) + "_" 
                                 + std::to_string(releaseId[1]) + "_" 
@@ -293,7 +293,7 @@ struct StateSyncLoop : StateTemplate {
     void newSyncLoop(Control control, std::string id_serv_pair_config, std::string syncLoopPath) {
         control.context().release->UploadSyncLoop(std::stoi(id_serv_pair_config), syncLoopPath);
         MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
-        int* releaseId = control.context().release->GetReleaseId();
+        const int* releaseId = control.context().release->GetReleaseId();
         std::string compositeId = id_serv_pair_config + "_" 
                                 + std::to_string(releaseId[0]) + "_" 
                                 + std::to_string(releaseId[1]) + "_" 

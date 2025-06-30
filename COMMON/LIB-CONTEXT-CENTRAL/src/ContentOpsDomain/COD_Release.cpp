@@ -7,6 +7,8 @@ COD_Releases::COD_Releases()
     _releaseId[1] = -1;
     _releaseId[2] = -1;
     _CPLRefPath = "";
+    _typeName = "";
+    _localisationName = "";
     _cis = nullptr;
 }
 
@@ -15,6 +17,8 @@ COD_Releases::COD_Releases(int id_content, int typeMovie, int localisationMovie)
     _releaseId[1] = typeMovie;
     _releaseId[2] = localisationMovie;
     _CPLRefPath = "";
+    _typeName = "";
+    _localisationName = "";
     _cis = nullptr;
 }
 
@@ -59,18 +63,4 @@ void COD_Releases::SetReleaseId(int id_content, TypeMovie typeMovie, Localisatio
     _releaseId[0] = id_content;
     _releaseId[1] = typeMovie;
     _releaseId[2] = localisationMovie;
-}
-
-std::string COD_Releases::toXmlString(bool printChild)
-{
-    std::string xml = "<release";
-    xml += " id_content=\"" + std::to_string(this->_releaseId[0]) + "\"";
-    xml += " id_type=\"" + std::to_string(this->_releaseId[1]) + "\"";
-    xml += " id_localisation=\"" + std::to_string(this->_releaseId[2]) + "\"";
-    xml += " release_cpl_ref_path=\"" + this->_CPLRefPath + "\"";
-    if (printChild) {
-        xml += " release_cis_path=\"" + this->_cis->GetCISPath() + "\"";
-    }
-    xml += "/>";
-    return xml;
 }

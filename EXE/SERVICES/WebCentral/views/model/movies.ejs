@@ -205,14 +205,13 @@
             const json = {"id_content":id_content};
             const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
             const response = await ( await fetch(`/getReleasesContent`, options) ).json();
-
             const releasesdetails = []
 
             if (response.data.releases != "") {
                 for (const release of response.data.releases.release) {
                     releasesdetails.push({"id_release": [id_content, release.$.id_type, release.$.id_localisation].join("_"), 
-                                          "localisation": contentLocalisation[release.$.id_localisation], 
-                                          "type":contentType[release.$.id_type], 
+                                          "localisation": release.$.localisation_name || contentLocalisation[release.$.id_localisation], 
+                                          "type": release.$.type_name || contentType[release.$.id_type], 
                                           "ref":release.$.release_cpl_ref_path});
                 }
             }
@@ -227,7 +226,6 @@
     }
 
     function drawContentDetails(content, contentsContainer) {
-
         const contentReleaseContainer = createDOM("div", {class:"ContentDetails", id : "content_" + content.id_content});
         contentsContainer.appendChild(contentReleaseContainer);
         const contentTop = createDOM("div", {class:"BlockTop"});

@@ -5,6 +5,7 @@
 #include "ContentOpsDomain/COD_Sync.h"
 #include "ContentOpsDomain/COD_SyncLoop.h"
 #include "ContentOpsDomain/COD_Content.h"
+#include "ContentOpsDomain/COD_Release.h"
 
 #include "ContentOpsApp/State.h"
 #include "ContentOpsApp/ContentInteraction.h"
@@ -18,9 +19,6 @@
 #include "ContentOpsApp/InProdInteraction.h"
 
 #include "ContentOpsInfra/MySQLDBConnection.h"
-
-class COD_Content;
-class COD_Releases;
 
 struct Context
 {

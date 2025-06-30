@@ -33,7 +33,6 @@ public:
     void DeleteRelease(std::string releaseId);
     COD_Releases* GetRelease(std::string releaseId);
     void CreateRelease(int id_content, int typeMovie, int localisationMovie);
-    std::string toXmlString(bool printChild);
 
 private:
     std::shared_ptr<COD_ContentRepo> _contentRepo;

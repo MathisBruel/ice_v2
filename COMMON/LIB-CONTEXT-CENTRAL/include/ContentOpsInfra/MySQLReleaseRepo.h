@@ -12,12 +12,17 @@ public:
     void Update(COD_Releases* release) override { _query = MySQLupdate(release); }
     void Remove(COD_Releases* release) override { _query = MySQLremove(release); }
 
-    Query* MySQLcreate(COD_Releases* release);
-    Query* MySQLread(COD_Releases* release);
-    Query* MySQLupdate(COD_Releases* release);
-    Query* MySQLremove(COD_Releases* release);
+    // Implémentation des méthodes virtuelles pures
+    std::unique_ptr<ResultQuery> getReleases() override;
+    std::unique_ptr<ResultQuery> getReleases(int contentId);
+    std::unique_ptr<ResultQuery> getRelease(int contentId, int typeId, int localisationId) override;
 
-    Query* GetQuery() { return _query; }
+    std::unique_ptr<Query> MySQLcreate(COD_Releases* release);
+    std::unique_ptr<Query> MySQLread(COD_Releases* release);
+    std::unique_ptr<Query> MySQLupdate(COD_Releases* release);
+    std::unique_ptr<Query> MySQLremove(COD_Releases* release);
+
+    Query* GetQuery() { return _query.get(); }
 private:
     static std::string _database;
     static std::string _table;
@@ -25,5 +30,5 @@ private:
     int* _releaseIds;
     std::string _CPLRefPath;
 
-    Query* _query;
+    std::unique_ptr<Query> _query;
 };

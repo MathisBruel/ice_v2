@@ -57,20 +57,3 @@ void COD_Content::CreateRelease(int id_content, int typeMovie, int localisationM
     this->_release[releaseId] = new COD_Releases();
     this->_release[releaseId]->SetReleaseId(id_content, idTypeMovie, idLocalisationMovie);
 }
-
-std::string COD_Content::toXmlString(bool printChild)
-{
-    std::string xml = "<content";
-    xml += " id_content=\"" + std::to_string(this->_contentId) + "\"";
-    xml += " title=\"" + this->_contentTitle + "\"";
-    if (printChild) {
-        xml += ">"; 
-        for (auto const& release : this->_release) {
-            xml += release.second->toXmlString(false);
-        }
-    }
-    else {
-        xml += "/>";
-    }
-    return xml;
-} 
