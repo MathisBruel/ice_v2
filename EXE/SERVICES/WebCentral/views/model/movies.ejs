@@ -400,7 +400,7 @@
                         if (result.ok == true) {
                             const body = await result.json();
                             if (body.code == 200) {
-                                window.location.assign("/contentRelease?id_content=" + content.id_content + "&id_type=" + selectType.value + "&id_localisation=" + selectLocalisation.value + "&contentTitle=" + content.title);
+                                window.location.assign("/contentRelease?id_content=" + content.id_content + "&id_type=" + selectType.value + "&id_localisation=" + selectLocalisation.value);
                             }
                             else {
                                 showErrorMessage("message-box", body.message);
@@ -444,7 +444,7 @@
             tdId.innerHTML = release.id_release;
             tr.appendChild(tdId);
             tdId.addEventListener('click', function(){
-                window.location.assign("/contentRelease?id_content=" + Ids[0] + "&id_type=" + Ids[1] + "&id_localisation=" + Ids[2] + "&contentTitle=" + content.title);
+                window.location.assign("/contentRelease?id_content=" + Ids[0] + "&id_type=" + Ids[1] + "&id_localisation=" + Ids[2]);
             });
             const tdType = createDOM("td", {align:"center", valign:"center"});
             tdType.innerHTML = release.type;

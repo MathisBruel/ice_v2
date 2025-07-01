@@ -10,7 +10,6 @@ std::unique_ptr<ResultQuery> MySQLCplRepo::getCpls()
     std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
     dbConn->InitConnection();
     
-    // Utiliser le système de requêtes standard pour une requête simple sans jointure
     Query* query = Cpl::getQuery();
     std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query));
     delete query;
@@ -35,10 +34,8 @@ std::unique_ptr<ResultQuery> MySQLCplRepo::getCplByUuid(const std::string& uuid)
     std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
     dbConn->InitConnection();
 
-    // On utilise le constructeur standard de Query pour une requête simple avec condition
     Query* query = new Query(Query::SELECT, _database, _table);
 
-    // On ajoute les champs à sélectionner
     query->addParameter("id", nullptr, "int");
     query->addParameter("name", nullptr, "string");
     query->addParameter("uuid", nullptr, "string");
@@ -47,8 +44,7 @@ std::unique_ptr<ResultQuery> MySQLCplRepo::getCplByUuid(const std::string& uuid)
     query->addParameter("path_sync", nullptr, "string");
     query->addParameter("sha1_sync", nullptr, "string");
 
-    // On ajoute la condition sur l'UUID
-    query->addWhere("uuid", uuid, "string");
+    query->addWhereParameter("uuid", (void*)&uuid, "string");
 
     std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query));
     delete query;

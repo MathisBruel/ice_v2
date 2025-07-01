@@ -39,12 +39,13 @@
     const id_content = urlParams.get('id_content');
     const id_type = urlParams.get('id_type');
     const id_localisation = urlParams.get('id_localisation');
-    const contentTitle = urlParams.get('contentTitle');
+    let contentTitle = "";
     
     document.addEventListener('DOMContentLoaded', async function(){
         // Charger les données de localisation et type au démarrage
         await loadLocalisations();
         await loadTypes();
+        await loadContent();
         
         if (id_content == null || id_type == null || id_localisation == null) { window.location.assign("/movies"); }
         const numRelease = document.getElementById("releaseNum");
@@ -696,6 +697,21 @@
             }
         } catch(error) {
             console.error("Erreur lors du chargement des types:", error);
+        }
+    }
+
+    async function loadContent() {
+        const json = JSON.stringify({id_content: id_content});
+        const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
+        const response = await fetch(`/getContents`, options);
+        console.log(response)
+        const result = await response.json();
+
+        if (result.ok && result.data && result.data.content) {
+            const content = result.data.content;
+            const inputTitle = document.getElementById("title");
+            inputTitle.value = content.$.title;
+            contentTitle = content.$.title;
         }
     }
 
