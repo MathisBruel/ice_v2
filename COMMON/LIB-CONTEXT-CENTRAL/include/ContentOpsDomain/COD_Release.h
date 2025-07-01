@@ -1,8 +1,7 @@
 #pragma once
 #include "COD_LocalisationMovie.h"
 #include "COD_TypeMovie.h"
-#include "COD_CIS.h"
-#include "COD_CPL.h"
+#include "ContentOpsDomain/COD_Cpl.h"
 #include "COD_SyncLoop.h"
 #include <map>
 #include <memory>
@@ -23,8 +22,8 @@ public:
     void SetReleaseInfos(std::string CPLRefPath) {this->_CPLRefPath = CPLRefPath;}
     void SetTypeName(std::string typeName) {this->_typeName = typeName;}
     void SetLocalisationName(std::string localisationName) {this->_localisationName = localisationName;}
-    void SetCIS(COD_CIS* cis) {this->_cis = cis;}
-    void AddCPL(std::string compositeId, COD_CPLRelease* cpl) {this->_cpls[compositeId] = cpl;}
+    void SetCISPath(std::string cisPath) {this->_cisPath = cisPath;}
+    void AddCPL(std::string compositeId, COD_CplRelease* cpl) {this->_cpls[compositeId] = cpl;}
     void AddSyncLoop(std::string compositeId, COD_SyncLoop* syncLoop) {this->_syncLoops[compositeId] = syncLoop;}
     void DeleteCPL(std::string compositeId) {this->_cpls.erase(compositeId);}
     void DeleteSyncLoop(std::string compositeId) {this->_syncLoops.erase(compositeId);}
@@ -33,20 +32,21 @@ public:
     std::string GetCPLRefPath() const {return this->_CPLRefPath;}
     std::string GetTypeName() const {return this->_typeName;}
     std::string GetLocalisationName() const {return this->_localisationName;}
-    COD_CIS* GetCIS() const {return this->_cis;}
-    std::map<std::string, COD_CPLRelease*> GetCPLs() {return this->_cpls;}
-    COD_CPLRelease* GetCPL(std::string compositeId) {return this->_cpls[compositeId];}
+    std::string GetCISPath() const {return this->_cisPath;}
+    std::map<std::string, COD_CplRelease*> GetCPLs() {return this->_cpls;}
+    COD_CplRelease* GetCPL(std::string compositeId) {return this->_cpls[compositeId];}
     std::map<std::string, COD_SyncLoop*> GetSyncLoops() {return this->_syncLoops;}
     COD_SyncLoop* GetSyncLoop(std::string compositeId) {return this->_syncLoops[compositeId];}
 
 private:
     std::shared_ptr<COD_ReleaseRepo> _releaseRepo;
-    COD_CIS* _cis;
-    std::map<std::string, COD_CPLRelease*> _cpls;
+    
+    std::map<std::string, COD_CplRelease*> _cpls;
     std::map<std::string, COD_SyncLoop*> _syncLoops;
 
     int _releaseId[3];
     std::string _CPLRefPath;
     std::string _typeName;
     std::string _localisationName;
+    std::string _cisPath;
 };

@@ -12,15 +12,14 @@ COB_Release::operator std::string() const
     xml += " id_type=\"" + std::to_string(this->GetReleaseId()[1]) + "\"";
     xml += " id_localisation=\"" + std::to_string(this->GetReleaseId()[2]) + "\"";
     xml += " release_cpl_ref_path=\"" + this->GetCPLRefPath() + "\"";
+    xml += " release_cis_path=\"" + this->GetCISPath() + "\"";
     if (!this->GetTypeName().empty()) {
         xml += " type_name=\"" + this->GetTypeName() + "\"";
     }
     if (!this->GetLocalisationName().empty()) {
         xml += " localisation_name=\"" + this->GetLocalisationName() + "\"";
     }
-    if (this->GetCIS() != nullptr && !this->GetCIS()->GetCISPath().empty()) {
-        xml += " release_cis_path=\"" + this->GetCIS()->GetCISPath() + "\"";
-    }
+    
     xml += "/>";
     return xml;
 }

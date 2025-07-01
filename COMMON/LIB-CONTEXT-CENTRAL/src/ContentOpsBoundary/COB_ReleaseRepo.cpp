@@ -95,6 +95,7 @@ COB_Release COB_ReleaseRepo::GetRelease(int contentId, int typeId, int localisat
     
     COB_Release release(*id, *type, *localisation);
     release.SetReleaseInfos(*cplRefPath);
+    release.SetCISPath(*cisPath);
     if (typeName) {
         release.SetTypeName(*typeName);
     }

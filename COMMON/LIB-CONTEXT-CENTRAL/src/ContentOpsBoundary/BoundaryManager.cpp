@@ -66,7 +66,14 @@ std::string BoundaryManager::GetContentReleasesAsXml(int contentId) {
 }
 
 std::string BoundaryManager::GetContentReleasesAsXml(int contentId,int typeId, int localizationId) {
-    throw std::logic_error("GetContentReleasesAsXml not implemented");
+    try {
+        COB_Release release = _releaseRepo->GetRelease(contentId, typeId, localizationId);
+        return static_cast<std::string>(release);
+    }
+    catch(const std::exception& e) {
+        std::string errorMsg = "Failed to get release : " + std::string(e.what());
+        throw std::runtime_error(errorMsg);
+    }
 }
 
 std::string BoundaryManager::GetGroupsAsXml() {

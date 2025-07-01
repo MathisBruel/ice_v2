@@ -58,8 +58,17 @@
         const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation };
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
         let response = await (await fetch(`/getReleasesContent`, options)).json();
+        console.log(response);
         if (response.ok == true) {
-            if (response.data.releases != "") {
+            // Cas 1 : réponse unique (release)
+            let releaseData = null;
+            if (response.data.release) {
+                releaseData = response.data.release;
+            } else if (response.data.releases && response.data.releases.release) {
+                // Cas 2 : ancienne structure (tableau)
+                releaseData = response.data.releases.release[0];
+            }
+            if (releaseData) {
                 const infoBox = document.getElementById("infoBox");
                 const updateImg = createDOM("img", {class:"image-line-add", src:"/add.png", id:"update"});
                 updateImg.addEventListener("click", async function(){
@@ -68,7 +77,7 @@
                         release_cpl_ref_path.style.backgroundColor = "red";
                         showErrorMessage("message-box", "Content is empty");
                     }
-                    else if (release_cpl_ref_path.value == response.data.releases.release[0].$.release_cpl_ref_path) {
+                    else if (release_cpl_ref_path.value == releaseData.$.release_cpl_ref_path) {
                         release_cpl_ref_path.style.backgroundColor = "orange";
                         showErrorMessage("message-box", "No changes detected");
                     }
@@ -92,13 +101,13 @@
                 });
                 infoBox.appendChild(updateImg);
                 const inputIdMovie = document.getElementById("cplRefPath");
-                inputIdMovie.value = response.data.releases.release[0].$.release_cpl_ref_path;
+                inputIdMovie.value = releaseData.$.release_cpl_ref_path;
 
                 const cisBox = document.getElementById("cisBox");
                 const containerCis = createDOM("div", { class: "BlockLabel", style:"width: 25%;" });
                 const labelCis = createDOM("label", { for: "cisPath" });
                 labelCis.innerHTML = "CIS Path";
-                let cispathValue = response.data.releases.release[0].$.release_cis_path;
+                let cispathValue = releaseData.$.release_cis_path;
                 const inputCisPath = createDOM("input", { type: "text", id: "cisPath"});
                 inputCisPath.value = cispathValue;
                 containerCis.appendChild(labelCis);
@@ -141,7 +150,7 @@
                             cisPath.style.backgroundColor = "red";
                             showErrorMessage("message-box", "Content is empty");
                         }
-                        else if (cisPath.value == response.data.releases.release[0].$.release_cis_path) {
+                        else if (cisPath.value == releaseData.$.release_cis_path) {
                             cisPath.style.backgroundColor = "orange";
                             showErrorMessage("message-box", "No changes detected");
                         }

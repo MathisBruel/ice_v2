@@ -91,11 +91,11 @@ struct StatePublishing : StateTemplate {
     }
     void deleteCPL(Control control, std::string id_serv_pair_config, std::string id_content, std::string id_type, std::string id_localisation) {
         std::string compositeId = id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation;
-        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        /*MySQLCplRepo* cplRepo = new MySQLCplRepo();
         cplRepo->Remove(control.context().release->GetCPL(compositeId));
         control.context().dbConnection->ExecuteQuery(cplRepo->GetQuery());
         control.context().release->DeleteCPL(compositeId);
-        delete cplRepo;
+        delete cplRepo;*/
     }
     void deleteSync(Control control, std::string id_serv_pair_config, std::string id_content, std::string id_type, std::string id_localisation) {
         std::string compositeId = id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation;
@@ -169,10 +169,10 @@ struct StateUploadCIS : StateTemplate {
     }
     void newCISFile(Control control, std::string cisPath) {
         control.context().release->UploadCIS(cisPath);
-        MySQLCISRepo* cisRepo = new MySQLCISRepo();
+        /*MySQLCISRepo* cisRepo = new MySQLCISRepo();
         cisRepo->Create(control.context().release->GetCIS());
         control.context().dbConnection->ExecuteQuery(cisRepo->GetQuery());
-        delete cisRepo;
+        delete cisRepo;*/
     }
     void react(const PushCISEvent&, EventControl& control) {
         control.context().cisFinish = true;
@@ -229,7 +229,7 @@ struct StateCPL : StateTemplate {
     }
     void newCPLFile(Control control, int id_serv_pair_config, std::string CPL_name, std::string CPL_uuid, std::string CPL_path) {
         control.context().release->UploadCPL(id_serv_pair_config, CPL_name, CPL_uuid, CPL_path);
-        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
+        /*MySQLCplRepo* cplRepo = new MySQLCplRepo();
         const int* releaseId = control.context().release->GetReleaseId();
         std::string compositeId = std::to_string(id_serv_pair_config) + "_" 
                                 + std::to_string(releaseId[0]) + "_" 
@@ -237,7 +237,7 @@ struct StateCPL : StateTemplate {
                                 + std::to_string(releaseId[2]);
         cplRepo->Create(control.context().release->GetCPL(compositeId));
         control.context().dbConnection->ExecuteQuery(cplRepo->GetQuery());
-        delete cplRepo;
+        delete cplRepo;*/
     }
     void react (const CreateSyncEvent&, EventControl& control) {
         control.changeTo<StateSync>();

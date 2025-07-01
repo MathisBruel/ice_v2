@@ -2515,7 +2515,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::UPDATE_CIS) {
-        MySQLCISRepo* cisRepo = new MySQLCISRepo();
+        /*MySQLCISRepo* cisRepo = new MySQLCISRepo();
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
@@ -2538,14 +2538,14 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         delete result;
         delete updateQuery;
         delete cis;
-        delete cisRepo;
+        delete cisRepo;*/
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_CPLS) {
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
-        MySQLCPLRepo* cplRepo = new MySQLCPLRepo();
-        COD_CPLRelease* cpl = new COD_CPLRelease();
+        /*MySQLCplRepo* cplRepo = new MySQLCplRepo();
+        COD_CplRelease* cpl = new COD_CplRelease();
         cpl->SetCPLId(-1, contentId, typeId, localisationId);
         cplRepo->Read(cpl);
         Query* query = cplRepo->GetQuery();
@@ -2568,6 +2568,8 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setComments("CPLs get failed");
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
         }
+        delete cplRepo;
+        delete cpl;*/
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCS) {
         int contentId = cmd->getIntParameter("id_content");

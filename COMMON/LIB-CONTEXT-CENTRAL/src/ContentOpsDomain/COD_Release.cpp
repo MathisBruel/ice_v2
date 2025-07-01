@@ -9,7 +9,7 @@ COD_Releases::COD_Releases()
     _CPLRefPath = "";
     _typeName = "";
     _localisationName = "";
-    _cis = nullptr;
+    _cisPath = "";
 }
 
 COD_Releases::COD_Releases(int id_content, int typeMovie, int localisationMovie) {
@@ -19,20 +19,15 @@ COD_Releases::COD_Releases(int id_content, int typeMovie, int localisationMovie)
     _CPLRefPath = "";
     _typeName = "";
     _localisationName = "";
-    _cis = nullptr;
+    _cisPath = "";
 }
 
 COD_Releases::~COD_Releases() {
-    if (_cis != nullptr) {
-        delete _cis;
-    }
 }
 
 void COD_Releases::UploadCIS(std::string CISPath)
 {
-    this->_cis = new COD_CIS();
-    this->_cis->SetCISInfos(CISPath);
-    this->_cis->SetCISId(_releaseId[0], _releaseId[1], _releaseId[2]);
+    this->_cisPath = CISPath;
 }
 
 void COD_Releases::UploadCPL(int id_serv_pair_config, std::string uuid, std::string name, std::string cplPath)
@@ -41,7 +36,7 @@ void COD_Releases::UploadCPL(int id_serv_pair_config, std::string uuid, std::str
                             + std::to_string(_releaseId[0]) + "_" 
                             + std::to_string(_releaseId[1]) + "_" 
                             + std::to_string(_releaseId[2]);
-    this->_cpls[compositeId] = new COD_CPLRelease();
+    this->_cpls[compositeId] = new COD_CplRelease();
     this->_cpls[compositeId]->SetCPLId(id_serv_pair_config, _releaseId[0], _releaseId[1], _releaseId[2]);
     this->_cpls[compositeId]->SetDatas(uuid, name);
     this->_cpls[compositeId]->SetCplInfos(cplPath);

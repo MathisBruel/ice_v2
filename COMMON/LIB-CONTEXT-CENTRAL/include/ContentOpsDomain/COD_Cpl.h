@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <memory>
+#include "COD_Sync.h"
+#include <iostream>
 
 class COD_CplRepo;
 
@@ -29,4 +31,36 @@ private:
     std::string _uuid;
     std::string _pathSync;
     std::shared_ptr<COD_CplRepo> _cplRepo;
+};
+
+// Déclaration de la classe COD_CplRelease (issue de l'ancien COD_CPL.h)
+class CPLRepo;
+class COD_CplRelease
+{
+public:
+    COD_CplRelease();
+    ~COD_CplRelease();
+
+    void CreateSync(std::string SyncPath);
+
+    void SetCPLId(int id_serv_pair_config, int id_content, int id_type, int id_localisation);
+    void SetDatas(std::string CPLUUID, std::string CPLName);
+    void SetCplInfos(std::string CPLPath);
+    void DeleteSync() {delete this->_sync;}
+    std::string toXmlString();
+
+    int* GetCPLId() {return this->_CPLId;}
+    std::string GetCPLUUID() {return this->_CPLUUID;}
+    std::string GetCPLName() {return this->_CPLName;}
+    std::string GetCPLPath() {return this->_CPLPath;}
+    COD_Sync* GetSync() {return this->_sync;}
+
+private:
+    CPLRepo* _cplRepo;
+    COD_Sync* _sync;
+    
+    int _CPLId[4];
+    std::string _CPLUUID;
+    std::string _CPLName;
+    std::string _CPLPath;
 }; 

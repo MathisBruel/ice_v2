@@ -27,8 +27,8 @@
         </li>
     </ul>
 
-    <h2 id="title-cinemas">Cinemas</h2>
-    <ul class="list" id="list-cinemas"></ul>
+    <h2 id="title-sites">Sites</h2>
+    <ul class="list" id="list-sites"></ul>
 
     <h2 id="title-releases">Releases</h2>
     <ul class="list" id="list-releases"></ul>
@@ -42,11 +42,11 @@
     const urlParams = new URLSearchParams(queryString);
     const id = urlParams.get('id');
 
-    const listCinemas = document.getElementById("list-cinemas");
+    const listSites = document.getElementById("list-sites");
     const listReleases = document.getElementById("list-releases");
     const parentGroupSelect = document.getElementById("parent-group");
 
-    // -- load cinemas at init of page
+    // -- load sites at init of page
     document.addEventListener('DOMContentLoaded', async function(){
 
         // Charger la liste des groupes pour le select parent ET trouver le groupe courant
@@ -96,58 +96,58 @@
             }
 
             // Les requêtes pour les cinémas et releases restent inchangées
-            const jsonCinemas = {id: -1};
-            const optionsCinemas = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonCinemas) };
-            const resultcinemas = await (await fetch(`/getCinemas`, optionsCinemas)).json();
-
+            const jsonSites = {id_group: id};
+            const optionsSites = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonSites) };
+            const resultSites = await (await fetch(`/getSites`, optionsSites)).json();
+            console.log(resultSites);
             const jsonReleases = {id: -1};
             const optionsReleases = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonReleases) };
             const resultReleases = await (await fetch(`/getReleases`, optionsReleases)).json();
 
-            // -- cinemas list
-            var listCinemaData = [];
-            if (resultcinemas.data.cinemas) {
-                if (resultcinemas.data.cinemas.cinema.length > 0) {
-                    resultcinemas.data.cinemas.cinema.forEach(cinema => {
-                        if (currentGroup.cinemas && currentGroup.cinemas.length > 0 && currentGroup.cinemas[0] != "") {
+            // -- sites list
+            var listSiteData = [];
+            if (resultSites.data.sites) {
+                if (resultSites.data.sites.site.length > 0) {
+                    resultSites.data.sites.site.forEach(site => {
+                        if (currentGroup.sites && currentGroup.sites.length > 0 && currentGroup.sites[0] != "") {
 
                             var found = false;
-                            currentGroup.cinemas[0].cinema.forEach(cinemaGroup => {
-                                if (cinema.$.id == cinemaGroup.$.id) {
+                            currentGroup.sites[0].site.forEach(siteGroup => {
+                                if (site.$.id == siteGroup.$.id) {
                                     found = true;
                                 }
                             });
 
                             if (!found) {
-                                listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
+                                listSiteData.push({id: site.$.id, name: site.$.name});
                             }
                         }
                         else {
-                            listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
+                            listSiteData.push({id: site.$.id, name: site.$.name});
                         }
                     });
                 }
-                if (listCinemaData.length > 0) {
+                if (listSiteData.length > 0) {
                     const li = createDOM("li", {className:"list-item-add"});
-                    listCinemas.appendChild(li);
-                    const drop = createDOM("select", { className:"drop", id:"dropCinemas"});
+                    listSites.appendChild(li);
+                    const drop = createDOM("select", { className:"drop", id:"dropSites"});
                     li.appendChild(drop);
-                    listCinemaData.forEach(cinemaToAdd => {
-                        const select = createDOM("option", {value: cinemaToAdd.id, innerText: cinemaToAdd.name});
+                    listSiteData.forEach(siteToAdd => {
+                        const select = createDOM("option", {value: siteToAdd.id, innerText: siteToAdd.name});
                         drop.appendChild(select);
                     });
-                    const imgAdd = createDOM("img", { id:"addCinema", className:"image-line-add", src:"/add.png" });
+                    const imgAdd = createDOM("img", { id:"addSite", className:"image-line-add", src:"/add.png" });
                     imgAdd.addEventListener('click', async function(){
 
-                        const jsonLinkCinema = {
-                            id_cinema: document.getElementById("dropCinemas").value,
+                        const jsonLinkSite = {
+                            id_site: document.getElementById("dropSites").value,
                             id_group: id
                         };
-                        const optionsLinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkCinema) };
-                        const resultLinkCinema = await fetch(`/linkCinemaToGroup`, optionsLinkcinema);
-                        console.log(resultLinkCinema);
-                        if (resultLinkCinema.ok == true) {
-                            const body = await resultLinkCinema.json();
+                        const optionsLinkSite = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkSite) };
+                        const resultLinkSite = await fetch(`/linkSiteToGroup`, optionsLinkSite);
+                        console.log(resultLinkSite);
+                        if (resultLinkSite.ok == true) {
+                            const body = await resultLinkSite.json();
                             if (body.code == 200) {
                                 window.location.reload();
                             }
@@ -156,7 +156,7 @@
                             }
                         }
                         else {
-                            showErrorMessage("message-box", resultLinkCinema.message);
+                            showErrorMessage("message-box", resultLinkSite.message);
                         }
                     });
                     li.appendChild(imgAdd);
@@ -164,47 +164,24 @@
                 }
             }
 
-            // -- cinemas
-            if (currentGroup.cinemas && currentGroup.cinemas.length > 0 && currentGroup.cinemas[0] != "") {
-                currentGroup.cinemas[0].cinema.forEach(cinema => {
+            // -- sites
+            listSites.innerHTML = '';
+            if (resultSites.data.sites && resultSites.data.sites.site.length > 0) {
+                resultSites.data.sites.site.forEach(site => {
                     const li = createDOM("li", {className:"list-item"});
-                    listCinemas.appendChild(li);
+                    listSites.appendChild(li);
+                    li.style.cursor = "pointer";
+                    li.addEventListener('click', function() {
+                        window.location.assign("/sites?id_group=" + site.$.id_group);
+                    });
                     const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
-                    imgName.addEventListener('click', async function(){
-                        window.location.assign("/cinema?id=" + cinema.$.id);
-                    });
-                    const name = createDOM("div", { className:"param", innerText: cinema.$.name });
-                    const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:cinema.$.id });
-                    imgDelete.addEventListener('click', async function(){
-
-                        const jsonUnlinkCinema = {
-                            id_cinema: this.id,
-                            id_group: id
-                        };
-                        const optionsUnlinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkCinema) };
-                        const resultUnlinkCinema = await fetch(`/unlinkCinemaToGroup`, optionsUnlinkcinema);
-                        console.log(resultUnlinkCinema);
-                        if (resultUnlinkCinema.ok == true) {
-                            const body = await resultUnlinkCinema.json();
-                            if (body.code == 200) {
-                                window.location.reload();
-                            }
-                            else {
-                                showErrorMessage("message-box", body.message);
-                            }
-                        }
-                        else {
-                            showErrorMessage("message-box", resultUnlinkCinema.message);
-                        }
-                    });
+                    const name = createDOM("div", { className:"param", innerText: site.$.name });
                     li.appendChild(imgName);
                     li.appendChild(name);
-                    li.appendChild(imgDelete);
                 });
-            }
-            else {
+            } else {
                 const li = createDOM("li", {className:"list-item-none"});
-                listCinemas.appendChild(li);
+                listSites.appendChild(li);
                 const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
                 const name = createDOM("div", { className:"param", innerText:"NONE" });
                 li.appendChild(imgName);
@@ -319,9 +296,9 @@
             }
         }
         else {
-            document.getElementById("title-cinemas").style.display = "none";
+            document.getElementById("title-sites").style.display = "none";
             document.getElementById("title-releases").style.display = "none";
-            document.getElementById("list-cinemas").style.display = "none";
+            document.getElementById("list-sites").style.display = "none";
             document.getElementById("list-releases").style.display = "none";
             document.getElementById("update").style.display = "none";
             document.getElementById("delete").style.display = "none";

@@ -14,6 +14,10 @@
 </div>
 
 <script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id_group = urlParams.get('id_group') || -1;
+    
     document.addEventListener('DOMContentLoaded', async function () {
         const json = { id_group: -1 };
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
@@ -29,6 +33,9 @@
                 option.idParent = idParent;
                 option.text = group.$.name;
                 groupList.appendChild(option);
+                if (id_group == group.$.id_group) {
+                    groupList.value = group.$.id_group;
+                }
             }
         }
         groupList.addEventListener("change", function () {
@@ -36,6 +43,15 @@
             var idChildgroup =[parseInt(id_group)];
             drawSites(idChildgroup);
         });
+
+        if (id_group != -1) {
+            const json = { id_group: id_group };
+            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+            let response = await (await fetch(`/getSites`, options)).json();
+            if (response.ok == true) {
+                drawSites(id_group);
+            }
+        }
     });
 
     async function drawSites(idChildgroup) {
