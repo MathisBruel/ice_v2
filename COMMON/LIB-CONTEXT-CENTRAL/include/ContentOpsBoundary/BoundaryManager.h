@@ -29,6 +29,7 @@ class BoundaryManager {
     std::string GetCplAsXmlByUuid(const std::string& uuid);
     std::string GetCplsByScriptAsXml(int scriptId);
     std::string GetCplsByReleaseAsXml(int releaseId);
+    std::string GetReleaseCplsAsXml(int contentId, int typeId, int localisationId);
     std::string GetUnlinkedCplsAsXml();
     void UpdateContent(int contentId);
     void CreateContent();

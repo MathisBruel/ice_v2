@@ -237,6 +237,7 @@
         const cplOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cplJson) };
         let cplResponse = await (await fetch(`/getCPL`, cplOptions)).json();
         let cplIds = [];
+        console.log(cplResponse);
         if (cplResponse.ok == true) {
             if (cplResponse.data.cpls != "") { 
                 for (const cpl of cplResponse.data.cpls.cpl) {

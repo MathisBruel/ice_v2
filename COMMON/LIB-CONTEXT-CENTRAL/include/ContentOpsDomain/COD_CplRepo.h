@@ -16,6 +16,7 @@ public:
     virtual std::unique_ptr<ResultQuery> getCplByUuid(const std::string& uuid) = 0;
     virtual std::unique_ptr<ResultQuery> getCplsByScript(int scriptId) = 0;
     virtual std::unique_ptr<ResultQuery> getCplsByRelease(int releaseId) = 0;
+    virtual std::unique_ptr<ResultQuery> getCplsByRelease(int contentId, int typeId, int localisationId) = 0;
     virtual std::unique_ptr<ResultQuery> getUnlinkedCpls() = 0;
     virtual std::unique_ptr<ResultQuery> getCplsBySite(int siteId) = 0;
 }; 

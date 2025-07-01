@@ -2544,32 +2544,16 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
-        /*MySQLCplRepo* cplRepo = new MySQLCplRepo();
-        COD_CplRelease* cpl = new COD_CplRelease();
-        cpl->SetCPLId(-1, contentId, typeId, localisationId);
-        cplRepo->Read(cpl);
-        Query* query = cplRepo->GetQuery();
-        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
-        if (result != nullptr && result->isValid()) {
+        try {
+            std::string datas = BoundaryManager::GetInstance().GetReleaseCplsAsXml(contentId, typeId, localisationId);
             response->setStatus(CommandCentralResponse::OK);
             response->setComments("CPLs get success");
-            std::string datas = "<cpls>";
-            for (int i = 0; i < result->getNbRows(); i++) {
-                cpl->SetCPLId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_content"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
-                cpl->SetDatas(*result->getStringValue(i, "uuid"), *result->getStringValue(i, "name"));
-                cpl->SetCplInfos(*result->getStringValue(i, "path_cpl"));
-                datas += cpl->toXmlString();
-            }
-            datas += "</cpls>";
             response->setDatas(datas);
-        }
-        else {
+        } catch (const std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
             response->setComments("CPLs get failed");
-            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
+            response->setDatas(std::string("<error><message>") + e.what() + "</message></error>");
         }
-        delete cplRepo;
-        delete cpl;*/
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCS) {
         int contentId = cmd->getIntParameter("id_content");

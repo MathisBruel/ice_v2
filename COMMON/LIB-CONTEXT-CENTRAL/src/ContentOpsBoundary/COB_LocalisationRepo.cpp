@@ -1,5 +1,6 @@
 #include "ContentOpsBoundary/COB_LocalisationRepo.h"
 #include "ContentOpsDomain/COD_LocalisationRepo.h"
+#include "ContentOpsBoundary/COB_Localisations.h"
 
 COB_LocalisationRepo::COB_LocalisationRepo(std::shared_ptr<COD_LocalisationRepo> localisationRepo)
 {
@@ -10,9 +11,9 @@ COB_LocalisationRepo::~COB_LocalisationRepo()
 {
 }
 
-std::vector<COB_Localisation> COB_LocalisationRepo::GetLocalisations()
+COB_Localisations COB_LocalisationRepo::GetLocalisations()
 {
-    std::vector<COB_Localisation> localisations;
+    COB_Localisations localisations;
     std::unique_ptr<ResultQuery> result = _localisationRepo->getLocalisations();
     if (!result || !result->isValid()) {
         throw std::runtime_error("Failed to get localisations : " + std::string(result->getErrorMessage())); 

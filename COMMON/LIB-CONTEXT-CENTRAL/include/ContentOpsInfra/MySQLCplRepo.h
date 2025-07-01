@@ -12,6 +12,7 @@ public:
     std::unique_ptr<ResultQuery> getCplByUuid(const std::string& uuid) override;
     std::unique_ptr<ResultQuery> getCplsByScript(int scriptId) override;
     std::unique_ptr<ResultQuery> getCplsByRelease(int releaseId) override;
+    std::unique_ptr<ResultQuery> getCplsByRelease(int contentId, int typeId, int localisationId) override;
     std::unique_ptr<ResultQuery> getUnlinkedCpls() override;
     std::unique_ptr<ResultQuery> getCplsBySite(int siteId);
 

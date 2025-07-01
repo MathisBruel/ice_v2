@@ -1,5 +1,6 @@
 #include "ContentOpsBoundary/COB_TypeRepo.h"
 #include "ContentOpsDomain/COD_TypeRepo.h"
+#include "ContentOpsBoundary/COB_Types.h"
 
 COB_TypeRepo::COB_TypeRepo(std::shared_ptr<COD_TypeRepo> typeRepo)
 {
@@ -10,9 +11,9 @@ COB_TypeRepo::~COB_TypeRepo()
 {
 }
 
-std::vector<COB_Type> COB_TypeRepo::GetTypes()
+COB_Types COB_TypeRepo::GetTypes()
 {
-    std::vector<COB_Type> types;
+    COB_Types types;
     std::unique_ptr<ResultQuery> result = _typeRepo->getTypes();
     if (!result || !result->isValid()) {
         throw std::runtime_error("Failed to get types : " + std::string(result->getErrorMessage())); 
