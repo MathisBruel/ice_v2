@@ -8,30 +8,49 @@
 </div>
 
 <script>
-
     document.addEventListener('DOMContentLoaded', async function(){
-        let response = await ( getGroups(-1) );
+        let response = await getGroups();
         if (response.ok == true) {
             drawGroups(response.data.groups.group);
+        } else {
+            showErrorMessage("Erreur lors de la récupération des groupes", 3000);
         }
     });
 
-    async function getGroups(idGroup) {
-        var response;
+    async function getGroups() {
         try {
-            const json = JSON.stringify({ id:idGroup });
-            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
-            response = await ( await fetch(`/getGroups`, options) ).json();
+            const json = { id_group: -1 };
+            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
+            const response = await fetch('/getGroupsFilter', options);
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            showErrorMessage("Erreur lors de la récupération des groupes : " + error, 3000);
+            return null;
         }
-        catch(error){
-            showErrorMessage(id_error, error, DEFAULT_DELAY);
-        }
-        return response;
+    }
+
+    // Construction de l'arbre de groupes
+    function buildGroupTree(groups) {
+        const groupMap = {};
+        const roots = [];
+        groups.forEach(g => {
+            groupMap[g.$.id_group] = { ...g.$, children: [] };
+        });
+        groups.forEach(g => {
+            const parentId = g.$.id_group_1;
+            if (parentId && parentId != -1 && groupMap[parentId]) {
+                groupMap[parentId].children.push(groupMap[g.$.id_group]);
+            } else {
+                roots.push(groupMap[g.$.id_group]);
+            }
+        });
+        return roots;
     }
 
     function drawGroups(groups) {
         const tabGroups = document.getElementById("ul-group");
-
         // -- remove all childs
         let child = tabGroups.lastChild;
         while(child){
@@ -40,44 +59,54 @@
         }
 
         // -- create add line
-        const liAdd = createDOM("li", {className:"list-item-add"});
-        const imgAdd = createDOM("img", { className:"image-line-add", src:"/add.png", title:"add" });
+        const liAdd = document.createElement("li");
+        liAdd.className = "list-item-add";
+        const imgAdd = document.createElement("img");
+        imgAdd.className = "image-line-add";
+        imgAdd.src = "/add.png";
+        imgAdd.title = "add";
         imgAdd.addEventListener('click', async function(){
             window.location.assign("/group?id=-1");
         });
         liAdd.appendChild(imgAdd);
         tabGroups.appendChild(liAdd);
 
-        // -- foreach group
-        for (const group of groups) {
-
-            // -- clickable
+        if (!groups || groups.length === 0) {
             const li = document.createElement("li");
-            li.addEventListener('click', async function(){
+            li.className = "li-model";
+            li.innerText = "Aucun groupe trouvé.";
+            tabGroups.appendChild(li);
+            return;
+        }
+
+        // Construction de l'arbre
+        const tree = buildGroupTree(groups);
+
+        // Affichage récursif avec indentation
+        function renderGroupNode(node, level) {
+            const li = document.createElement("li");
+            li.className = "li-model";
+            li.id = node.id_group;
+            li.style.paddingLeft = (level * 24) + "px";
+            li.addEventListener('click', function(e){
+                e.stopPropagation();
                 window.location.assign("/group?id=" + li.id);
             });
-            li.className = "li-model";
-            li.id = group.$.id;
             const imageGroup = document.createElement("img");
             imageGroup.className = "image-line";
             imageGroup.src = "group.png";
             li.appendChild(imageGroup);
             const nameDom = document.createElement("div");
             nameDom.className = "param";
-            nameDom.innerText = group.$.name;
+            nameDom.innerText = node.name;
             li.appendChild(nameDom);
-            const imageDescr = document.createElement("img");
-            imageDescr.className = "image-line";
-            imageDescr.src = "description.png";
-            li.appendChild(imageDescr);
-            const descrDom = document.createElement("div");
-            descrDom.className = "param";
-            descrDom.innerText = group.$.description;
-            li.appendChild(descrDom);
             tabGroups.appendChild(li);
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => renderGroupNode(child, level + 1));
+            }
         }
+        tree.forEach(root => renderGroupNode(root, 0));
     }
 </script>
-
 
 <%- include ("../foot") %>

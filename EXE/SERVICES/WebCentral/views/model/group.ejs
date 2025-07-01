@@ -22,8 +22,8 @@
         </li>
         <li class="list-item-general">
             <img class="image-line-param" src="/control.png"/>
-            <div class="param">Description</div>
-            <textarea id="description" rows="5"></textarea>
+            <div class="param">Groupe parent</div>
+            <select id="parent-group"></select>
         </li>
     </ul>
 
@@ -44,17 +44,58 @@
 
     const listCinemas = document.getElementById("list-cinemas");
     const listReleases = document.getElementById("list-releases");
+    const parentGroupSelect = document.getElementById("parent-group");
 
     // -- load cinemas at init of page
     document.addEventListener('DOMContentLoaded', async function(){
 
+        // Charger la liste des groupes pour le select parent ET trouver le groupe courant
+        const optionsGroups = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id_group: -1 }) };
+        const allGroupsResp = await fetch('/getGroupsFilter', optionsGroups);
+        let allGroups = [];
+        let currentGroup = null;
+        if (allGroupsResp.ok) {
+            const allGroupsData = await allGroupsResp.json();
+            if (allGroupsData.ok && allGroupsData.data && allGroupsData.data.groups && allGroupsData.data.groups.group) {
+                allGroups = allGroupsData.data.groups.group;
+                if (id != -1) {
+                    currentGroup = allGroups.find(g => g.$.id_group == id);
+                }
+            }
+        }
+
+        // Remplir le select
+        parentGroupSelect.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = -1;
+        defaultOption.innerText = 'Aucun (racine)';
+        parentGroupSelect.appendChild(defaultOption);
+        allGroups.forEach(g => {
+            if (g.$.id_group != id) { // ne pas pouvoir se mettre parent de soi-même
+                const opt = document.createElement('option');
+                opt.value = g.$.id_group;
+                opt.innerText = g.$.name;
+                parentGroupSelect.appendChild(opt);
+            }
+        });
+
         if (id != -1) {
             document.getElementById("create").style.display = "none";
-            
-            const json = {id: id};
-            const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(json) };
-            const result = await (await fetch(`/getGroups`, options)).json();
-            
+            // Utiliser le groupe courant trouvé dans la liste
+            if (currentGroup) {
+                document.getElementById("name").value = currentGroup.$.name;
+                if (currentGroup.$.id_group_1) {
+                    parentGroupSelect.value = currentGroup.$.id_group_1;
+                } else {
+                    parentGroupSelect.value = -1;
+                }
+            } else {
+                showErrorMessage("message-box", "Aucun groupe trouvé ou erreur de récupération.");
+                document.getElementById("name").value = "";
+                parentGroupSelect.value = -1;
+            }
+
+            // Les requêtes pour les cinémas et releases restent inchangées
             const jsonCinemas = {id: -1};
             const optionsCinemas = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonCinemas) };
             const resultcinemas = await (await fetch(`/getCinemas`, optionsCinemas)).json();
@@ -63,229 +104,218 @@
             const optionsReleases = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonReleases) };
             const resultReleases = await (await fetch(`/getReleases`, optionsReleases)).json();
 
-            if (result.ok == true) {
-                console.dir(result.data);
+            // -- cinemas list
+            var listCinemaData = [];
+            if (resultcinemas.data.cinemas) {
+                if (resultcinemas.data.cinemas.cinema.length > 0) {
+                    resultcinemas.data.cinemas.cinema.forEach(cinema => {
+                        if (currentGroup.cinemas && currentGroup.cinemas.length > 0 && currentGroup.cinemas[0] != "") {
 
-                const group = result.data.group;
-                document.getElementById("name").value = group.$.name;
-                document.getElementById("description").value = group.$.description;
-
-                // -- cinemas list
-                var listCinemaData = [];
-                if (resultcinemas.data.cinemas) {
-                    if (resultcinemas.data.cinemas.cinema.length > 0) {
-                        resultcinemas.data.cinemas.cinema.forEach(cinema => {
-                            if (group.cinemas.length > 0 && group.cinemas[0] != "") {
-
-                                var found = false;
-                                group.cinemas[0].cinema.forEach(cinemaGroup => {
-                                    if (cinema.$.id == cinemaGroup.$.id) {
-                                        found = true;
-                                    }
-                                });
-
-                                if (!found) {
-                                    listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
+                            var found = false;
+                            currentGroup.cinemas[0].cinema.forEach(cinemaGroup => {
+                                if (cinema.$.id == cinemaGroup.$.id) {
+                                    found = true;
                                 }
-                            }
-                            else {
+                            });
+
+                            if (!found) {
                                 listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
                             }
-                        });
-                    }
-                    if (listCinemaData.length > 0) {
-                        const li = createDOM("li", {className:"list-item-add"});
-                        listCinemas.appendChild(li);
-                        const drop = createDOM("select", { className:"drop", id:"dropCinemas"});
-                        li.appendChild(drop);
-                        listCinemaData.forEach(cinemaToAdd => {
-                            const select = createDOM("option", {value: cinemaToAdd.id, innerText: cinemaToAdd.name});
-                            drop.appendChild(select);
-                        });
-                        const imgAdd = createDOM("img", { id:"addCinema", className:"image-line-add", src:"/add.png" });
-                        imgAdd.addEventListener('click', async function(){
-
-                            const jsonLinkCinema = {
-                                id_cinema: document.getElementById("dropCinemas").value,
-                                id_group: id
-                            };
-                            const optionsLinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkCinema) };
-                            const resultLinkCinema = await fetch(`/linkCinemaToGroup`, optionsLinkcinema);
-                            console.log(resultLinkCinema);
-                            if (resultLinkCinema.ok == true) {
-                                const body = await resultLinkCinema.json();
-                                if (body.code == 200) {
-                                    window.location.reload();
-                                }
-                                else {
-                                    showErrorMessage("message-box", body.message);
-                                }
-                            }
-                            else {
-                                showErrorMessage("message-box", resultLinkCinema.message);
-                            }
-                        });
-                        li.appendChild(imgAdd);
-                        li.appendChild(drop);
-                    }
-                }
-
-                // -- cinemas
-                if (group.cinemas.length > 0 && group.cinemas[0] != "") {
-                    group.cinemas[0].cinema.forEach(cinema => {
-                        const li = createDOM("li", {className:"list-item"});
-                        listCinemas.appendChild(li);
-                        const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
-                        imgName.addEventListener('click', async function(){
-                            window.location.assign("/cinema?id=" + cinema.$.id);
-                        });
-                        const name = createDOM("div", { className:"param", innerText: cinema.$.name });
-                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:cinema.$.id });
-                        imgDelete.addEventListener('click', async function(){
-
-                            const jsonUnlinkCinema = {
-                                id_cinema: this.id,
-                                id_group: id
-                            };
-                            const optionsUnlinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkCinema) };
-                            const resultUnlinkCinema = await fetch(`/unlinkCinemaToGroup`, optionsUnlinkcinema);
-                            console.log(resultUnlinkCinema);
-                            if (resultUnlinkCinema.ok == true) {
-                                const body = await resultUnlinkCinema.json();
-                                if (body.code == 200) {
-                                    window.location.reload();
-                                }
-                                else {
-                                    showErrorMessage("message-box", body.message);
-                                }
-                            }
-                            else {
-                                showErrorMessage("message-box", resultUnlinkCinema.message);
-                            }
-                        });
-                        li.appendChild(imgName);
-                        li.appendChild(name);
-                        li.appendChild(imgDelete);
+                        }
+                        else {
+                            listCinemaData.push({id: cinema.$.id, name: cinema.$.name});
+                        }
                     });
                 }
-                else {
-                    const li = createDOM("li", {className:"list-item-none"});
+                if (listCinemaData.length > 0) {
+                    const li = createDOM("li", {className:"list-item-add"});
                     listCinemas.appendChild(li);
-                    const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
-                    const name = createDOM("div", { className:"param", innerText:"NONE" });
-                    li.appendChild(imgName);
-                    li.appendChild(name);
-                }
-
-                // -- releases list
-                var listReleaseData = [];
-                if (resultReleases.data.releases) {
-                    if (resultReleases.data.releases.release.length > 0) {
-                        resultReleases.data.releases.release.forEach(release => {
-                            if (group.releases.length > 0 && group.releases[0] != "") {
-
-                                var found = false;
-                                group.releases[0].release.forEach(releaseGroup => {
-                                    if (release.$.id == releaseGroup.$.id) {
-                                        found = true;
-                                    }
-                                });
-
-                                if (!found) {
-                                    listReleaseData.push({id: release.$.id, name: release.$.name});
-                                }
-                            }
-                            else {
-                                listReleaseData.push({id: release.$.id, name: release.$.name});
-                            }
-                        });
-                    }
-                    if (listReleaseData.length > 0) {
-                        const li = createDOM("li", {className:"list-item-add"});
-                        listReleases.appendChild(li);
-                        const drop = createDOM("select", { className:"drop", id:"dropReleases"});
-                        li.appendChild(drop);
-                        listReleaseData.forEach(releaseToAdd => {
-                            const select = createDOM("option", {value: releaseToAdd.id, innerText: releaseToAdd.name});
-                            drop.appendChild(select);
-                        });
-                        const imgAdd = createDOM("img", { id:"addRelease", className:"image-line-add", src:"/add.png" });
-                        imgAdd.addEventListener('click', async function(){
-
-                            const jsonLinkRelease = {
-                                id_release: document.getElementById("dropReleases").value,
-                                id_group: id
-                            };
-                            const optionsLinkRelease = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkRelease) };
-                            const resultLinkRelease = await fetch(`/linkReleaseToGroup`, optionsLinkRelease);
-                            console.log(resultLinkRelease);
-                            if (resultLinkRelease.ok == true) {
-                                const body = await resultLinkRelease.json();
-                                if (body.code == 200) {
-                                    window.location.reload();
-                                }
-                                else {
-                                    showErrorMessage("message-box", body.message);
-                                }
-                            }
-                            else {
-                                showErrorMessage("message-box", resultLinkContent.message);
-                            }
-                        });
-                        li.appendChild(imgAdd);
-                        li.appendChild(drop);
-                    }
-                }
-
-                // -- releases
-                if (group.releases.length > 0 && group.releases[0] != "") {
-                    group.releases[0].release.forEach(release => {
-                        const li = createDOM("li", {className:"list-item"});
-                        listReleases.appendChild(li);
-                        const imgName = createDOM("img", { className:"image-line", src:"/release.png" });
-                        imgName.addEventListener('click', async function(){
-                            window.location.assign("/release?id=" + release.$.id);
-                        });
-                        const name = createDOM("div", { className:"param", innerText: release.$.name });
-                        const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:release.$.id });
-                        imgDelete.addEventListener('click', async function(){
-
-                            const jsonUnlinkRelease = {
-                                id_release: this.id,
-                                id_group: id
-                            };
-                            const optionsUnlinkRelease = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkRelease) };
-                            const resultUnlinkRelease = await fetch(`/unlinkReleaseToGroup`, optionsUnlinkRelease);
-                            console.log(resultUnlinkRelease);
-                            if (resultUnlinkRelease.ok == true) {
-                                const body = await resultUnlinkRelease.json();
-                                if (body.code == 200) {
-                                    window.location.reload();
-                                }
-                                else {
-                                    showErrorMessage("message-box", body.message);
-                                }
-                            }
-                            else {
-                                showErrorMessage("message-box", resultUnlinkRelease.message);
-                            }
-                        });
-                        li.appendChild(imgName);
-                        li.appendChild(name);
-                        li.appendChild(imgDelete);
+                    const drop = createDOM("select", { className:"drop", id:"dropCinemas"});
+                    li.appendChild(drop);
+                    listCinemaData.forEach(cinemaToAdd => {
+                        const select = createDOM("option", {value: cinemaToAdd.id, innerText: cinemaToAdd.name});
+                        drop.appendChild(select);
                     });
-                }
-                else {
-                    const li = createDOM("li", {className:"list-item-none"});
-                    listReleases.appendChild(li);
-                    const imgName = createDOM("img", { className:"image-line", src:"/release.png", title:"none" });
-                    const name = createDOM("div", { className:"param", innerText:"NONE" });
-                    li.appendChild(imgName);
-                    li.appendChild(name);
+                    const imgAdd = createDOM("img", { id:"addCinema", className:"image-line-add", src:"/add.png" });
+                    imgAdd.addEventListener('click', async function(){
+
+                        const jsonLinkCinema = {
+                            id_cinema: document.getElementById("dropCinemas").value,
+                            id_group: id
+                        };
+                        const optionsLinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkCinema) };
+                        const resultLinkCinema = await fetch(`/linkCinemaToGroup`, optionsLinkcinema);
+                        console.log(resultLinkCinema);
+                        if (resultLinkCinema.ok == true) {
+                            const body = await resultLinkCinema.json();
+                            if (body.code == 200) {
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", resultLinkCinema.message);
+                        }
+                    });
+                    li.appendChild(imgAdd);
+                    li.appendChild(drop);
                 }
             }
+
+            // -- cinemas
+            if (currentGroup.cinemas && currentGroup.cinemas.length > 0 && currentGroup.cinemas[0] != "") {
+                currentGroup.cinemas[0].cinema.forEach(cinema => {
+                    const li = createDOM("li", {className:"list-item"});
+                    listCinemas.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
+                    imgName.addEventListener('click', async function(){
+                        window.location.assign("/cinema?id=" + cinema.$.id);
+                    });
+                    const name = createDOM("div", { className:"param", innerText: cinema.$.name });
+                    const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:cinema.$.id });
+                    imgDelete.addEventListener('click', async function(){
+
+                        const jsonUnlinkCinema = {
+                            id_cinema: this.id,
+                            id_group: id
+                        };
+                        const optionsUnlinkcinema = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkCinema) };
+                        const resultUnlinkCinema = await fetch(`/unlinkCinemaToGroup`, optionsUnlinkcinema);
+                        console.log(resultUnlinkCinema);
+                        if (resultUnlinkCinema.ok == true) {
+                            const body = await resultUnlinkCinema.json();
+                            if (body.code == 200) {
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", resultUnlinkCinema.message);
+                        }
+                    });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                    li.appendChild(imgDelete);
+                });
+            }
             else {
-                showErrorMessage("message-box", result.message);
+                const li = createDOM("li", {className:"list-item-none"});
+                listCinemas.appendChild(li);
+                const imgName = createDOM("img", { className:"image-line", src:"/cinema.png" });
+                const name = createDOM("div", { className:"param", innerText:"NONE" });
+                li.appendChild(imgName);
+                li.appendChild(name);
+            }
+
+            // -- releases list
+            var listReleaseData = [];
+            if (resultReleases.data.releases) {
+                if (resultReleases.data.releases.release.length > 0) {
+                    resultReleases.data.releases.release.forEach(release => {
+                        if (currentGroup.releases && currentGroup.releases.length > 0 && currentGroup.releases[0] != "") {
+
+                            var found = false;
+                            currentGroup.releases[0].release.forEach(releaseGroup => {
+                                if (release.$.id == releaseGroup.$.id) {
+                                    found = true;
+                                }
+                            });
+
+                            if (!found) {
+                                listReleaseData.push({id: release.$.id, name: release.$.name});
+                            }
+                        }
+                        else {
+                            listReleaseData.push({id: release.$.id, name: release.$.name});
+                        }
+                    });
+                }
+                if (listReleaseData.length > 0) {
+                    const li = createDOM("li", {className:"list-item-add"});
+                    listReleases.appendChild(li);
+                    const drop = createDOM("select", { className:"drop", id:"dropReleases"});
+                    li.appendChild(drop);
+                    listReleaseData.forEach(releaseToAdd => {
+                        const select = createDOM("option", {value: releaseToAdd.id, innerText: releaseToAdd.name});
+                        drop.appendChild(select);
+                    });
+                    const imgAdd = createDOM("img", { id:"addRelease", className:"image-line-add", src:"/add.png" });
+                    imgAdd.addEventListener('click', async function(){
+
+                        const jsonLinkRelease = {
+                            id_release: document.getElementById("dropReleases").value,
+                            id_group: id
+                        };
+                        const optionsLinkRelease = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonLinkRelease) };
+                        const resultLinkRelease = await fetch(`/linkReleaseToGroup`, optionsLinkRelease);
+                        console.log(resultLinkRelease);
+                        if (resultLinkRelease.ok == true) {
+                            const body = await resultLinkRelease.json();
+                            if (body.code == 200) {
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", resultLinkContent.message);
+                        }
+                    });
+                    li.appendChild(imgAdd);
+                    li.appendChild(drop);
+                }
+            }
+
+            // -- releases
+            if (currentGroup.releases && currentGroup.releases.length > 0 && currentGroup.releases[0] != "") {
+                currentGroup.releases[0].release.forEach(release => {
+                    const li = createDOM("li", {className:"list-item"});
+                    listReleases.appendChild(li);
+                    const imgName = createDOM("img", { className:"image-line", src:"/release.png" });
+                    imgName.addEventListener('click', async function(){
+                        window.location.assign("/release?id=" + release.$.id);
+                    });
+                    const name = createDOM("div", { className:"param", innerText: release.$.name });
+                    const imgDelete = createDOM("img", { className:"image-line-add", src:"/remove.png", id:release.$.id });
+                    imgDelete.addEventListener('click', async function(){
+
+                        const jsonUnlinkRelease = {
+                            id_release: this.id,
+                            id_group: id
+                        };
+                        const optionsUnlinkRelease = { method:"POST", headers:{ "Content-Type": "application/json "}, body:JSON.stringify(jsonUnlinkRelease) };
+                        const resultUnlinkRelease = await fetch(`/unlinkReleaseToGroup`, optionsUnlinkRelease);
+                        console.log(resultUnlinkRelease);
+                        if (resultUnlinkRelease.ok == true) {
+                            const body = await resultUnlinkRelease.json();
+                            if (body.code == 200) {
+                                window.location.reload();
+                            }
+                            else {
+                                showErrorMessage("message-box", body.message);
+                            }
+                        }
+                        else {
+                            showErrorMessage("message-box", resultUnlinkRelease.message);
+                        }
+                    });
+                    li.appendChild(imgName);
+                    li.appendChild(name);
+                    li.appendChild(imgDelete);
+                });
+            }
+            else {
+                const li = createDOM("li", {className:"list-item-none"});
+                listReleases.appendChild(li);
+                const imgName = createDOM("img", { className:"image-line", src:"/release.png", title:"none" });
+                const name = createDOM("div", { className:"param", innerText:"NONE" });
+                li.appendChild(imgName);
+                li.appendChild(name);
             }
         }
         else {

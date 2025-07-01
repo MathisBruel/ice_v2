@@ -147,7 +147,11 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
 
                 response->setStatus(CommandCentralResponse::OK);
                 response->setComments("Group getted");
-                response->setDatas(group->toXmlString(true));
+                if (group) {
+                    response->setDatas(group->toXmlString(true));
+                } else {
+                    response->setDatas("");
+                }
             }
 
             delete queryGroup;
@@ -2292,7 +2296,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         //    releaseRepo->Read(release);
         //    Query* queryRelease = releaseRepo->GetQuery();
         //    ResultQuery *resultRelease = this->_dbConnection->ExecuteQuery(queryRelease);
-//
+        //
         //    MySQLCISRepo *cisRepo = new MySQLCISRepo();
         //    CIS* cis = new CIS();
         //    cis->SetCISId(cmdId,cmd->getIntParameter("id_type"), cmd->getIntParameter("id_localisation"));
