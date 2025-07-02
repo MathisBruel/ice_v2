@@ -16,6 +16,8 @@
 #include "ContentOpsInfra/MySQLTypeRepo.h"
 #include "ContentOpsBoundary/COB_CplRepo.h"
 #include "ContentOpsInfra/MySQLCplRepo.h"
+#include "ContentOpsBoundary/BoundaryStateManager.h"
+#include <stdexcept>
 
 BoundaryManager::BoundaryManager()
 {
@@ -124,8 +126,12 @@ void BoundaryManager::UpdateContent(int contentId) {
     throw std::logic_error("UpdateContent not implemented");
 }
 
-void BoundaryManager::CreateContent() {
-    throw std::logic_error("CreateContent not implemented");
+COB_Content* BoundaryManager::CreateContent(std::string title) {
+    try {
+        return _boundaryStateManager.CreateContent(title);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors de la création du content : ") + e.what());
+    }
 }
 
 std::string BoundaryManager::GetLocalisationsAsXml() {

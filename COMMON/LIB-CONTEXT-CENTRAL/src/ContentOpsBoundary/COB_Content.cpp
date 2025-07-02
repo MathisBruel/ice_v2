@@ -6,6 +6,11 @@ COB_Content::COB_Content(int contentId, std::string contentTitle)
 {
 }
 
+COB_Content::COB_Content(std::string contentTitle)
+    : COD_Content(contentTitle)
+{
+}
+
 COB_Content::operator std::string() const
 {
     std::string xml = "<content";

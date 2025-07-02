@@ -1,4 +1,6 @@
 #pragma once
+#include "BoundaryEnum.h"
+#include "BoundaryStateMachine.h"
 #include "BoundaryStateManager.h"
 #include <stdexcept>
 #include <memory>
@@ -9,11 +11,18 @@
 #include "ContentOpsBoundary/COB_LocalisationRepo.h"
 #include "ContentOpsBoundary/COB_TypeRepo.h"
 #include "ContentOpsBoundary/COB_CplRepo.h"
+#include "ContentOpsBoundary/COB_Content.h"
 
 using namespace ContentOpsBoundaryEnum;
 
 class BoundaryManager {
     public:
+    BoundaryManager();
+    ~BoundaryManager();
+    void AddStateMachine(int id, BoundaryStateMachine* stateMachine);
+    BoundaryStateMachine* GetStateMachine(int id);
+    BoundaryStateMachine* CreateStateMachine(int contentId, MySQLDBConnection* dbConnection);
+    COB_Content* CreateContent(std::string title);
     std::string GetAllContentsAsXml();
     std::string GetContentAsXml(int contentId);
     std::string GetContentReleasesAsXml(int contentId);
@@ -32,8 +41,6 @@ class BoundaryManager {
     std::string GetReleaseCplsAsXml(int contentId, int typeId, int localisationId);
     std::string GetUnlinkedCplsAsXml();
     void UpdateContent(int contentId);
-    void CreateContent();
-
 
     static BoundaryManager& GetInstance() {
         static BoundaryManager instance;
@@ -42,10 +49,9 @@ class BoundaryManager {
 
     BoundaryManager(const BoundaryManager&) = delete;
     BoundaryManager& operator=(const BoundaryManager&) = delete;
-    ~BoundaryManager();
 
     private:
-    BoundaryManager();
+    BoundaryStateManager _boundaryStateManager;
     std::shared_ptr<COB_SiteRepo> _siteRepo;
     std::shared_ptr<COB_GroupRepo> _groupRepo;
     std::shared_ptr<COB_ContentRepo> _contentRepo;

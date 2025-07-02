@@ -51,4 +51,14 @@ COB_Content COB_ContentRepo::GetContent(int contentId)
     std::string* title = result->getStringValue(0, "title");
     
     return std::move(COB_Content(*id, *title));
+}
+
+std::unique_ptr<COB_Content> COB_ContentRepo::Create(const std::string& title)
+{
+    auto content = std::make_unique<COB_Content>(title);
+    if (_contentRepo) {
+        _contentRepo->Create(content.get());
+    }
+    return content;
 } 
+

@@ -69,21 +69,47 @@ std::unique_ptr<Query> MySQLContentRepo::MySQLremove(COD_Content* content)
 void MySQLContentRepo::Create(COD_Content* content) 
 {
     _query = MySQLcreate(content);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        ResultQuery* result = dbConn->ExecuteQuery(_query.get());
+        if (result && result->isValid()) {
+            int newId = result->getLastInsertedId();
+            if (newId != -1) {
+                content->SetContentId(newId);
+            }
+        }
+    }
 }
 
 void MySQLContentRepo::Read(COD_Content* content) 
 {
     _query = MySQLread(content);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        dbConn->ExecuteQuery(_query.get());
+    }
 }
 
 void MySQLContentRepo::Update(COD_Content* content) 
 {
     _query = MySQLupdate(content);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        dbConn->ExecuteQuery(_query.get());
+    }
 }
 
 void MySQLContentRepo::Remove(COD_Content* content) 
 {
     _query = MySQLremove(content);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        dbConn->ExecuteQuery(_query.get());
+    }
 }
 
 std::unique_ptr<ResultQuery> MySQLContentRepo::getContents()

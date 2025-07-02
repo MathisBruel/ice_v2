@@ -26,6 +26,8 @@
     <div class="ul-model" id="cisBox" style="display: flex; width: 90%; margin: 0 2%;"></div>
     <h2>CPL / SYNC / SYNCLOOP</h2>
     <div class="ul-model" id="cplBox"></div>
+    <br/>
+    <div class="ul-model" id="cplContent"></div>
     <div id="message-box" class="success"></div>
 </div>
 
@@ -59,7 +61,6 @@
         const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation };
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
         let response = await (await fetch(`/getReleasesContent`, options)).json();
-        console.log(response);
         if (response.ok == true) {
             // Cas 1 : réponse unique (release)
             let releaseData = null;
@@ -183,22 +184,29 @@
                 const optionSyncLoop = createDOM("option", {value:2, text:"SyncLoop"});
                 selectCpl.appendChild(optionSyncLoop);
                 cplBox.appendChild(selectCpl);
+                selectCpl.value = 0;
+                const cplContent = document.getElementById("cplContent");
                 selectCpl.addEventListener("change", function(){
                     let seletValue = selectCpl.value;
-                    selectCpl.remove();
+                    cplContent.innerHTML = "";
                     if (seletValue == 1) {
-                        disaplyCPL(cplBox);
+                        disaplyCPL(cplContent);
                     }
                     else {
-                        disaplySyncLoop(cplBox);
+                        disaplySyncLoop(cplContent);
                     }
                 });
             }
         }
     });
     async function disaplyCPL(box) {
-        const cplContainer = createDOM("div", {class:"releaseDetailsContainer"});
-        box.appendChild(cplContainer);
+        // Création d'un conteneur flex pour les deux tableaux
+        const tablesContainer = createDOM("div", {style: "display: flex; gap: 32px; width: 100%;"});
+        box.appendChild(tablesContainer);
+
+        // Conteneur pour le tableau CPL
+        const cplContainer = createDOM("div", {class:"releaseDetailsContainer", style:"flex:2; min-width:0;"});
+        tablesContainer.appendChild(cplContainer);
 
         const cplTable = createDOM("table", { id:"cplTable"});
         cplContainer.appendChild(cplTable);
@@ -238,10 +246,10 @@
         const cplOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cplJson) };
         let cplResponse = await (await fetch(`/getCPL`, cplOptions)).json();
         let cplIds = [];
-        console.log(cplResponse);
         if (cplResponse.ok == true) {
             if (cplResponse.data.cpls != "") { 
                 for (const cpl of cplResponse.data.cpls.cpl) {
+                    console.log(cpl);
                     const cplTableRow = createDOM("tr");
                     cplTable.appendChild(cplTableRow);
                     const cplIdCell = createDOM("td", {align:"center", valign:"center"});
@@ -252,13 +260,13 @@
                     cplIdCell.innerText = id;
                     const cplUuidCell = createDOM("td", {align:"center", valign:"center"});
                     cplTableRow.appendChild(cplUuidCell);
-                    cplUuidCell.innerText = cpl.$.CPL_uuid;
+                    cplUuidCell.innerText = cpl.$.uuid;
                     const cplNameCell = createDOM("td", {align:"center", valign:"center"});
                     cplTableRow.appendChild(cplNameCell);
-                    cplNameCell.innerText = cpl.$.CPL_name;
+                    cplNameCell.innerText = cpl.$.name;
                     const cplPathCell = createDOM("td", {align:"center", valign:"center"});
                     cplTableRow.appendChild(cplPathCell);
-                    cplPathCell.innerText = cpl.$.CPL_path;
+                    cplPathCell.innerText = cpl.$.path_cpl;
                     const cplActionCell = createDOM("td", {class: "actionCell"});
                     cplTableRow.appendChild(cplActionCell);
                     const imgDeleteCpl = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"removeCPLRow"});
@@ -283,10 +291,16 @@
                         }
                     });
                 }
-                disaplySync(box, true,cplIds);
+                // Création du conteneur pour le tableau Sync (à côté du tableau CPL)
+                const syncContainer = createDOM("div", {class:"releaseDetailsContainer", style:"flex:1; min-width:0;"});
+                tablesContainer.appendChild(syncContainer);
+                disaplySync(syncContainer, true, cplIds);
             }
             else {
-                disaplySync(box, false,[]);
+                // Création du conteneur pour le tableau Sync même s'il n'y a pas de CPL
+                const syncContainer = createDOM("div", {class:"releaseDetailsContainer", style:"flex:1; min-width:0;"});
+                tablesContainer.appendChild(syncContainer);
+                disaplySync(syncContainer, false, []);
             }
         }
         imgAddCpl.addEventListener("click", async function(){
@@ -704,7 +718,6 @@
         const json = JSON.stringify({id_content: id_content});
         const options = { method:"POST", headers:{ "Content-Type": "application/json "}, body:json };
         const response = await fetch(`/getContents`, options);
-        console.log(response)
         const result = await response.json();
 
         if (result.ok && result.data && result.data.content) {

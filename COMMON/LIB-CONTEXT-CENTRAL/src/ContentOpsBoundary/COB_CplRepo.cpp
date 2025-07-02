@@ -31,7 +31,21 @@ COB_Cpls COB_CplRepo::GetCpls()
         if (name && uuid) {
             int cplId = id ? *id : -1;
             std::string cplPathSync = pathSync ? *pathSync : "";
-            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync);
+            int* type_cpl = result->getIntValue(i, "type_cpl");
+            std::string* sha1_sync = result->getStringValue(i, "sha1_sync");
+            std::string* path_cpl = result->getStringValue(i, "path_cpl");
+            int* id_serv_pair_config = result->getIntValue(i, "id_serv_pair_config");
+            int* id_content = result->getIntValue(i, "id_content");
+            int* id_type = result->getIntValue(i, "id_type");
+            int* id_localisation = result->getIntValue(i, "id_localisation");
+            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync,
+                        type_cpl ? *type_cpl : -1,
+                        sha1_sync ? *sha1_sync : "",
+                        path_cpl ? *path_cpl : "",
+                        id_serv_pair_config ? *id_serv_pair_config : -1,
+                        id_content ? *id_content : -1,
+                        id_type ? *id_type : -1,
+                        id_localisation ? *id_localisation : -1);
             cpls.emplace_back(cpl);
         }
     }
@@ -54,7 +68,21 @@ COB_Cpl COB_CplRepo::GetCpl(int id)
     }
     int actualId = cplId ? *cplId : -1;
     std::string cplPathSync = pathSync ? *pathSync : "";
-    return COB_Cpl(actualId, *name, *uuid, cplPathSync);
+    int* type_cpl = result->getIntValue(0, "type_cpl");
+    std::string* sha1_sync = result->getStringValue(0, "sha1_sync");
+    std::string* path_cpl = result->getStringValue(0, "path_cpl");
+    int* id_serv_pair_config = result->getIntValue(0, "id_serv_pair_config");
+    int* id_content = result->getIntValue(0, "id_content");
+    int* id_type = result->getIntValue(0, "id_type");
+    int* id_localisation = result->getIntValue(0, "id_localisation");
+    return COB_Cpl(actualId, *name, *uuid, cplPathSync,
+                   type_cpl ? *type_cpl : -1,
+                   sha1_sync ? *sha1_sync : "",
+                   path_cpl ? *path_cpl : "",
+                   id_serv_pair_config ? *id_serv_pair_config : -1,
+                   id_content ? *id_content : -1,
+                   id_type ? *id_type : -1,
+                   id_localisation ? *id_localisation : -1);
 }
 
 COB_Cpl COB_CplRepo::GetCplByUuid(const std::string& uuid)
@@ -72,7 +100,21 @@ COB_Cpl COB_CplRepo::GetCplByUuid(const std::string& uuid)
     }
     int actualId = cplId ? *cplId : -1;
     std::string cplPathSync = pathSync ? *pathSync : "";
-    return COB_Cpl(actualId, *name, *cplUuid, cplPathSync);
+    int* type_cpl = result->getIntValue(0, "type_cpl");
+    std::string* sha1_sync = result->getStringValue(0, "sha1_sync");
+    std::string* path_cpl = result->getStringValue(0, "path_cpl");
+    int* id_serv_pair_config = result->getIntValue(0, "id_serv_pair_config");
+    int* id_content = result->getIntValue(0, "id_content");
+    int* id_type = result->getIntValue(0, "id_type");
+    int* id_localisation = result->getIntValue(0, "id_localisation");
+    return COB_Cpl(actualId, *name, *cplUuid, cplPathSync,
+                   type_cpl ? *type_cpl : -1,
+                   sha1_sync ? *sha1_sync : "",
+                   path_cpl ? *path_cpl : "",
+                   id_serv_pair_config ? *id_serv_pair_config : -1,
+                   id_content ? *id_content : -1,
+                   id_type ? *id_type : -1,
+                   id_localisation ? *id_localisation : -1);
 }
 
 COB_Cpls COB_CplRepo::GetCplsByRelease(int releaseId)
@@ -92,7 +134,21 @@ COB_Cpls COB_CplRepo::GetCplsByRelease(int releaseId)
         if (name && uuid) {
             int cplId = id ? *id : -1;
             std::string cplPathSync = pathSync ? *pathSync : "";
-            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync);
+            int* type_cpl = result->getIntValue(i, "type_cpl");
+            std::string* sha1_sync = result->getStringValue(i, "sha1_sync");
+            std::string* path_cpl = result->getStringValue(i, "path_cpl");
+            int* id_serv_pair_config = result->getIntValue(i, "id_serv_pair_config");
+            int* id_content = result->getIntValue(i, "id_content");
+            int* id_type = result->getIntValue(i, "id_type");
+            int* id_localisation = result->getIntValue(i, "id_localisation");
+            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync,
+                        type_cpl ? *type_cpl : -1,
+                        sha1_sync ? *sha1_sync : "",
+                        path_cpl ? *path_cpl : "",
+                        id_serv_pair_config ? *id_serv_pair_config : -1,
+                        id_content ? *id_content : -1,
+                        id_type ? *id_type : -1,
+                        id_localisation ? *id_localisation : -1);
             cpls.emplace_back(cpl);
         }
     }
@@ -119,7 +175,18 @@ COB_Cpls COB_CplRepo::GetCplsByRelease(int contentId, int typeId, int localisati
         if (name && uuid && id_content && id_type && id_localisation) {
             int cplId = id ? *id : -1;
             std::string cplPathSync = pathSync ? *pathSync : "";
-            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync, *id_content, *id_type, *id_localisation);
+            int* type_cpl = result->getIntValue(i, "type_cpl");
+            std::string* sha1_sync = result->getStringValue(i, "sha1_sync");
+            std::string* path_cpl = result->getStringValue(i, "path_cpl");
+            int* id_serv_pair_config = result->getIntValue(i, "id_serv_pair_config");
+            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync,
+                        type_cpl ? *type_cpl : -1,
+                        sha1_sync ? *sha1_sync : "",
+                        path_cpl ? *path_cpl : "",
+                        id_serv_pair_config ? *id_serv_pair_config : -1,
+                        *id_content,
+                        *id_type,
+                        *id_localisation);
             cpls.emplace_back(cpl);
         }
     }
@@ -146,7 +213,18 @@ COB_Cpls COB_CplRepo::GetCplsBySite(int siteId)
         if (name && uuid && id_content && id_type && id_localisation) {
             int cplId = id ? *id : -1;
             std::string cplPathSync = pathSync ? *pathSync : "";
-            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync, *id_content, *id_type, *id_localisation);
+            int* type_cpl = result->getIntValue(i, "type_cpl");
+            std::string* sha1_sync = result->getStringValue(i, "sha1_sync");
+            std::string* path_cpl = result->getStringValue(i, "path_cpl");
+            int* id_serv_pair_config = result->getIntValue(i, "id_serv_pair_config");
+            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync,
+                        type_cpl ? *type_cpl : -1,
+                        sha1_sync ? *sha1_sync : "",
+                        path_cpl ? *path_cpl : "",
+                        id_serv_pair_config ? *id_serv_pair_config : -1,
+                        *id_content,
+                        *id_type,
+                        *id_localisation);
             cpls.emplace_back(cpl);
         }
     }
@@ -170,7 +248,15 @@ COB_Cpls COB_CplRepo::GetUnlinkedCpls()
         if (name && uuid) {
             int cplId = id ? *id : -1;
             std::string cplPathSync = pathSync ? *pathSync : "";
-            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync);
+            int* type_cpl = result->getIntValue(i, "type_cpl");
+            std::string* sha1_sync = result->getStringValue(i, "sha1_sync");
+            std::string* path_cpl = result->getStringValue(i, "path_cpl");
+            int* id_serv_pair_config = result->getIntValue(i, "id_serv_pair_config");
+            COB_Cpl cpl(cplId, *name, *uuid, cplPathSync,
+                        type_cpl ? *type_cpl : -1,
+                        sha1_sync ? *sha1_sync : "",
+                        path_cpl ? *path_cpl : "",
+                        id_serv_pair_config ? *id_serv_pair_config : -1);
             cpls.emplace_back(cpl);
         }
     }

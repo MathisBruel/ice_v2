@@ -13,27 +13,45 @@ public:
     COD_Cpl(int id, const std::string& name, const std::string& uuid, const std::string& pathSync = "");
     ~COD_Cpl();
 
-    // Setters
     void SetId(int id) { _id = id; }
     void SetName(const std::string& name) { _name = name; }
     void SetUuid(const std::string& uuid) { _uuid = uuid; }
     void SetPathSync(const std::string& pathSync) { _pathSync = pathSync; }
+    void SetTypeCpl(int v) { _type_cpl = v; }
+    void SetSha1Sync(const std::string& v) { _sha1_sync = v; }
+    void SetPathCpl(const std::string& v) { _path_cpl = v; }
+    void SetIdServPairConfig(long long v) { _id_serv_pair_config = v; }
+    void SetIdContent(long long v) { _id_content = v; }
+    void SetIdType(long long v) { _id_type = v; }
+    void SetIdLocalisation(long long v) { _id_localisation = v; }
 
-    // Getters
     int GetId() const { return _id; }
     std::string GetName() const { return _name; }
     std::string GetUuid() const { return _uuid; }
     std::string GetPathSync() const { return _pathSync; }
+    int GetTypeCpl() const { return _type_cpl; }
+    std::string GetSha1Sync() const { return _sha1_sync; }
+    std::string GetPathCpl() const { return _path_cpl; }
+    long long GetIdServPairConfig() const { return _id_serv_pair_config; }
+    long long GetIdContent() const { return _id_content; }
+    long long GetIdType() const { return _id_type; }
+    long long GetIdLocalisation() const { return _id_localisation; }
 
 private:
     int _id;
     std::string _name;
     std::string _uuid;
+    int _type_cpl;
+    std::string _sha1_sync;
+    std::string _path_cpl;
     std::string _pathSync;
+    long long _id_serv_pair_config;
+    long long _id_content;
+    long long _id_type;
+    long long _id_localisation;
     std::shared_ptr<COD_CplRepo> _cplRepo;
 };
 
-// Déclaration de la classe COD_CplRelease (issue de l'ancien COD_CPL.h)
 class CPLRepo;
 class COD_CplRelease
 {

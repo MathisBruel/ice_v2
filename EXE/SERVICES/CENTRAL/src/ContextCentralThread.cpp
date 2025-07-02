@@ -2639,10 +2639,12 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else if(cmd->getType() == CommandCentral::CREATE_CONTENT)
     {
+        std::string title = cmd->getStringParameter("contentTitle");
         try {
-                _boundaryManager.CreateContent();
-                response->setStatus(CommandCentralResponse::OK);
-                response->setComments("Contents get success");
+            COB_Content* content = _boundaryManager.CreateContent(title);
+            response->setDatas(static_cast<std::string>(*content));
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Contents get success");
         }  
         catch(std::exception e) {
             response->setStatus(CommandCentralResponse::KO);

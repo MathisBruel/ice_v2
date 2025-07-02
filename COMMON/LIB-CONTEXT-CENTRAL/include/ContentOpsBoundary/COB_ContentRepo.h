@@ -13,6 +13,7 @@ public:
 
     COB_Contents GetContents();
     COB_Content GetContent(int contentId);
+    std::unique_ptr<COB_Content> Create(const std::string& title);
 
 private:
     std::shared_ptr<COD_ContentRepo> _contentRepo;

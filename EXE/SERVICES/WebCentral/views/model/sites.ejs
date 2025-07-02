@@ -97,7 +97,7 @@
                             const tr = createDOM("tr");
                             tbody.appendChild(tr);
                             const tdUUID = createDOM("td", {align:"center", valign:"center"});
-                            tdUUID.innerText = cpl.$.CPL_uuid;
+                            tdUUID.innerText = cpl.$.uuid;
                             tr.appendChild(tdUUID);
                             const tdIdRelease = createDOM("td", {align:"center", valign:"center"});
                             tdIdRelease.innerText = [cpl.$.id_content, cpl.$.id_type, cpl.$.id_localisation].join("_")
@@ -106,7 +106,7 @@
                                 window.location.assign("/movies?id=" + cpl.$.id_content)
                             });
                             const tdLorem = createDOM("td", {align:"center", valign:"center"});
-                            tdLorem.innerText = cpl.$.CPL_name;
+                            tdLorem.innerText = cpl.$.name;
                             tr.appendChild(tdLorem);
                         }
                     }
