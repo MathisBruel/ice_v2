@@ -41,6 +41,7 @@ class BoundaryManager {
     std::string GetReleaseCplsAsXml(int contentId, int typeId, int localisationId);
     std::string GetUnlinkedCplsAsXml();
     void UpdateContent(int contentId);
+    BoundaryStateManager GetBoundaryStateManager() {return _boundaryStateManager;}
 
     static BoundaryManager& GetInstance() {
         static BoundaryManager instance;

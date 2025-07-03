@@ -1,5 +1,6 @@
 #include "ContentOpsDomain/COD_Content.h"
 #include "ContentOpsDomain/COD_Release.h"
+#include "ContentOpsBoundary/BoundaryManager.h"
 
 COD_Content::COD_Content(int contentId, std::string contentTitle)
 {
@@ -56,4 +57,10 @@ void COD_Content::CreateRelease(int id_content, int typeMovie, int localisationM
                         std::to_string(localisationMovie);
     this->_release[releaseId] = new COD_Releases();
     this->_release[releaseId]->SetReleaseId(id_content, idTypeMovie, idLocalisationMovie);
+}
+
+std::string COD_Content::GetState() const
+{
+    BoundaryManager* boundaryManager = &BoundaryManager::GetInstance();
+    return boundaryManager->GetBoundaryStateManager().GetState(this->_contentId);
 }

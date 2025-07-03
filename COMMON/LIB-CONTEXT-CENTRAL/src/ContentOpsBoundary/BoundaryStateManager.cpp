@@ -45,3 +45,10 @@ void BoundaryStateManager::InitStateMachines() {
         _stateMachineMap[id] = sm;
     });
 } 
+
+std::string BoundaryStateManager::GetState(int contentId) {
+    auto it = _stateMachineMap.find(contentId);
+    if (it != _stateMachineMap.end())
+        return it->second->getCurrentStateName();
+    return "Unknown";
+}

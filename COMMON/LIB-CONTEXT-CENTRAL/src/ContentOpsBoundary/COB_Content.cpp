@@ -16,6 +16,7 @@ COB_Content::operator std::string() const
     std::string xml = "<content";
     xml += " id_content=\"" + std::to_string(this->GetContentId()) + "\"";
     xml += " title=\"" + this->GetContentTitle() + "\"";
+    xml += " state=\"" + this->GetState() + "\"";
     xml += "/>";
     return xml;
 } 

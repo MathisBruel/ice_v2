@@ -17,6 +17,7 @@ public:
     BoundaryStateMachine* GetStateMachine(int id);
     COB_Content* CreateContent(std::string title);
 
+    std::string GetState(int contentId);
     void InitStateMachines();
 private:
     std::map<int, BoundaryStateMachine*> _stateMachineMap;

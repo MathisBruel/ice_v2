@@ -270,7 +270,7 @@
                 tr.appendChild(tdContent);
                 
                 const tdState = createDOM("td", {align:"center", valign:"center"});
-                // tdState.innerHTML = content.$.state == null ? "createMovie": content.$.state;
+                tdState.innerHTML = content.$.state == null ? "createMovie": content.$.state;
                 tdState.addEventListener('click', function(event){
                     inputCheck.checked = !inputCheck.checked;
                     const event_change = new Event('change');

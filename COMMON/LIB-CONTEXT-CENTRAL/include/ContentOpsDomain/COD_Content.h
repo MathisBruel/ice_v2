@@ -19,7 +19,7 @@ public:
 
     int GetContentId() const {return this->_contentId;}
     std::string GetContentTitle() const {return this->_contentTitle;}
-
+    std::string GetState() const;
     int* GetContentIdPtr() {return &this->_contentId;}
     std::string* GetContentTitlePtr() {return &this->_contentTitle;}
 
