@@ -1,30 +1,37 @@
 #pragma once
-#include <machine.hpp>
-#include "ContentOpsBoundary/ContentContext.h"
-#include "ContentOpsBoundary/states/ContentInitState.h"
-#include "ContentOpsBoundary/states/FinishState.h"
-#include "ContentOpsBoundary/states/CreateCISPathState.h"
+#include "ContentOpsBoundary/FSMTypes.h"
+#include "ContentOpsBoundary/States/ContentInitState.h"
+#include "ContentOpsBoundary/States/StateInProd.h"
+#include "ContentOpsBoundary/States/StateReleaseCreation.h"
+#include "ContentOpsBoundary/States/StateCancel.h"
+#include "ContentOpsBoundary/States/StatePublishing/StatePublishing.h"
+#include "ContentOpsBoundary/States/StatePublishing/StateUploadCIS.h"
+#include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateSyncCreate.h"
+#include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateIdleSync.h"
+#include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateCPL.h"
+#include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateSync.h"
+#include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateSyncLoop.h"
 #include <memory>
 
 #define S(s) struct s
 
-using Config = hfsm2::Config::ContextT<ContentContext*>;
-using Machine = hfsm2::MachineT<Config>;
+using PeerRootType = BoundaryFSM::PeerRoot<>;
 
-using PeerRootType = Machine::PeerRoot<>;
-
-struct ContentInitStateFsm;
-struct CreateCISPathStateFsm;
-struct FinishStateFsm;
-using BoundaryFSM = Machine::PeerRoot<
-    ContentInitStateFsm,
-    CreateCISPathStateFsm,
-    FinishStateFsm
+using BoundaryStateMachineFSM = BoundaryFSM::PeerRoot<
+    ContentInitState,
+    BoundaryFSM::Orthogonal<StatePublishing,
+        StateUploadCIS,
+        BoundaryFSM::Composite<StateSyncCreate,
+        StateIdleSync,
+        StateCPL,
+        StateSync,
+        StateSyncLoop
+        >
+    >,
+    StateReleaseCreation,
+    StateCancel,
+    StateInProd
 >;
-
-struct ContentInitStateFsm : ContentInitState<BoundaryFSM> {};
-struct CreateCISPathStateFsm : CreateCISPathState<BoundaryFSM> {};
-struct FinishStateFsm : FinishState<BoundaryFSM> {};
 
 #undef S
 
@@ -39,5 +46,5 @@ public:
     ContentContext& getContext();
 private:
     ContentContext _context;
-    BoundaryFSM::Instance* _fsm;
+    BoundaryStateMachineFSM::Instance* _fsm;
 };

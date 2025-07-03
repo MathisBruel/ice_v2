@@ -4,15 +4,15 @@
 #include "ContentOpsInfra/MySQLContentRepo.h"
 #include <memory>
 #include "ContentOpsBoundary/COB_Content.h"
-#include "ContentOpsBoundary/states/CreateCISPathState.h"
+#include "ContentOpsBoundary/FSMTypes.h"
+#include "ContentOpsBoundary/States/ContentStateBase.h"
 
-template <typename Owner>
-struct ContentInitState : Owner::State {
+struct ContentInitState : ContentStateBase {
     template <typename Control>
     void entryGuard(Control& control) {
         std::cout << "ContentInitState entryGuard" << std::endl;
         if(!*control.context()->isNewContent) {
-            control.template changeTo<CreateCISPathState<Owner>>();
+            //control.template changeTo<CreateCISPathState>();
         }
     }
 
@@ -28,7 +28,7 @@ struct ContentInitState : Owner::State {
         if (control.context()->contentRepo) {
             control.context()->content = control.context()->contentRepo->Create(titre);
         }
-        control.template changeTo<CreateCISPathState<Owner>>(); 
+        //control.template changeTo<CreateCISPathState>(); 
     }
 
     template <typename Control>
