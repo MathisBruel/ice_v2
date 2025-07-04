@@ -104,3 +104,19 @@ COB_Release COB_ReleaseRepo::GetRelease(int contentId, int typeId, int localisat
     }
     return std::move(release);
 }
+
+void COB_ReleaseRepo::Create(COB_Release* release) {
+    _releaseRepo->Create(release);
+}
+
+void COB_ReleaseRepo::Remove(COB_Release* release) {
+    _releaseRepo->Remove(release);
+}
+
+void COB_ReleaseRepo::Update(COB_Release* release) {
+    _releaseRepo->Update(release);
+}
+
+Query* COB_ReleaseRepo::GetQuery() const {
+    return static_cast<MySQLReleaseRepo*>(_releaseRepo.get())->GetQuery();
+}

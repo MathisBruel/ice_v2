@@ -2,8 +2,9 @@
 #include <memory>
 #include <vector>
 #include "ResultQuery.h"
+#include "Query.h"
 
-class COD_Cpl;
+class COB_Cpl;
 
 class COD_CplRepo
 {
@@ -19,4 +20,8 @@ public:
     virtual std::unique_ptr<ResultQuery> getCplsByRelease(int contentId, int typeId, int localisationId) = 0;
     virtual std::unique_ptr<ResultQuery> getUnlinkedCpls() = 0;
     virtual std::unique_ptr<ResultQuery> getCplsBySite(int siteId) = 0;
+    virtual void Create(COB_Cpl* cpl) = 0;
+    virtual void Remove(COB_Cpl* cpl) = 0;
+    virtual void Update(COB_Cpl* cpl) = 0;
+    virtual Query* GetQuery() = 0;
 }; 

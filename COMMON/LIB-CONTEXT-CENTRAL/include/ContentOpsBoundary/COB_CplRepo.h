@@ -5,10 +5,12 @@
 #include "ContentOpsDomain/COD_CplRepo.h"
 #include "ContentOpsBoundary/COB_Cpl.h"
 #include "ContentOpsBoundary/COB_Cpls.h"
+#include "ContentOpsInfra/MySQLCplRepo.h"
 
 class COB_CplRepo
 {
 public:
+    COB_CplRepo() : COB_CplRepo(std::make_shared<MySQLCplRepo>()) {}
     COB_CplRepo(std::shared_ptr<COD_CplRepo> cplRepo);
     ~COB_CplRepo();
 
@@ -20,6 +22,10 @@ public:
     COB_Cpls GetCplsByRelease(int contentId, int typeId, int localisationId);
     COB_Cpls GetUnlinkedCpls();
     COB_Cpls GetCplsBySite(int siteId);
+    void Create(COB_Cpl* cpl);
+    void Remove(COB_Cpl* cpl);
+    void Update(COB_Cpl* cpl);
+    Query* GetQuery() const;
 
 private:
     std::shared_ptr<COD_CplRepo> _cplRepo;

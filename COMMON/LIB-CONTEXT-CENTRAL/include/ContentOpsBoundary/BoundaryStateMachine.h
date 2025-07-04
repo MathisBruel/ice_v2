@@ -11,6 +11,7 @@
 #include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateCPL.h"
 #include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateSync.h"
 #include "ContentOpsBoundary/States/StatePublishing/StateSyncCreate/StateSyncLoop.h"
+#include "ContentOpsBoundary/COB_Context.h"
 #include <memory>
 
 #define S(s) struct s
@@ -39,12 +40,14 @@ class BoundaryStateMachine {
 public:
     BoundaryStateMachine(std::shared_ptr<COB_ContentRepo> repo, std::shared_ptr<COB_ReleaseRepo> releaseRepo, std::shared_ptr<bool> isNewContent, const std::string& title);
     BoundaryStateMachine(std::shared_ptr<COB_ContentRepo> repo, std::shared_ptr<COB_ReleaseRepo> releaseRepo, std::shared_ptr<bool> isNewContent);
+    BoundaryStateMachine(std::shared_ptr<COB_Context> cobContext);
     ~BoundaryStateMachine();
     void start();
     void update();
     std::string getCurrentStateName() const;
-    ContentContext& getContext();
+    COB_Context& getContext();
 private:
-    ContentContext _context;
+    std::shared_ptr<COB_Context> _cobContext;
+    COB_Context _context;
     BoundaryStateMachineFSM::Instance* _fsm;
 };

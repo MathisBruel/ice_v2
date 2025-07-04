@@ -11,8 +11,9 @@
 #include "CentralContext.h"
 #include "commandCentral.h"
 #include "commandCentralResponse.h"
-#include "Configurator.h"
+//#include "Configurator.h"
 #include "ContentOpsBoundary/BoundaryManager.h"
+#include "ContentOpsBoundary/COB_Configurator.h"
 class ContextCentralThread : public Poco::Runnable
 {
 
@@ -36,4 +37,5 @@ private:
 	bool stop;
     MySQLDBConnection * _dbConnection;
     BoundaryManager& _boundaryManager = BoundaryManager::GetInstance();
+    COB_Configurator* _cobConfigurator;
 };

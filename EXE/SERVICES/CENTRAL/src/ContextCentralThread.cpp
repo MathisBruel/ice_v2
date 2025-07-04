@@ -7,7 +7,6 @@ ContextCentralThread::ContextCentralThread()
 {
     stop = false;
     thread = nullptr;
-
 }
     
 ContextCentralThread::~ContextCentralThread()
@@ -31,6 +30,7 @@ void ContextCentralThread::run() {
     Poco::Stopwatch watch;
     CentralContext* context = CentralContext::getCurrentContext();
     this->_dbConnection = new MySQLDBConnection(context->getDatabaseConnector());
+    _cobConfigurator = new COB_Configurator(this->_dbConnection);
 
     // -- works at 50 ms rate
     int waitTime = 50;
@@ -2556,7 +2556,7 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCS) {
-        int contentId = cmd->getIntParameter("id_content");
+        /*int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
@@ -2581,10 +2581,10 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setStatus(CommandCentralResponse::KO);
             response->setComments("Syncs get failed");
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }
+        }*/
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCLOOPS) {
-        int contentId = cmd->getIntParameter("id_content");
+        /*int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
         MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
@@ -2609,10 +2609,10 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setStatus(CommandCentralResponse::KO);
             response->setComments("SyncLoops get failed");
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }
+        }*/
     }
     else if (cmd->getType() == CommandCentral::GET_SERVER_PAIR) {
-        int serverPairId = cmd->getIntParameter("id_serv_pair_config");
+        /*int serverPairId = cmd->getIntParameter("id_serv_pair_config");
         Query* query =  new Query(Query::SELECT, "ice", "server_pair_configuration");
         query->addParameter("id_serv_pair_config", nullptr, "int");
         query->addParameter("id_site", nullptr, "int");
@@ -2635,23 +2635,23 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setStatus(CommandCentralResponse::KO);
             response->setComments("Server pair get failed");
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }
+        }*/
     }
     else if(cmd->getType() == CommandCentral::CREATE_CONTENT)
     {
-        std::string title = cmd->getStringParameter("contentTitle");
-        try {
-            COB_Content* content = _boundaryManager.CreateContent(title);
-            response->setDatas(static_cast<std::string>(*content));
+        auto interaction = _cobConfigurator->getContentInteraction();
+        TransitionResponse stateResponse = interaction->Run(cmd->getUuid(), cmd->getParameters());
+        response->setComments(stateResponse.cmdComment);
+        response->setDatas(stateResponse.cmdDatasXML);
+        if (stateResponse.cmdStatus == "OK") {
             response->setStatus(CommandCentralResponse::OK);
-            response->setComments("Contents get success");
-        }  
-        catch(std::exception e) {
+        } else if (stateResponse.cmdStatus == "KO") {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Content creation failed");
-            response->setDatas("<error><code>102</code><message>" + std::string(e.what())+ "</message></error>");
-            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::CreateContent() :" + std::string(e.what()), __FILE__, __LINE__);
+        } else {
+            response->setStatus(CommandCentralResponse::UNKNOWN);
         }
+        context->getCommandHandler()->addResponse(response);
+        return;
     }
     else if (cmd->getType() == CommandCentral::GET_LOCALISATIONS) {
         try {

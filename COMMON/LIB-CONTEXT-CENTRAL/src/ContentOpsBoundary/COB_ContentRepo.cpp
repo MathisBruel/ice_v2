@@ -56,9 +56,19 @@ COB_Content COB_ContentRepo::GetContent(int contentId)
 std::unique_ptr<COB_Content> COB_ContentRepo::Create(const std::string& title)
 {
     auto content = std::make_unique<COB_Content>(title);
-    if (_contentRepo) {
-        _contentRepo->Create(content.get());
-    }
+    _contentRepo->Create(content.get());
     return content;
+}
+
+void COB_ContentRepo::Remove(COB_Content* content) {
+    _contentRepo->Remove(content);
+}
+
+void COB_ContentRepo::Update(COB_Content* content) {
+    _contentRepo->Update(content);
+}
+
+Query* COB_ContentRepo::GetQuery() const {
+    return static_cast<MySQLContentRepo*>(_contentRepo.get())->GetQuery();
 } 
 

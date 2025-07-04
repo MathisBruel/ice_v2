@@ -3,6 +3,8 @@
 
 #include "ContentOpsDomain/COD_Sync.h"
 #include "Query.h"
+#include "ResultQuery.h"
+#include <memory>
 
 class MySQLSyncRepo : public COD_SyncRepo
 {
@@ -12,18 +14,22 @@ public:
     void Update(COD_Sync* sync) override { _query = MySQLupdate(sync); }
     void Remove(COD_Sync* sync) override { _query = MySQLremove(sync); }
 
-    Query* MySQLcreate(COD_Sync* sync);
-    Query* MySQLread(COD_Sync* sync);
-    Query* MySQLupdate(COD_Sync* sync);
-    Query* MySQLremove(COD_Sync* sync);
+    std::unique_ptr<Query> MySQLcreate(COD_Sync* sync);
+    std::unique_ptr<Query> MySQLread(COD_Sync* sync);
+    std::unique_ptr<Query> MySQLread();
+    std::unique_ptr<Query> MySQLupdate(COD_Sync* sync);
+    std::unique_ptr<Query> MySQLremove(COD_Sync* sync);
 
-    Query* GetQuery() { return _query; }
+    Query* GetQuery() { return _query.get(); }
+
+    std::unique_ptr<ResultQuery> getSyncs() override;
+
 private:
     static std::string _database;
     static std::string _table;
 
-    int* _syncId;
+    const int* _syncId;
     std::string _syncPath;
 
-    Query* _query;
+    std::unique_ptr<Query> _query;
 };

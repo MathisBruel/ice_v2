@@ -20,14 +20,3 @@ void COD_SyncLoop::SetSyncLoopInfos(std::string SyncLoopPath)
 {
     this->_SyncLoopPath = SyncLoopPath;
 }
-std::string COD_SyncLoop::toXmlString()
-{
-    std::string xml = "<syncLoop";
-    xml += " id_serv_pair_config=\"" + std::to_string(this->_syncLoopId[0]) + "\"";
-    xml += " id_content=\"" + std::to_string(this->_syncLoopId[1]) + "\"";
-    xml += " id_type=\"" + std::to_string(this->_syncLoopId[2]) + "\"";
-    xml += " id_localisation=\"" + std::to_string(this->_syncLoopId[3]) + "\"";
-    xml += " path_sync_loop=\"" + this->_SyncLoopPath + "\"";
-    xml += "/>";
-    return xml;
-}

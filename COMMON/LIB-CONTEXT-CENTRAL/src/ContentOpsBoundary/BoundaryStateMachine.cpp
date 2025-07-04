@@ -20,6 +20,12 @@ BoundaryStateMachine::BoundaryStateMachine(std::shared_ptr<COB_ContentRepo> repo
     _fsm = new BoundaryStateMachineFSM::Instance(&_context);
 }
 
+BoundaryStateMachine::BoundaryStateMachine(std::shared_ptr<COB_Context> cobContext)
+    : _cobContext(cobContext), _fsm(nullptr)
+{
+    _fsm = new BoundaryStateMachineFSM::Instance(_cobContext.get());
+}
+
 BoundaryStateMachine::~BoundaryStateMachine() {
     delete _fsm;
 }
@@ -45,6 +51,6 @@ std::string BoundaryStateMachine::getCurrentStateName() const {
     return "Unknown";
 }
 
-ContentContext& BoundaryStateMachine::getContext() {
+COB_Context& BoundaryStateMachine::getContext() {
     return *(_fsm->context());
 } 

@@ -19,14 +19,3 @@ void COD_Sync::SetSyncInfos(std::string SyncPath)
 {
     this->_syncPath = SyncPath;
 }
-std::string COD_Sync::toXmlString()
-{
-    std::string xml = "<sync";
-    xml += " id_serv_pair_config=\"" + std::to_string(this->_syncId[0]) + "\"";
-    xml += " id_content=\"" + std::to_string(this->_syncId[1]) + "\"";
-    xml += " id_type=\"" + std::to_string(this->_syncId[2]) + "\"";
-    xml += " id_localisation=\"" + std::to_string(this->_syncId[3]) + "\"";
-    xml += " path_sync=\"" + this->_syncPath + "\"";
-    xml += "/>";
-    return xml;
-}

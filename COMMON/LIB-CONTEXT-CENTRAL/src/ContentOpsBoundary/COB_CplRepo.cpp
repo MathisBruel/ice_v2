@@ -262,3 +262,19 @@ COB_Cpls COB_CplRepo::GetUnlinkedCpls()
     }
     return cpls;
 }
+
+void COB_CplRepo::Create(COB_Cpl* cpl) {
+    _cplRepo->Create(cpl);
+}
+
+void COB_CplRepo::Remove(COB_Cpl* cpl) {
+    _cplRepo->Remove(cpl);
+}
+
+void COB_CplRepo::Update(COB_Cpl* cpl) {
+    _cplRepo->Update(cpl);
+}
+
+Query* COB_CplRepo::GetQuery() const {
+    return static_cast<MySQLCplRepo*>(_cplRepo.get())->GetQuery();
+}
