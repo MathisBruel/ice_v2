@@ -6,6 +6,7 @@
 #include "ContentOpsBoundary/COB_ReleaseRepo.h"
 #include "ContentOpsInfra/MySQLReleaseRepo.h"
 #include "ContentOpsInfra/MySQLContentRepo.h"
+#include "ContentOpsApp/TransitionResponse.h"
 
 class BoundaryStateMachine;
 
@@ -15,7 +16,7 @@ public:
     ~BoundaryStateManager();
     void AddStateMachine(int id, BoundaryStateMachine* stateMachine);
     BoundaryStateMachine* GetStateMachine(int id);
-    COB_Content* CreateContent(std::string title);
+    TransitionResponse CreateContent(std::string title);
 
     std::string GetState(int contentId);
     void InitStateMachines();

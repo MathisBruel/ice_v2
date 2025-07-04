@@ -120,7 +120,7 @@ void BoundaryManager::UpdateContent(int contentId) {
     throw std::logic_error("UpdateContent not implemented");
 }
 
-COB_Content* BoundaryManager::CreateContent(std::string title) {
+TransitionResponse BoundaryManager::CreateContent(std::string title) {
     try {
         return _boundaryStateManager.CreateContent(title);
     } catch (const std::exception& e) {

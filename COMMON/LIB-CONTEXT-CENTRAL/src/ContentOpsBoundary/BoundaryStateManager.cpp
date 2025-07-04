@@ -1,6 +1,7 @@
 #include "ContentOpsBoundary/BoundaryStateManager.h"
 #include "ContentOpsBoundary/BoundaryStateMachine.h"
 #include "ContentOpsInfra/MySQLContentRepo.h"
+#include "commandCentral.h"
 #include <stdexcept>
 
 BoundaryStateManager::BoundaryStateManager() {
@@ -19,17 +20,39 @@ BoundaryStateMachine* BoundaryStateManager::GetStateMachine(int id) {
     return nullptr;
 }
 
-COB_Content* BoundaryStateManager::CreateContent(std::string title) {
+TransitionResponse BoundaryStateManager::CreateContent(std::string title) {
     if (!_contentRepo) _contentRepo = std::make_shared<COB_ContentRepo>(std::make_shared<MySQLContentRepo>());
     if (!_releaseRepo) _releaseRepo = std::make_shared<COB_ReleaseRepo>(std::make_shared<MySQLReleaseRepo>());
+    
     auto* sm = new BoundaryStateMachine(_contentRepo, _releaseRepo, std::make_shared<bool>(true), title);
     sm->start();
-    sm->update();
-    if (!sm->getContext().content) {
+    
+    // Vérifier que le configurateur d'interaction existe
+    if (!sm->getContext().interactionConfigurator) {
+        delete sm;
+        throw std::runtime_error("Interaction configurator not initialized");
+    }
+    
+    // Vérifier que l'interaction CREATE_CONTENT existe
+    auto interactions = sm->getContext().interactionConfigurator->GetInteractions();
+    if (interactions.find(CommandCentral::CREATE_CONTENT) == interactions.end()) {
+        delete sm;
+        throw std::runtime_error("CREATE_CONTENT interaction not found");
+    }
+    
+    // Exécuter l'interaction pour créer le contenu
+    TransitionResponse transitionResponse = interactions[CommandCentral::CREATE_CONTENT]->Run("temp_uuid", std::map<std::string, std::string>{{"contentTitle", title}});
+    
+    // Vérifier que le contenu a été créé
+    if (sm->getContext().content) {
+        int contentId = *sm->getContext().content->GetContentId();
+        _stateMachineMap[contentId] = sm;
+        sm->update();
+        return transitionResponse;
+    } else {
+        delete sm;
         throw std::runtime_error("Content non créé");
     }
-    _stateMachineMap[static_cast<const COB_Content*>(sm->getContext().content.get())->GetContentId()] = sm;
-    return sm->getContext().content.get();
 }
 
 void BoundaryStateManager::InitStateMachines() {

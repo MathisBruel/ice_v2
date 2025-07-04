@@ -2640,7 +2640,8 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     else if(cmd->getType() == CommandCentral::CREATE_CONTENT)
     {
         try {
-            _boundaryManager.CreateContent(cmd->getStringParameter("title"));
+            TransitionResponse transitionResponse = _boundaryManager.CreateContent(cmd->getStringParameter("contentTitle"));
+            response->setDatas(transitionResponse.cmdDatasXML);
             response->setStatus(CommandCentralResponse::OK);
             response->setComments("Contents get success");
         }  

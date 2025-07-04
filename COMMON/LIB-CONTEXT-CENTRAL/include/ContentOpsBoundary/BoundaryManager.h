@@ -3,6 +3,7 @@
 #include "BoundaryStateMachine.h"
 #include "BoundaryStateManager.h"
 #include "COB_Configurator.h"
+#include "ContentOpsApp/TransitionResponse.h"
 #include <stdexcept>
 #include <memory>
 
@@ -12,7 +13,7 @@ class BoundaryManager {
 public:
     BoundaryManager();
     ~BoundaryManager();
-    COB_Content* CreateContent(std::string title);
+    TransitionResponse CreateContent(std::string title);
     std::string GetAllContentsAsXml();
     std::string GetContentAsXml(int contentId);
     std::string GetContentReleasesAsXml(int contentId);
