@@ -14,6 +14,7 @@ class MySQLGroupRepo : public COD_GroupRepo
 {
 public:
     MySQLGroupRepo();
+    MySQLGroupRepo(std::shared_ptr<MySQLDBConnection> dbConnection);
     virtual ~MySQLGroupRepo();
     
     void Create(COD_Group* group) override;
@@ -40,4 +41,5 @@ private:
     std::string _groupNames;
 
     std::unique_ptr<Query> _query;
+    std::shared_ptr<MySQLDBConnection> _dbConnection;
 }; 

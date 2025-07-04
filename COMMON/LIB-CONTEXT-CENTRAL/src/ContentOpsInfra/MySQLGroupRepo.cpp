@@ -6,6 +6,13 @@ std::string MySQLGroupRepo::_table = "groups";
 MySQLGroupRepo::MySQLGroupRepo()
 {
     _query = nullptr;
+    _dbConnection = nullptr;
+}
+
+MySQLGroupRepo::MySQLGroupRepo(std::shared_ptr<MySQLDBConnection> dbConnection)
+{
+    _query = nullptr;
+    _dbConnection = dbConnection;
 }
 
 MySQLGroupRepo::~MySQLGroupRepo()
@@ -92,17 +99,21 @@ void MySQLGroupRepo::Remove(COD_Group* group)
 
 std::unique_ptr<ResultQuery> MySQLGroupRepo::getGroups()
 {
-    std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
-    dbConn->InitConnection();
+    if (!_dbConnection) {
+        _dbConnection = std::make_shared<MySQLDBConnection>();
+        _dbConnection->InitConnection();
+    }
     std::unique_ptr<Query> query = MySQLread();
-    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
+    std::unique_ptr<ResultQuery> result(_dbConnection->ExecuteQuery(query.get()));
     return result;
 }
 
 std::unique_ptr<ResultQuery> MySQLGroupRepo::getGroup(int groupId)
 {
-    std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
-    dbConn->InitConnection();
+    if (!_dbConnection) {
+        _dbConnection = std::make_shared<MySQLDBConnection>();
+        _dbConnection->InitConnection();
+    }
     
     std::unique_ptr<Query> readQuery = std::make_unique<Query>(Query::SELECT, _database, _table);
     readQuery->addParameter("id_group", nullptr, "int");
@@ -110,6 +121,6 @@ std::unique_ptr<ResultQuery> MySQLGroupRepo::getGroup(int groupId)
     readQuery->addParameter("id_group_1", nullptr, "int");
     readQuery->addWhereParameter("id_group", &groupId, "int");
     
-    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(readQuery.get()));
+    std::unique_ptr<ResultQuery> result(_dbConnection->ExecuteQuery(readQuery.get()));
     return result;
 } 

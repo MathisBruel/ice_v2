@@ -21,13 +21,7 @@
 
 BoundaryManager::BoundaryManager()
 {
-    _siteRepo = std::make_shared<COB_SiteRepo>(std::make_shared<MySQLSiteRepo>());
-    _groupRepo = std::make_shared<COB_GroupRepo>(std::make_shared<MySQLGroupRepo>());
-    _contentRepo = std::make_shared<COB_ContentRepo>(std::make_shared<MySQLContentRepo>());
-    _releaseRepo = std::make_shared<COB_ReleaseRepo>(std::make_shared<MySQLReleaseRepo>());
-    _localisationRepo = std::make_shared<COB_LocalisationRepo>(std::make_shared<MySQLLocalisationRepo>());
-    _typeRepo = std::make_shared<COB_TypeRepo>(std::make_shared<MySQLTypeRepo>());
-    _cplRepo = std::make_shared<COB_CplRepo>(std::make_shared<MySQLCplRepo>());
+    _configurator = std::make_shared<COB_Configurator>();
 }
 
 BoundaryManager::~BoundaryManager()
@@ -36,7 +30,7 @@ BoundaryManager::~BoundaryManager()
 
 std::string BoundaryManager::GetAllContentsAsXml() {
     try {
-        COB_Contents contents = _contentRepo->GetContents(); 
+        COB_Contents contents = _configurator->GetContentRepo()->GetContents(); 
         return contents; 
     }
     catch(const std::exception& e) { 
@@ -47,7 +41,7 @@ std::string BoundaryManager::GetAllContentsAsXml() {
 
 std::string BoundaryManager::GetContentAsXml(int contentId) {
     try {
-        COB_Content content = _contentRepo->GetContent(contentId);
+        COB_Content content = _configurator->GetContentRepo()->GetContent(contentId);
         return content;
     }
     catch(const std::exception& e) { 
@@ -58,7 +52,7 @@ std::string BoundaryManager::GetContentAsXml(int contentId) {
 
 std::string BoundaryManager::GetContentReleasesAsXml(int contentId) {
     try {
-        COB_Releases releases = _releaseRepo->GetReleases(contentId);
+        COB_Releases releases = _configurator->GetReleaseRepo()->GetReleases(contentId);
         return releases;
     }
     catch(const std::exception& e) { 
@@ -69,7 +63,7 @@ std::string BoundaryManager::GetContentReleasesAsXml(int contentId) {
 
 std::string BoundaryManager::GetContentReleasesAsXml(int contentId,int typeId, int localizationId) {
     try {
-        COB_Release release = _releaseRepo->GetRelease(contentId, typeId, localizationId);
+        COB_Release release = _configurator->GetReleaseRepo()->GetRelease(contentId, typeId, localizationId);
         return static_cast<std::string>(release);
     }
     catch(const std::exception& e) {
@@ -80,7 +74,7 @@ std::string BoundaryManager::GetContentReleasesAsXml(int contentId,int typeId, i
 
 std::string BoundaryManager::GetGroupsAsXml() {
     try {
-        COB_Groups groups = _groupRepo->GetGroups(); 
+        COB_Groups groups = _configurator->GetGroupRepo()->GetGroups(); 
         return groups; 
     }
     catch(const std::exception& e) { 
@@ -91,7 +85,7 @@ std::string BoundaryManager::GetGroupsAsXml() {
 
 std::string BoundaryManager::GetGroupAsXml(int groupeId) {
     try {
-        COB_Group group = _groupRepo->GetGroup(groupeId);
+        COB_Group group = _configurator->GetGroupRepo()->GetGroup(groupeId);
         return group;
     }
     catch(const std::exception& e) { 
@@ -102,7 +96,7 @@ std::string BoundaryManager::GetGroupAsXml(int groupeId) {
 
 std::string BoundaryManager::GetSitesAsXml(int groupId) {
     try {
-        COB_Sites sites = _siteRepo->GetSites(groupId); 
+        COB_Sites sites = _configurator->GetSiteRepo()->GetSites(groupId); 
         return sites;
     }
     catch(const std::exception& e) { 
@@ -113,7 +107,7 @@ std::string BoundaryManager::GetSitesAsXml(int groupId) {
 
 std::string BoundaryManager::GetSiteCplsAsXml(int siteId) {
     try {
-        COB_Cpls cpls = _cplRepo->GetCplsBySite(siteId);
+        COB_Cpls cpls = _configurator->GetCplRepo()->GetCplsBySite(siteId);
         return cpls;
     }
     catch(const std::exception& e) { 
@@ -136,7 +130,7 @@ COB_Content* BoundaryManager::CreateContent(std::string title) {
 
 std::string BoundaryManager::GetLocalisationsAsXml() {
     try {
-        COB_Localisations localisations = _localisationRepo->GetLocalisations();
+        COB_Localisations localisations = _configurator->GetLocalisationRepo()->GetLocalisations();
         return localisations;
     }
     catch(const std::exception& e) { 
@@ -147,7 +141,7 @@ std::string BoundaryManager::GetLocalisationsAsXml() {
 
 std::string BoundaryManager::GetTypesAsXml() {
     try {
-        COB_Types types = _typeRepo->GetTypes();
+        COB_Types types = _configurator->GetTypeRepo()->GetTypes();
         return types;
     }
     catch(const std::exception& e) { 
@@ -158,7 +152,7 @@ std::string BoundaryManager::GetTypesAsXml() {
 
 std::string BoundaryManager::GetCplsAsXml() {
     try {
-        COB_Cpls cpls = _cplRepo->GetCpls();
+        COB_Cpls cpls = _configurator->GetCplRepo()->GetCpls();
         return cpls;
     }
     catch(const std::exception& e) { 
@@ -169,7 +163,7 @@ std::string BoundaryManager::GetCplsAsXml() {
 
 std::string BoundaryManager::GetCplAsXml(int id) {
     try {
-        COB_Cpl cpl = _cplRepo->GetCpl(id);
+        COB_Cpl cpl = _configurator->GetCplRepo()->GetCpl(id);
         return cpl;
     }
     catch(const std::exception& e) { 
@@ -180,7 +174,7 @@ std::string BoundaryManager::GetCplAsXml(int id) {
 
 std::string BoundaryManager::GetCplAsXmlByUuid(const std::string& uuid) {
     try {
-        COB_Cpl cpl = _cplRepo->GetCplByUuid(uuid);
+        COB_Cpl cpl = _configurator->GetCplRepo()->GetCplByUuid(uuid);
         return cpl;
     }
     catch(const std::exception& e) { 
@@ -195,7 +189,7 @@ std::string BoundaryManager::GetCplsByScriptAsXml(int scriptId) {
 
 std::string BoundaryManager::GetCplsByReleaseAsXml(int releaseId) {
     try {
-        COB_Cpls cpls = _cplRepo->GetCplsByRelease(releaseId);
+        COB_Cpls cpls = _configurator->GetCplRepo()->GetCplsByRelease(releaseId);
         return cpls;
     }
     catch(const std::exception& e) { 
@@ -206,7 +200,7 @@ std::string BoundaryManager::GetCplsByReleaseAsXml(int releaseId) {
 
 std::string BoundaryManager::GetUnlinkedCplsAsXml() {
     try {
-        COB_Cpls cpls = _cplRepo->GetUnlinkedCpls();
+        COB_Cpls cpls = _configurator->GetCplRepo()->GetUnlinkedCpls();
         return cpls;
     }
     catch(const std::exception& e) { 
@@ -217,7 +211,7 @@ std::string BoundaryManager::GetUnlinkedCplsAsXml() {
 
 std::string BoundaryManager::GetReleaseCplsAsXml(int contentId, int typeId, int localisationId) {
     try {
-        COB_Cpls cpls = _cplRepo->GetCplsByRelease(contentId, typeId, localisationId);
+        COB_Cpls cpls = _configurator->GetCplRepo()->GetCplsByRelease(contentId, typeId, localisationId);
         return cpls;
     }
     catch(const std::exception& e) {

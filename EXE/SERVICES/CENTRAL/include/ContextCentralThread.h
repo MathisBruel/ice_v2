@@ -3,6 +3,7 @@
 #include <iostream>
 #include <queue>
 #include <regex>
+#include <memory>
 
 #include "unistd.h"
 
@@ -36,6 +37,6 @@ private:
 	Poco::Thread* thread;
 	bool stop;
     MySQLDBConnection * _dbConnection;
-    BoundaryManager& _boundaryManager = BoundaryManager::GetInstance();
-    COB_Configurator* _cobConfigurator;
+    BoundaryManager& _boundaryManager;
+    std::unique_ptr<COB_Configurator> _cobConfigurator;
 };

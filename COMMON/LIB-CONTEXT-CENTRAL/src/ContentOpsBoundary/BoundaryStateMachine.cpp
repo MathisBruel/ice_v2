@@ -7,6 +7,7 @@ BoundaryStateMachine::BoundaryStateMachine(std::shared_ptr<COB_ContentRepo> repo
     _context.contentRepo = repo;
     _context.releaseRepo = releaseRepo;
     _context.isNewContent = isNewContent;
+    _context.interactionConfigurator = std::make_shared<COB_InteractionConfigurator>();
     _fsm = new BoundaryStateMachineFSM::Instance(&_context);
 }
 
@@ -17,12 +18,14 @@ BoundaryStateMachine::BoundaryStateMachine(std::shared_ptr<COB_ContentRepo> repo
     _context.releaseRepo = releaseRepo;
     _context.isNewContent = isNewContent;
     _context.pendingTitle = std::make_shared<std::string>(title);
+    _context.interactionConfigurator = std::make_shared<COB_InteractionConfigurator>();
     _fsm = new BoundaryStateMachineFSM::Instance(&_context);
 }
 
 BoundaryStateMachine::BoundaryStateMachine(std::shared_ptr<COB_Context> cobContext)
     : _cobContext(cobContext), _fsm(nullptr)
 {
+    _context.interactionConfigurator = std::make_shared<COB_InteractionConfigurator>();
     _fsm = new BoundaryStateMachineFSM::Instance(_cobContext.get());
 }
 

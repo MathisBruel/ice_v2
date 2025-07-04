@@ -3,7 +3,7 @@
 #include "CentralContext.h"
 #include "ContentOpsBoundary/BoundaryManager.h"
 
-ContextCentralThread::ContextCentralThread()
+ContextCentralThread::ContextCentralThread() : _boundaryManager(BoundaryManager::GetInstance())
 {
     stop = false;
     thread = nullptr;
@@ -29,8 +29,8 @@ void ContextCentralThread::run() {
 
     Poco::Stopwatch watch;
     CentralContext* context = CentralContext::getCurrentContext();
-    this->_dbConnection = new MySQLDBConnection(context->getDatabaseConnector());
-    _cobConfigurator = new COB_Configurator(this->_dbConnection);
+    _cobConfigurator = std::make_unique<COB_Configurator>();
+    this->_dbConnection = _cobConfigurator->GetDBConnection().get();
 
     // -- works at 50 ms rate
     int waitTime = 50;
@@ -2639,19 +2639,18 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
     }
     else if(cmd->getType() == CommandCentral::CREATE_CONTENT)
     {
-        auto interaction = _cobConfigurator->getContentInteraction();
-        TransitionResponse stateResponse = interaction->Run(cmd->getUuid(), cmd->getParameters());
-        response->setComments(stateResponse.cmdComment);
-        response->setDatas(stateResponse.cmdDatasXML);
-        if (stateResponse.cmdStatus == "OK") {
+        try {
+            _boundaryManager.CreateContent(cmd->getStringParameter("title"));
             response->setStatus(CommandCentralResponse::OK);
-        } else if (stateResponse.cmdStatus == "KO") {
+            response->setComments("Contents get success");
+        }  
+        catch(std::exception e) {
             response->setStatus(CommandCentralResponse::KO);
-        } else {
-            response->setStatus(CommandCentralResponse::UNKNOWN);
+            response->setComments("Content creation failed");
+            response->setDatas("<error><code>102</code><message>" + std::string(e.what())+ "</message></error>");
+            Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::CreateContent() :" + std::string(e.what()), __FILE__, __LINE__);
         }
-        context->getCommandHandler()->addResponse(response);
-        return;
+
     }
     else if (cmd->getType() == CommandCentral::GET_LOCALISATIONS) {
         try {

@@ -2,26 +2,16 @@
 #include "BoundaryEnum.h"
 #include "BoundaryStateMachine.h"
 #include "BoundaryStateManager.h"
+#include "COB_Configurator.h"
 #include <stdexcept>
 #include <memory>
-#include "ContentOpsBoundary/COB_SiteRepo.h"
-#include "ContentOpsBoundary/COB_GroupRepo.h"
-#include "ContentOpsBoundary/COB_ContentRepo.h"
-#include "ContentOpsBoundary/COB_ReleaseRepo.h"
-#include "ContentOpsBoundary/COB_LocalisationRepo.h"
-#include "ContentOpsBoundary/COB_TypeRepo.h"
-#include "ContentOpsBoundary/COB_CplRepo.h"
-#include "ContentOpsBoundary/COB_Content.h"
 
 using namespace ContentOpsBoundaryEnum;
 
 class BoundaryManager {
-    public:
+public:
     BoundaryManager();
     ~BoundaryManager();
-    void AddStateMachine(int id, BoundaryStateMachine* stateMachine);
-    BoundaryStateMachine* GetStateMachine(int id);
-    BoundaryStateMachine* CreateStateMachine(int contentId, MySQLDBConnection* dbConnection);
     COB_Content* CreateContent(std::string title);
     std::string GetAllContentsAsXml();
     std::string GetContentAsXml(int contentId);
@@ -42,6 +32,7 @@ class BoundaryManager {
     std::string GetUnlinkedCplsAsXml();
     void UpdateContent(int contentId);
     BoundaryStateManager GetBoundaryStateManager() {return _boundaryStateManager;}
+    std::shared_ptr<COB_Configurator> GetConfigurator() {return _configurator;}
 
     static BoundaryManager& GetInstance() {
         static BoundaryManager instance;
@@ -51,13 +42,7 @@ class BoundaryManager {
     BoundaryManager(const BoundaryManager&) = delete;
     BoundaryManager& operator=(const BoundaryManager&) = delete;
 
-    private:
+private:
     BoundaryStateManager _boundaryStateManager;
-    std::shared_ptr<COB_SiteRepo> _siteRepo;
-    std::shared_ptr<COB_GroupRepo> _groupRepo;
-    std::shared_ptr<COB_ContentRepo> _contentRepo;
-    std::shared_ptr<COB_ReleaseRepo> _releaseRepo;
-    std::shared_ptr<COB_LocalisationRepo> _localisationRepo;
-    std::shared_ptr<COB_TypeRepo> _typeRepo;
-    std::shared_ptr<COB_CplRepo> _cplRepo;
+    std::shared_ptr<COB_Configurator> _configurator;
 };
