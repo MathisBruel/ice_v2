@@ -32,6 +32,13 @@ public:
     std::string GetReleaseCplsAsXml(int contentId, int typeId, int localisationId);
     std::string GetUnlinkedCplsAsXml();
     void UpdateContent(int contentId);
+    
+    // Méthodes de suppression pour StatePublishing
+    void DeleteRelease(int contentId, int typeId, int localisationId);
+    void DeleteCPL(int contentId, int typeId, int localisationId, int servPairConfigId);
+    void DeleteSync(int contentId, int typeId, int localisationId, int servPairConfigId);
+    void DeleteSyncLoop(int contentId, int typeId, int localisationId, int servPairConfigId);
+    
     BoundaryStateManager GetBoundaryStateManager() {return _boundaryStateManager;}
     std::shared_ptr<COB_Configurator> GetConfigurator() {return _configurator;}
 

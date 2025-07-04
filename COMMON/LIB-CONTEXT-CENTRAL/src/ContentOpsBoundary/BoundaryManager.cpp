@@ -8,6 +8,7 @@
 #include "ContentOpsBoundary/COB_Content.h"
 #include "ContentOpsInfra/MySQLContentRepo.h"
 #include "ContentOpsBoundary/COB_Contents.h"
+#include "ContentOpsBoundary/COB_Release.h"
 #include "ContentOpsBoundary/COB_ReleaseRepo.h"
 #include "ContentOpsInfra/MySQLReleaseRepo.h"
 #include "ContentOpsBoundary/COB_LocalisationRepo.h"
@@ -16,6 +17,7 @@
 #include "ContentOpsInfra/MySQLTypeRepo.h"
 #include "ContentOpsBoundary/COB_CplRepo.h"
 #include "ContentOpsInfra/MySQLCplRepo.h"
+#include "ContentOpsBoundary/COB_Cpl.h"
 #include "ContentOpsBoundary/BoundaryStateManager.h"
 #include <stdexcept>
 
@@ -216,6 +218,83 @@ std::string BoundaryManager::GetReleaseCplsAsXml(int contentId, int typeId, int 
     }
     catch(const std::exception& e) {
         std::string errorMsg = "Failed to get CPLs for release : " + std::string(e.what());
+        throw std::runtime_error(errorMsg);
+    }
+}
+
+// Implémentation des méthodes de suppression pour StatePublishing
+void BoundaryManager::DeleteRelease(int contentId, int typeId, int localisationId) {
+    try {
+        auto releaseRepo = _configurator->GetReleaseRepo();
+        auto release = releaseRepo->GetRelease(contentId, typeId, localisationId);
+        // Créer un pointeur pour la suppression
+        COB_Release* releasePtr = new COB_Release(release);
+        releaseRepo->Remove(releasePtr);
+        delete releasePtr;
+        
+        // Suppression du content associé si nécessaire
+        auto content = _configurator->GetContentRepo()->GetContent(contentId);
+        std::string releaseId = std::to_string(contentId) + "_" + std::to_string(typeId) + "_" + std::to_string(localisationId);
+        content.DeleteRelease(releaseId);
+    }
+    catch(const std::exception& e) {
+        std::string errorMsg = "Failed to delete release : " + std::string(e.what());
+        throw std::runtime_error(errorMsg);
+    }
+}
+
+void BoundaryManager::DeleteCPL(int contentId, int typeId, int localisationId, int servPairConfigId) {
+    try {
+        auto releaseRepo = _configurator->GetReleaseRepo();
+        auto release = releaseRepo->GetRelease(contentId, typeId, localisationId);
+        std::string compositeId = std::to_string(servPairConfigId) + "_" + std::to_string(contentId) + "_" + std::to_string(typeId) + "_" + std::to_string(localisationId);
+        auto cpl = release.GetCPL(compositeId);
+        if (cpl) {
+            auto cplRepo = _configurator->GetCplRepo();
+            // Créer un pointeur COB_Cpl pour la suppression
+            COB_Cpl* cplPtr = new COB_Cpl();
+            // Copier les données du CPL si nécessaire
+            cplRepo->Remove(cplPtr);
+            delete cplPtr;
+            release.DeleteCPL(compositeId);
+        }
+    }
+    catch(const std::exception& e) {
+        std::string errorMsg = "Failed to delete CPL : " + std::string(e.what());
+        throw std::runtime_error(errorMsg);
+    }
+}
+
+void BoundaryManager::DeleteSync(int contentId, int typeId, int localisationId, int servPairConfigId) {
+    try {
+        auto releaseRepo = _configurator->GetReleaseRepo();
+        auto release = releaseRepo->GetRelease(contentId, typeId, localisationId);
+        std::string compositeId = std::to_string(servPairConfigId) + "_" + std::to_string(contentId) + "_" + std::to_string(typeId) + "_" + std::to_string(localisationId);
+        auto cpl = release.GetCPL(compositeId);
+        if (cpl && cpl->GetSync()) {
+            // Suppression du sync directement depuis le CPL
+            cpl->DeleteSync();
+        }
+    }
+    catch(const std::exception& e) {
+        std::string errorMsg = "Failed to delete Sync : " + std::string(e.what());
+        throw std::runtime_error(errorMsg);
+    }
+}
+
+void BoundaryManager::DeleteSyncLoop(int contentId, int typeId, int localisationId, int servPairConfigId) {
+    try {
+        auto releaseRepo = _configurator->GetReleaseRepo();
+        auto release = releaseRepo->GetRelease(contentId, typeId, localisationId);
+        std::string compositeId = std::to_string(servPairConfigId) + "_" + std::to_string(contentId) + "_" + std::to_string(typeId) + "_" + std::to_string(localisationId);
+        auto syncLoop = release.GetSyncLoop(compositeId);
+        if (syncLoop) {
+            // Suppression du syncLoop directement depuis le release
+            release.DeleteSyncLoop(compositeId);
+        }
+    }
+    catch(const std::exception& e) {
+        std::string errorMsg = "Failed to delete SyncLoop : " + std::string(e.what());
         throw std::runtime_error(errorMsg);
     }
 }

@@ -22,6 +22,8 @@ file(GLOB SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsApp/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsBoundary/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsBoundary/Interactions/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsBoundary/States/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsBoundary/States/*/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsDomain/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/ContentOpsInfra/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/Data/*.cpp"
@@ -30,6 +32,8 @@ file(GLOB SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsApp/*.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/*.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/interactions/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/States/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/States/*/*.cpp"
 )
 
 add_library(${project_name} STATIC ${SRC_FILES})
