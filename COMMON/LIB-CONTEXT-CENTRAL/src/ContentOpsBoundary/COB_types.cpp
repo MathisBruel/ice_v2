@@ -7,13 +7,16 @@
 COB_Types::operator std::string() const
 {
     std::ostringstream xmlStream;
-    xmlStream << "<types>\n";
+    xmlStream << "<types>";
     
-    std::transform(this->begin(), this->end(), std::ostream_iterator<std::string>(xmlStream), [](const COB_Type& type) {
-        std::ostringstream line;
-        line << "  " << static_cast<std::string>(type) << "\n";
-        return line.str();
-    });
+    if (!this->empty()) {
+        xmlStream << "\n";
+        std::transform(this->begin(), this->end(), std::ostream_iterator<std::string>(xmlStream), [](const COB_Type& type) {
+            std::ostringstream line;
+            line << "  " << static_cast<std::string>(type) << "\n";
+            return line.str();
+        });
+    }
 
     xmlStream << "</types>";
     return xmlStream.str();

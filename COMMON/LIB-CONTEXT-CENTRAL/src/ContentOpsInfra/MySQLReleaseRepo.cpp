@@ -6,7 +6,15 @@ std::string MySQLReleaseRepo::_table = "releases";
 
 std::unique_ptr<Query> MySQLReleaseRepo::MySQLcreate(COD_Releases* release)
 {
+    if (!release) {
+        return nullptr;
+    }
+    
     const int* releaseIds = release->GetReleaseId();
+    if (!releaseIds) {
+        return nullptr;
+    }
+    
     _releaseIds[0] = releaseIds[0];
     _releaseIds[1] = releaseIds[1];
     _releaseIds[2] = releaseIds[2];
@@ -23,7 +31,15 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLcreate(COD_Releases* release)
 
 std::unique_ptr<Query> MySQLReleaseRepo::MySQLread(COD_Releases* release)
 {
+    if (!release) {
+        return nullptr;
+    }
+    
     const int* releaseIds = release->GetReleaseId();
+    if (!releaseIds) {
+        return nullptr;
+    }
+    
     _releaseIds[0] = releaseIds[0];
     _releaseIds[1] = releaseIds[1];
     _releaseIds[2] = releaseIds[2];
@@ -43,11 +59,20 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLread(COD_Releases* release)
 
 std::unique_ptr<Query> MySQLReleaseRepo::MySQLupdate(COD_Releases* release)
 {
+    if (!release) {
+        return nullptr;
+    }
+    
     const int* releaseIds = release->GetReleaseId();
+    if (!releaseIds) {
+        return nullptr;
+    }
+    
     _releaseIds[0] = releaseIds[0];
     _releaseIds[1] = releaseIds[1];
     _releaseIds[2] = releaseIds[2];
     _CPLRefPath = release->GetCPLRefPath();
+    _CISPath = release->GetCISPath();
 
 
     if (_releaseIds[0] == -1 || _releaseIds[1] == -1 || _releaseIds[2] == -1) { return nullptr; }
@@ -55,6 +80,7 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLupdate(COD_Releases* release)
     std::unique_ptr<Query> updateQuery = std::make_unique<Query>(Query::UPDATE, _database, _table);
 
     updateQuery->addParameter("release_cpl_ref_path", &_CPLRefPath, "string");
+    updateQuery->addParameter("release_cis_path", &_CISPath, "string");
     updateQuery->addWhereParameter("id_content", &_releaseIds[0], "int");
     updateQuery->addWhereParameter("id_type", &_releaseIds[1], "int");
     updateQuery->addWhereParameter("id_localisation", &_releaseIds[2], "int");
@@ -64,7 +90,15 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLupdate(COD_Releases* release)
 
 std::unique_ptr<Query> MySQLReleaseRepo::MySQLremove(COD_Releases* release)
 {
+    if (!release) {
+        return nullptr;
+    }
+    
     const int* releaseIds = release->GetReleaseId();
+    if (!releaseIds) {
+        return nullptr;
+    }
+    
     _releaseIds[0] = releaseIds[0];
     _releaseIds[1] = releaseIds[1];
     _releaseIds[2] = releaseIds[2];
@@ -78,7 +112,6 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLremove(COD_Releases* release)
     return removeQuery;
 }
 
-// Implémentation des méthodes virtuelles pures
 std::unique_ptr<ResultQuery> MySQLReleaseRepo::getReleases()
 {
     std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
@@ -159,4 +192,68 @@ std::unique_ptr<ResultQuery> MySQLReleaseRepo::getRelease(int contentId, int typ
     
     std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
     return result;
+}
+
+void MySQLReleaseRepo::Create(COD_Releases* release) 
+{
+    _query = MySQLcreate(release);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        ResultQuery* result = dbConn->ExecuteQuery(_query.get());
+        if (!result || !result->isValid()) {
+            throw std::runtime_error("Failed to create release: " + (result ? result->getErrorMessage() : "Database connection failed"));
+        }
+        delete result;
+    } else {
+        throw std::runtime_error("Failed to create release query");
+    }
+}
+
+void MySQLReleaseRepo::Read(COD_Releases* release) 
+{
+    _query = MySQLread(release);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        ResultQuery* result = dbConn->ExecuteQuery(_query.get());
+        if (!result || !result->isValid()) {
+            throw std::runtime_error("Failed to read release: " + (result ? result->getErrorMessage() : "Database connection failed"));
+        }
+        delete result;
+    } else {
+        throw std::runtime_error("Failed to create read query");
+    }
+}
+
+void MySQLReleaseRepo::Update(COD_Releases* release) 
+{
+    _query = MySQLupdate(release);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        ResultQuery* result = dbConn->ExecuteQuery(_query.get());
+        if (!result || !result->isValid()) {
+            throw std::runtime_error("Failed to update release: " + (result ? result->getErrorMessage() : "Database connection failed"));
+        }
+        delete result;
+    } else {
+        throw std::runtime_error("Failed to create update query");
+    }
+}
+
+void MySQLReleaseRepo::Remove(COD_Releases* release) 
+{
+    _query = MySQLremove(release);
+    if (_query) {
+        std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+        dbConn->InitConnection();
+        ResultQuery* result = dbConn->ExecuteQuery(_query.get());
+        if (!result || !result->isValid()) {
+            throw std::runtime_error("Failed to remove release: " + (result ? result->getErrorMessage() : "Database connection failed"));
+        }
+        delete result;
+    } else {
+        throw std::runtime_error("Failed to create remove query");
+    }
 }

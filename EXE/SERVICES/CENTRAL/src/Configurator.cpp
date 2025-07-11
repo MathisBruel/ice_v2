@@ -1,5 +1,5 @@
 #include "Configurator.h"
-#include "ContentOpsApp/StateMachine.h"
+//#include "ContentOpsApp/StateMachine.h"
 
 //Configurator::Configurator(MySQLDBConnection* DBconnection) {
 //    this->_dbConnection = DBconnection;

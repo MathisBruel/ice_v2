@@ -57,7 +57,7 @@
                 const li = document.createElement("li");
                 
                 li.className = "li-model";
-                li.id = cpl.$.CPL_uuid;
+                li.id = cpl.$.uuid;
                 li.addEventListener('click', async function(){
                     window.location.assign("/cpl?uuid=" + li.id);
                 });
@@ -67,7 +67,7 @@
                 li.appendChild(imageCpl);
                 const nameDom = document.createElement("div");
                 nameDom.className = "param";
-                nameDom.innerText = cpl.$.CPL_name;
+                nameDom.innerText = cpl.$.name;
                 li.appendChild(nameDom);
                 const imageDescr = document.createElement("img");
                 imageDescr.className = "image-line";
@@ -75,7 +75,7 @@
                 li.appendChild(imageDescr);
                 const descrDom = document.createElement("div");
                 descrDom.className = "param";
-                descrDom.innerText = cpl.$.CPL_uuid;
+                descrDom.innerText = cpl.$.uuid;
                 li.appendChild(descrDom);
                 tabCpls.appendChild(li);
                 

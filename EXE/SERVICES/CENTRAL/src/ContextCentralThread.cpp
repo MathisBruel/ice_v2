@@ -2514,32 +2514,6 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
         }
     }
-    else if (cmd->getType() == CommandCentral::UPDATE_CIS) {
-        /*MySQLCISRepo* cisRepo = new MySQLCISRepo();
-        int contentId = cmd->getIntParameter("id_content");
-        int typeId = cmd->getIntParameter("id_type");
-        int localisationId = cmd->getIntParameter("id_localisation");
-        std::string pathCIS = cmd->getStringParameter("release_cis_path");
-        COD_CIS* cis = new COD_CIS();
-        cis->SetCISId(contentId, typeId, localisationId);
-        cis->SetCISInfos(pathCIS);
-        cisRepo->Update(cis);
-        Query* updateQuery = cisRepo->GetQuery();
-        ResultQuery *result = this->_dbConnection->ExecuteQuery(updateQuery);
-        if (result != nullptr && result->isValid()) {
-            response->setStatus(CommandCentralResponse::OK);
-            response->setComments("CIS update success");
-        }
-        else {
-            response->setStatus(CommandCentralResponse::KO);
-            response->setComments("CIS update failed");
-            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }
-        delete result;
-        delete updateQuery;
-        delete cis;
-        delete cisRepo;*/
-    }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_CPLS) {
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
@@ -2556,96 +2530,99 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCS) {
-        /*int contentId = cmd->getIntParameter("id_content");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
-        MySQLSyncRepo* syncRepo = new MySQLSyncRepo();
-        COD_Sync* sync = new COD_Sync();
-        sync->SetSyncId(-1, contentId, typeId, localisationId);
-        syncRepo->Read(sync);
-        Query* query = syncRepo->GetQuery();
-        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
-        if (result != nullptr && result->isValid()) {
+        
+        try {
+            std::string syncsXml = _boundaryManager.GetReleaseSyncsAsXml(contentId, typeId, localisationId);
+            response->setDatas(syncsXml);
             response->setStatus(CommandCentralResponse::OK);
             response->setComments("Syncs get success");
-            std::string datas = "<syncs>";
-            for (int i = 0; i < result->getNbRows(); i++) {
-                sync->SetSyncId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_content"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
-                sync->SetSyncInfos(*result->getStringValue(i, "path_sync"));
-                datas += sync->toXmlString();
-            }
-            datas += "</syncs>";
-            response->setDatas(datas);
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "Syncs retrieved for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId), __FILE__, __LINE__);
         }
-        else {
+        catch (const std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Syncs get failed");
-            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }*/
+            response->setComments("Syncs get failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error getting syncs: " + std::string(e.what()), __FILE__, __LINE__);
+        }
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCLOOPS) {
-        /*int contentId = cmd->getIntParameter("id_content");
+        int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
-        MySQLSyncLoopRepo* syncLoopRepo = new MySQLSyncLoopRepo();
-        COD_SyncLoop* syncLoop = new COD_SyncLoop();
-        syncLoop->SetSyncLoopId(-1, contentId, typeId, localisationId);
-        syncLoopRepo->Read(syncLoop);
-        Query* query = syncLoopRepo->GetQuery();
-        ResultQuery *result = this->_dbConnection->ExecuteQuery(query);
-        if (result != nullptr && result->isValid()) {
+        
+        try {
+            std::string syncLoopsXml = _boundaryManager.GetReleaseSyncLoopsAsXml(contentId, typeId, localisationId);
+            response->setDatas(syncLoopsXml);
             response->setStatus(CommandCentralResponse::OK);
             response->setComments("SyncLoops get success");
-            std::string datas = "<syncLoops>";
-            for (int i = 0; i < result->getNbRows(); i++) {
-                syncLoop->SetSyncLoopId(*result->getIntValue(i, "id_serv_pair_config"), *result->getIntValue(i, "id_content"), *result->getIntValue(i, "id_type"), *result->getIntValue(i, "id_localisation"));
-                syncLoop->SetSyncLoopInfos(*result->getStringValue(i, "path_sync_loop"));
-                datas += syncLoop->toXmlString();
-            }
-            datas += "</syncLoops>";
-            response->setDatas(datas);
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "SyncLoops retrieved for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId), __FILE__, __LINE__);
         }
-        else {
+        catch (const std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("SyncLoops get failed");
-            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }*/
+            response->setComments("SyncLoops get failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error getting syncLoops: " + std::string(e.what()), __FILE__, __LINE__);
+        }
     }
     else if (cmd->getType() == CommandCentral::GET_SERVER_PAIR) {
-        /*int serverPairId = cmd->getIntParameter("id_serv_pair_config");
-        Query* query =  new Query(Query::SELECT, "ice", "server_pair_configuration");
-        query->addParameter("id_serv_pair_config", nullptr, "int");
-        query->addParameter("id_site", nullptr, "int");
-        query->addParameter("projection_server_ip", nullptr, "string");
-        query->addParameter("auditorium_server_ip", nullptr, "string");
-        query->addParameter("name", nullptr, "string");
-        if (serverPairId != -1) { query->addWhereParameter("id_serv_pair_config", &serverPairId, "int"); }
-        ResultQuery* result = this->_dbConnection->ExecuteQuery(query);
-        if (result->isValid()) {
+        int serverPairId = cmd->getIntParameter("id_serv_pair_config");
+        
+        try {
+            std::string serverPairsXml;
+            
+            if (serverPairId != -1) {
+                serverPairsXml = _boundaryManager.GetServerPairsAsXml(serverPairId);
+                serverPairsXml = "<servPairs>" + serverPairsXml + "</servPairs>";
+            } else {
+                serverPairsXml = _boundaryManager.GetServerPairsAsXml();
+            }
+            
+            response->setDatas(serverPairsXml);
             response->setStatus(CommandCentralResponse::OK);
             response->setComments("Server pair get success");
-            std::string datas = "<servPairs>";
-            for (int i = 0; i < result->getNbRows(); i++) {
-                datas += "<servPair id_serv_pair_config=\"" + std::to_string(*result->getIntValue(i, "id_serv_pair_config")) + "\" id_site=\"" + std::to_string(*result->getIntValue(i, "id_site")) + "\" projection_server_ip=\"" + *result->getStringValue(i, "projection_server_ip") + "\" auditorium_server_ip=\"" + *result->getStringValue(i, "auditorium_server_ip") + "\" name=\"" + *result->getStringValue(i, "name") + "\" />";
-            }
-            datas += "</servPairs>";
-            response->setDatas(datas);
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "Server pairs retrieved successfully", __FILE__, __LINE__);
         }
-        else {
+        catch (const std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Server pair get failed");
-            response->setDatas("<error><code>" + std::to_string(result->getErrorCode()) + "</code><message>" + result->getErrorMessage() + "</message></error>");
-        }*/
+            response->setComments("Server pair get failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error getting server pairs: " + std::string(e.what()), __FILE__, __LINE__);
+        }
     }
     else if(cmd->getType() == CommandCentral::CREATE_CONTENT)
     {
         try {
-            TransitionResponse transitionResponse = _boundaryManager.CreateContent(cmd->getStringParameter("contentTitle"));
-            response->setDatas(transitionResponse.cmdDatasXML);
+            std::unique_ptr<COB_Content> createdContent = _boundaryManager.CreateContent(cmd->getStringParameter("contentTitle"));
+            
+            if (createdContent) {
+                std::string contentXml = static_cast<std::string>(*createdContent);
+                response->setDatas(contentXml);
             response->setStatus(CommandCentralResponse::OK);
-            response->setComments("Contents get success");
+                response->setComments("Content created successfully");
+            } else {
+                response->setStatus(CommandCentralResponse::KO);
+                response->setComments("Content creation failed");
+                response->setDatas("<error><code>101</code><message>Failed to create content</message></error>");
+            }
         }  
-        catch(std::exception e) {
+        catch(std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
             response->setComments("Content creation failed");
             response->setDatas("<error><code>102</code><message>" + std::string(e.what())+ "</message></error>");
@@ -2680,67 +2657,210 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             response->setDatas("<error><code>100</code><message>" + std::string(e.what())+ "</message></error>");
             Poco::Logger::get("ContextThread").error("Error while calling BoundaryManager::GetTypesAsXml() :" + std::string(e.what()), __FILE__, __LINE__);
         }
-    } else {
-        int cmdId;
-        if (cmd->getIntParameter("id_content") != -1) {
-            cmdId = cmd->getIntParameter("id_content");
-        }
-        else { cmdId = cmd->getIntParameter("id"); }
-        //Configurator* configurator = nullptr;
-        int contentId = -1;
-        std::regex id_regex(R"(id_content=\"(\d+)\")");
-        std::smatch match;
-        CommandCentral::CommandCentralType cmdType = cmd->getType();
-
-        /*if (cmdType == CommandCentral::CREATE_RELEASE || cmdType == CommandCentral::CREATE_SYNCLOOP || cmdType == CommandCentral::CREATE_CPL) {
-            if (cmdType == CommandCentral::CREATE_SYNCLOOP) {
-                configurator->GetHTTPInteractions()[cmdType]->Run(true);
-            }
-            else {
-                configurator->GetHTTPInteractions()[cmdType]->Run();
-            }
-            switch (cmdType)
-            {
-            case CommandCentral::CREATE_RELEASE:
-                cmdType = CommandCentral::RELEASE_CREATED;
-                break;
-            case CommandCentral::CREATE_SYNCLOOP:
-                cmdType = CommandCentral::SYNCLOOP_CREATED;
-                break;
-            case CommandCentral::CREATE_CPL:
-                cmdType = CommandCentral::CPL_CREATED;
-                break;
-            }
-        }
-        HTTPInteraction* interaction = configurator->GetHTTPInteractions()[cmdType];
-        TransitionResponse stateResponse = configurator->GetHTTPInteractions()[cmdType]->Run(cmd->getUuid(), cmd->getParameters());
-        response->setComments(stateResponse.cmdComment);
-        response->setDatas(stateResponse.cmdDatasXML);
-        if (stateResponse.cmdStatus == "OK") {
+    }
+    else if (cmd->getType() == CommandCentral::CREATE_RELEASE) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        std::string releaseCplRefPath = cmd->getStringParameter("cplRefPath");
+        
+        try {
+            TransitionResponse transitionResponse = _boundaryManager.CreateRelease(contentId, typeId, localisationId, releaseCplRefPath);
+            response->setDatas(transitionResponse.cmdDatasXML);
             response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Release created successfully and state machine started");
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "Release created for content " + std::to_string(contentId) + 
+                ", type " + std::to_string(typeId) + 
+                ", localisation " + std::to_string(localisationId), __FILE__, __LINE__);
         }
-        else if (stateResponse.cmdStatus == "KO") {
+        catch (const std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Release creation failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error creating release: " + std::string(e.what()), __FILE__, __LINE__);
         }
-        else {
-            response->setStatus(CommandCentralResponse::UNKNOWN);
+    }
+    else if (cmd->getType() == CommandCentral::CIS_CREATED) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        std::string releaseCisPath = cmd->getStringParameter("release_cis_path");
+        
+        try {
+            _boundaryManager.ProcessUploadCIS(contentId, typeId, localisationId, releaseCisPath);
+            
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CIS created successfully");
+            response->setDatas("<cis path=\"" + releaseCisPath + "\">CIS created</cis>");
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "CIS created for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
+                " with path: " + releaseCisPath, __FILE__, __LINE__);
         }
-
-        if (cmdType == CommandCentral::CREATE_CONTENT) {
-            std::regex_search(stateResponse.cmdDatasXML, match, id_regex);
-            if (match.size() > 1) {
-                contentId = std::stoi(match[1]);
-                this->_contentConfigurator[contentId] = configurator;
-                StateMachineManager::GetInstance()->AddStateMachine(contentId, configurator->GetStateMachine());
-            }
+        catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CIS creation failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error creating CIS: " + std::string(e.what()), __FILE__, __LINE__);
         }
-
-        if (cmdType == CommandCentral::CANCEL) {
-            configurator->GetHTTPInteractions()[cmdType]->Run(true);
+    }
+    else if (cmd->getType() == CommandCentral::CREATE_SYNCLOOP) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        int servPairConfigId = cmd->getIntParameter("id_serv_pair_config");
+        std::string syncPath = cmd->getStringParameter("path_syncloop");
+        
+        try {
+            _boundaryManager.ProcessUploadSync(contentId, typeId, localisationId, servPairConfigId, syncPath);
+            
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Sync upload processed successfully");
+            response->setDatas("<sync>Upload processed</sync>");
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "Sync processed for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId), __FILE__, __LINE__);
         }
-        else if (cmdType == CommandCentral::DELETE_RELEASE_CONTENT) {} //Pas de Transition à effectuer lors d'une suppression de release
-        else { configurator->GetHTTPInteractions()[cmdType]->Run(); }
-        configurator = nullptr;*/
+        catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Sync upload processing failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error processing sync upload: " + std::string(e.what()), __FILE__, __LINE__);
+        }
+    }
+    else if (cmd->getType() == CommandCentral::CREATE_CPL) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        
+        try {
+            _boundaryManager.ProcessNewCPL(contentId, typeId, localisationId);
+            
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CPL creation processed successfully");
+            response->setDatas("<cpl>CPL creation processed</cpl>");
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "CPL creation processed for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId), __FILE__, __LINE__);
+        }
+        catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CPL creation processing failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error processing CPL creation: " + std::string(e.what()), __FILE__, __LINE__);
+        }
+    }
+    else if (cmd->getType() == CommandCentral::CPL_CREATED) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        int servPairConfigId = cmd->getIntParameter("id_serv_pair_config");
+        std::string cplUuid = cmd->getStringParameter("cpl_uuid");
+        std::string cplName = cmd->getStringParameter("cpl_name");
+        std::string cplPath = cmd->getStringParameter("cpl_path");
+        
+        try {
+            COB_Cpl newCpl(-1, cplName, cplUuid, "", -1, "", cplPath, servPairConfigId, contentId, typeId, localisationId);
+            _boundaryManager.GetConfigurator()->GetCplRepo()->Create(&newCpl);
+            
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CPL created successfully");
+            response->setDatas(static_cast<std::string>(newCpl));
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "CPL created for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
+                " with UUID: " + cplUuid, __FILE__, __LINE__);
+        }
+        catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CPL creation failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error creating CPL: " + std::string(e.what()), __FILE__, __LINE__);
+        }
+    }
+    else if (cmd->getType() == CommandCentral::SYNCLOOP_CREATED) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        int servPairConfigId = cmd->getIntParameter("id_serv_pair_config");
+        std::string syncLoopPath = cmd->getStringParameter("syncloop_path");
+        
+        try {
+            // Créer le syncloop directement via le repository (pas via la state machine)
+            COB_SyncLoop newSyncLoop(servPairConfigId, contentId, typeId, localisationId, syncLoopPath);
+            _boundaryManager.GetConfigurator()->GetSyncLoopRepo()->Create(&newSyncLoop);
+            
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("SyncLoop created successfully");
+            response->setDatas(static_cast<std::string>(newSyncLoop));
+            
+            Poco::Logger::get("ContextCentralThread").information(
+                "SyncLoop created for release " + std::to_string(contentId) + 
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
+                " with path: " + syncLoopPath, __FILE__, __LINE__);
+        }
+        catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("SyncLoop creation failed: " + std::string(e.what()));
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+            
+            Poco::Logger::get("ContextCentralThread").error(
+                "Error creating SyncLoop: " + std::string(e.what()), __FILE__, __LINE__);
+        }
+    }
+    
+    /* else if (cmd->getType() == CommandCentral::GET_RELEASE_STATE) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        
+        try {
+                         std::string state = _boundaryManager.GetReleaseState(contentId, typeId, localisationId);
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("Release state retrieved successfully");
+            response->setDatas("<release_state>" + state + "</release_state>");
+        }
+        catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("Failed to get release state");
+            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
+        }
+    } */
+    else if (cmd->getType() == CommandCentral::GET_RELEASE_CPLS) {
+        int contentId = cmd->getIntParameter("id_content");
+        int typeId = cmd->getIntParameter("id_type");
+        int localisationId = cmd->getIntParameter("id_localisation");
+        try {
+            // TODO: Implémenter via BoundaryStateManager si nécessaire
+            std::string datas = ""; // Placeholder - à implémenter selon le nouveau système
+            response->setStatus(CommandCentralResponse::OK);
+            response->setComments("CPLs retrieved successfully");
+            response->setDatas(datas);
+        } catch (const std::exception& e) {
+            response->setStatus(CommandCentralResponse::KO);
+            response->setComments("CPLs get failed");
+            response->setDatas(std::string("<e><message>") + e.what() + "</message></e>");
+        }
+    }else {
+        response->setStatus(CommandCentralResponse::KO);
+        response->setComments("Command not found - " + std::to_string(cmd->getType()));
+        response->setDatas("<e><message>Command not found</message></e>");
     }
     context->getCommandHandler()->addResponse(response);
 }       

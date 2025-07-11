@@ -23,6 +23,7 @@ public:
     Query* GetQuery() { return _query.get(); }
 
     std::unique_ptr<ResultQuery> getSyncs() override;
+    std::unique_ptr<ResultQuery> getSyncsByRelease(int contentId, int typeId, int localisationId) override;
 
 private:
     static std::string _database;

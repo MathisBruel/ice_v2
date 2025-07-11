@@ -6,12 +6,15 @@
 COB_Syncs::operator std::string() const
 {
     std::ostringstream xmlStream;
-    xmlStream << "<syncs>\n";
-    std::transform(this->begin(), this->end(), std::ostream_iterator<std::string>(xmlStream), [](const COB_Sync& sync) {
-        std::ostringstream line;
-        line << "  " << static_cast<std::string>(sync) << "\n";
-        return line.str();
-    });
+    xmlStream << "<syncs>";
+    if (!this->empty()) {
+        xmlStream << "\n";
+        std::transform(this->begin(), this->end(), std::ostream_iterator<std::string>(xmlStream), [](const COB_Sync& sync) {
+            std::ostringstream line;
+            line << "  " << static_cast<std::string>(sync) << "\n";
+            return line.str();
+        });
+    }
     xmlStream << "</syncs>";
     return xmlStream.str();
 } 

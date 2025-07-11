@@ -32,8 +32,7 @@ file(GLOB SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsApp/*.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/*.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/interactions/*.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/States/*.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ContentOpsBoundary/States/*/*.cpp"
+
 )
 
 add_library(${project_name} STATIC ${SRC_FILES})

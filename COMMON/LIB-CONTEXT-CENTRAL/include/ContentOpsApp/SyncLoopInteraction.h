@@ -1,5 +1,4 @@
 #pragma once
-#include "ContentOpsApp/State.h"
 class SyncLoopInteraction
 {
 public:

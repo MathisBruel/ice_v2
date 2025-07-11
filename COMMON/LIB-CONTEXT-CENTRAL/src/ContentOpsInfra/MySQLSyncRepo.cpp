@@ -72,3 +72,22 @@ std::unique_ptr<ResultQuery> MySQLSyncRepo::getSyncs() {
     std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
     return result;
 }
+
+std::unique_ptr<ResultQuery> MySQLSyncRepo::getSyncsByRelease(int contentId, int typeId, int localisationId) {
+    std::unique_ptr<MySQLDBConnection> dbConn = std::make_unique<MySQLDBConnection>();
+    dbConn->InitConnection();
+    std::unique_ptr<Query> query = std::make_unique<Query>(Query::SELECT, _database, _table);
+    query->addParameter("id_serv_pair_config", nullptr, "int");
+    query->addParameter("id_content", nullptr, "int");
+    query->addParameter("id_type", nullptr, "int");
+    query->addParameter("id_localisation", nullptr, "int");
+    query->addParameter("path_sync", nullptr, "string");
+    
+    // Filtrer par release
+    query->addWhereParameter("id_content", (void*)&contentId, "int");
+    query->addWhereParameter("id_type", (void*)&typeId, "int");
+    query->addWhereParameter("id_localisation", (void*)&localisationId, "int");
+    
+    std::unique_ptr<ResultQuery> result(dbConn->ExecuteQuery(query.get()));
+    return result;
+}

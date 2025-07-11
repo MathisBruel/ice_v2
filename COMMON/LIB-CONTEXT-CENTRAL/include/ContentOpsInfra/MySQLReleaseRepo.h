@@ -7,12 +7,11 @@
 class MySQLReleaseRepo : public COD_ReleaseRepo
 {
 public:
-    void Create(COD_Releases* release) override { _query = MySQLcreate(release); }
-    void Read(COD_Releases* release) override { _query = MySQLread(release); }
-    void Update(COD_Releases* release) override { _query = MySQLupdate(release); }
-    void Remove(COD_Releases* release) override { _query = MySQLremove(release); }
+    void Create(COD_Releases* release) override;
+    void Read(COD_Releases* release) override;
+    void Update(COD_Releases* release) override;
+    void Remove(COD_Releases* release) override;
 
-    // Implémentation des méthodes virtuelles pures
     std::unique_ptr<ResultQuery> getReleases() override;
     std::unique_ptr<ResultQuery> getReleases(int contentId);
     std::unique_ptr<ResultQuery> getRelease(int contentId, int typeId, int localisationId) override;
@@ -27,8 +26,9 @@ private:
     static std::string _database;
     static std::string _table;
 
-    int* _releaseIds;
+    int _releaseIds[3];
     std::string _CPLRefPath;
+    std::string _CISPath;
 
     std::unique_ptr<Query> _query;
 };

@@ -3,6 +3,14 @@
 
 <div class="block" id="release">
     <h1>Release n°<p style="display: inline;" id="releaseNum"></p></h1>
+    <h2>État Actuel</h2>
+    <div class="ul-model" id="stateBox" style="display: flex; width: 90%; margin: 0 2%; padding: 10px;">
+        <div class="BlockLabel">
+            <label for="currentState">État de la Release</label>
+            <input type="text" id="currentState" readonly 
+                   style="font-weight: bold; background-color: #e9e9e9; width: 100%; min-width: 180px; max-width: 100%; box-sizing: border-box;"/>
+        </div>
+    </div>
     <h2>Info</h2>
     <div class="ul-model" id="infoBox" style="display: flex; width: 90%; margin: 0 2%;">
         <div class="BlockLabel">
@@ -19,7 +27,7 @@
         </div>
         <div class="BlockLabel">
             <label for="cplRefPath">CPL ref path</label>
-            <input type="text" id="cplRefPath"/>
+            <input type="text" id="cplRefPath" readonly/>
         </div>
     </div>
     <h2>CIS</h2>
@@ -71,10 +79,20 @@
                 releaseData = response.data.releases.release[0];
             }
             if (releaseData) {
+                // Remplir l'état de la release
+                const inputCurrentState = document.getElementById("currentState");
+                if (releaseData.$.state) {
+                    inputCurrentState.value = releaseData.$.state;
+                } else {
+                    inputCurrentState.value = "Non disponible";
+                }
+                
                 const infoBox = document.getElementById("infoBox");
                 const updateImg = createDOM("img", {class:"image-line-add", src:"/add.png", id:"update"});
                 updateImg.addEventListener("click", async function(){
                     const release_cpl_ref_path = document.getElementById("cplRefPath");
+                    showErrorMessage("message-box", "Functionalities not implemented yet");
+                    return;
                     if (release_cpl_ref_path.value == "") { 
                         release_cpl_ref_path.style.backgroundColor = "red";
                         showErrorMessage("message-box", "Content is empty");
@@ -159,7 +177,7 @@
                         else {
                             const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
-                            let response = await (await fetch(`/updateCIS`, options)).json();
+                            let response = await fetch(`/createCIS`, options);
                             if (response.ok == true) {
                                 const body = await response.json();
                                 if (body.code == 200) { 
@@ -304,7 +322,7 @@
             }
         }
         imgAddCpl.addEventListener("click", async function(){
-            const imageAdd = document.getElementById("createCPL");
+            /*const imageAdd = document.getElementById("createCPL");
             imageAdd.style.display = "none";
             const newCplRow = createDOM("tr");
             cplTable.appendChild(newCplRow);
@@ -382,9 +400,9 @@
                         showErrorMessage("message-box", response.message);
                     }
                 }
-            });
+            });*/
         });
-        if (cplResponse.data.cpls == "") { imgAddCpl.dispatchEvent(new Event('click')); }
+        //if (cplResponse.data.cpls == "") { imgAddCpl.dispatchEvent(new Event('click')); }
     }
     async function disaplySync(box,active,cplIds) {
         const syncContainer = createDOM("div", {class:"releaseDetailsContainer"});
@@ -409,7 +427,6 @@
         const syncJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
         const syncOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncJson) };
         let syncResponse = await (await fetch(`/getSync`, syncOptions)).json();
-
         const syncTableBody = createDOM("tbody");
         syncTable.appendChild(syncTableBody);
         if (syncResponse.ok == true) {

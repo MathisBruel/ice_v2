@@ -105,6 +105,12 @@ public:
         // ------------------------
         CREATE_CONTENT,
         CREATE_RELEASE,
+        START_RELEASE_STATE_MACHINE,
+        GET_RELEASE_STATE,
+        PROCESS_UPLOAD_CIS,
+        PROCESS_UPLOAD_SYNC,
+        PROCESS_NEW_CPL,
+        PROCESS_CLOSE_RELEASE,
         RELEASE_CREATED,
         CIS_CREATED,
         CREATE_CPL,
@@ -113,6 +119,7 @@ public:
         SYNC_CREATED,
         SYNCLOOP_CREATED,
         IMPORT_TO_PROD,
+        ARCHIVE_RELEASE,
         CANCEL,
 
         // ------------------------

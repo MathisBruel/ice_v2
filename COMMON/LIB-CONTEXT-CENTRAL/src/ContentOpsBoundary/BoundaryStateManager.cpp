@@ -1,77 +1,251 @@
 #include "ContentOpsBoundary/BoundaryStateManager.h"
 #include "ContentOpsBoundary/BoundaryStateMachine.h"
-#include "ContentOpsInfra/MySQLContentRepo.h"
+#include "ContentOpsBoundary/COB_Release.h"
+#include "ContentOpsInfra/MySQLReleaseRepo.h"
 #include "commandCentral.h"
 #include <stdexcept>
+#include <vector>
 
 BoundaryStateManager::BoundaryStateManager() {
-    InitStateMachines();
-}
-BoundaryStateManager::~BoundaryStateManager() {}
-
-void BoundaryStateManager::AddStateMachine(int id, BoundaryStateMachine* stateMachine) {
-    _stateMachineMap[id] = stateMachine;
+    InitReleaseStateMachines();
 }
 
-BoundaryStateMachine* BoundaryStateManager::GetStateMachine(int id) {
-    auto it = _stateMachineMap.find(id);
-    if (it != _stateMachineMap.end())
+BoundaryStateManager::~BoundaryStateManager() {
+    for (auto& pair : _releaseStateMachineMap) {
+        delete pair.second;
+    }
+    _releaseStateMachineMap.clear();
+}
+
+
+void BoundaryStateManager::AddStateMachine(const std::string& releaseKey, BoundaryStateMachine* stateMachine) {
+    _releaseStateMachineMap[releaseKey] = stateMachine;
+}
+
+BoundaryStateMachine* BoundaryStateManager::GetStateMachine(const std::string& releaseKey) {
+    auto it = _releaseStateMachineMap.find(releaseKey);
+    if (it != _releaseStateMachineMap.end())
         return it->second;
     return nullptr;
 }
 
-TransitionResponse BoundaryStateManager::CreateContent(std::string title) {
-    if (!_contentRepo) _contentRepo = std::make_shared<COB_ContentRepo>(std::make_shared<MySQLContentRepo>());
-    if (!_releaseRepo) _releaseRepo = std::make_shared<COB_ReleaseRepo>(std::make_shared<MySQLReleaseRepo>());
+std::string BoundaryStateManager::MakeReleaseKey(int contentId, int typeId, int localisationId) const {
+    return std::to_string(contentId) + "_" + std::to_string(typeId) + "_" + std::to_string(localisationId);
+}
+
+
+TransitionResponse BoundaryStateManager::CreateRelease(int contentId, int typeId, int localisationId, std::string releaseCplRefPath) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    BoundaryStateMachine* sm = nullptr;
     
-    auto* sm = new BoundaryStateMachine(_contentRepo, _releaseRepo, std::make_shared<bool>(true), title);
-    sm->start();
-    
-    // Vérifier que le configurateur d'interaction existe
-    if (!sm->getContext().interactionConfigurator) {
-        delete sm;
-        throw std::runtime_error("Interaction configurator not initialized");
-    }
-    
-    // Vérifier que l'interaction CREATE_CONTENT existe
-    auto interactions = sm->getContext().interactionConfigurator->GetInteractions();
-    if (interactions.find(CommandCentral::CREATE_CONTENT) == interactions.end()) {
-        delete sm;
-        throw std::runtime_error("CREATE_CONTENT interaction not found");
-    }
-    
-    // Exécuter l'interaction pour créer le contenu
-    TransitionResponse transitionResponse = interactions[CommandCentral::CREATE_CONTENT]->Run("temp_uuid", std::map<std::string, std::string>{{"contentTitle", title}});
-    
-    // Vérifier que le contenu a été créé
-    if (sm->getContext().content) {
-        int contentId = *sm->getContext().content->GetContentId();
-        _stateMachineMap[contentId] = sm;
+    try {
+        COB_Release newRelease(contentId, typeId, localisationId);
+        newRelease.SetReleaseInfos(releaseCplRefPath);
+        _releaseRepo->Create(&newRelease);
+        
+        auto context = std::make_shared<COB_Context>(contentId, typeId, localisationId);
+        context->releaseRepo = _releaseRepo;
+        context->syncLoopRepo = _configurator->GetSyncLoopRepo();
+        context->interactionConfigurator = std::make_shared<COB_InteractionConfigurator>();
+        context->release = std::make_shared<COB_Release>(newRelease);
+        
+        sm = new BoundaryStateMachine(context);
+        sm->start();
+        
+        _releaseStateMachineMap[releaseKey] = sm;
+        
+        std::map<std::string, std::string> createParams;
+        createParams["id_content"] = std::to_string(contentId);
+        createParams["id_type"] = std::to_string(typeId);
+        createParams["id_localisation"] = std::to_string(localisationId);
+        sm->Transition(ReleaseStateEvent::CREATE_RELEASE, createParams);
         sm->update();
-        return transitionResponse;
-    } else {
-        delete sm;
-        throw std::runtime_error("Content non créé");
+        
+        TransitionResponse response;
+        response.cmdUUID = "release_" + releaseKey;
+        response.cmdStatus = "OK";
+        response.cmdComment = "Release created successfully";
+        response.cmdDatasXML = "<release id=\"" + releaseKey + "\" contentId=\"" + std::to_string(contentId) + 
+                              "\" typeId=\"" + std::to_string(typeId) + "\" localisationId=\"" + std::to_string(localisationId) + 
+                              "\" state=\"" + sm->getCurrentStateName() + "\" />";
+        
+        return response;
+        
+    } catch (const std::exception& e) {
+        if (sm && _releaseStateMachineMap.find(releaseKey) != _releaseStateMachineMap.end()) {
+            _releaseStateMachineMap.erase(releaseKey);
+            delete sm;
+        } else if (sm) {
+            delete sm;
+        }
+        throw std::runtime_error("Failed to create release: " + std::string(e.what()));
     }
 }
 
-void BoundaryStateManager::InitStateMachines() {
-    if (!_contentRepo) _contentRepo = std::make_shared<COB_ContentRepo>(std::make_shared<MySQLContentRepo>());
-    if (!_releaseRepo) _releaseRepo = std::make_shared<COB_ReleaseRepo>(std::make_shared<MySQLReleaseRepo>());
-    COB_Contents contents = _contentRepo->GetContents();
-    std::for_each(contents.begin(), contents.end(), [this](const COB_Content& content) {
-        int id = content.GetContentId();
-        auto isNewContent = std::make_shared<bool>(false);
-        auto* sm = new BoundaryStateMachine(_contentRepo, _releaseRepo, isNewContent);
-        sm->getContext().content = std::make_shared<COB_Content>(content);
-        sm->start();
-        _stateMachineMap[id] = sm;
-    });
-} 
+TransitionResponse BoundaryStateManager::StartReleaseStateMachine(int contentId, int typeId, int localisationId) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    
+    BoundaryStateMachine* sm = GetStateMachine(releaseKey);
+    if (!sm) {
+        return CreateRelease(contentId, typeId, localisationId, "");
+    }
+    
+    sm->start();
+    sm->update();
+    
+    return TransitionResponse{"", "StateMachine démarrée pour release " + releaseKey, "OK", ""};
+}
 
-std::string BoundaryStateManager::GetState(int contentId) {
-    auto it = _stateMachineMap.find(contentId);
-    if (it != _stateMachineMap.end())
+
+std::string BoundaryStateManager::GetReleaseState(int contentId, int typeId, int localisationId) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    return GetReleaseState(releaseKey);
+}
+
+std::string BoundaryStateManager::GetReleaseState(const std::string& releaseKey) {
+    auto it = _releaseStateMachineMap.find(releaseKey);
+    if (it != _releaseStateMachineMap.end())
         return it->second->getCurrentStateName();
     return "Unknown";
+}
+
+std::string BoundaryStateManager::GetState(int contentId) {
+    std::vector<std::string> states;
+    bool hasActiveReleases = false;
+    bool cisUploaded = false;
+    bool syncLoopUploaded = false;
+
+    for (const auto& pair : _releaseStateMachineMap) {
+        BoundaryStateMachine* sm = pair.second;
+        if (sm && sm->getContentId() == contentId) {
+            hasActiveReleases = true;
+            std::string state = sm->getCurrentStateName();
+            states.push_back(state);
+
+            COB_Context& ctx = sm->getContext();
+            if (ctx.cisFinish && *ctx.cisFinish) {
+                cisUploaded = true;
+            }
+            if (ctx.syncFinish && *ctx.syncFinish) {
+                syncLoopUploaded = true;
+            }
+        }
+    }
+
+    if (!hasActiveReleases) {
+        return "NoActiveReleases";
+    }
+
+    for (const std::string& state : states) {
+        if (state == "StateInProd") {
+            return "InProd";
+        }
+    }
+
+    for (const std::string& state : states) {
+        if (state != "StateCancel" && state != "Unknown") {
+            std::string result = state;
+            result += " [";
+            result += "CISUpload=";
+            result += (cisUploaded ? "oui" : "non");
+            result += ", SyncLoopUpload=";
+            result += (syncLoopUploaded ? "oui" : "non");
+            result += "]";
+            return result;
+        }
+    }
+
+    return "Inactive";
+}
+
+void BoundaryStateManager::InitReleaseStateMachines() {
+    if (!_configurator) {
+        _configurator = std::make_shared<COB_Configurator>();
+    }
+    if (!_releaseRepo) {
+        _releaseRepo = _configurator->GetReleaseRepo();
+    }
+}
+
+void BoundaryStateManager::ProcessUploadCIS(int contentId, int typeId, int localisationId, std::string releaseCisPath) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    
+    auto it = _releaseStateMachineMap.find(releaseKey);
+    if (it != _releaseStateMachineMap.end()) {
+        BoundaryStateMachine* stateMachine = it->second;
+        
+        std::map<std::string, std::string> params;
+        params["release_cis_path"] = releaseCisPath;
+        params["id_content"] = std::to_string(contentId);
+        params["id_type"] = std::to_string(typeId);
+        params["id_localisation"] = std::to_string(localisationId);
+        
+        stateMachine->Transition(ReleaseStateEvent::UPLOAD_CIS, params);
+        CheckAndTransitionToWaitClose(contentId, typeId, localisationId);
+    }
+}
+
+void BoundaryStateManager::ProcessUploadSync(int contentId, int typeId, int localisationId, int servPairConfigId, std::string syncPath) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    
+    auto it = _releaseStateMachineMap.find(releaseKey);
+    if (it != _releaseStateMachineMap.end()) {
+        BoundaryStateMachine* stateMachine = it->second;
+        
+        std::map<std::string, std::string> params;
+        params["id_content"] = std::to_string(contentId);
+        params["id_type"] = std::to_string(typeId);
+        params["id_localisation"] = std::to_string(localisationId);
+        params["id_serv_pair_config"] = std::to_string(servPairConfigId);
+        params["syncPath"] = syncPath;
+        stateMachine->Transition(ReleaseStateEvent::UPLOAD_SYNC, params);
+        CheckAndTransitionToWaitClose(contentId, typeId, localisationId);
+    }
+}
+
+void BoundaryStateManager::ProcessNewCPL(int contentId, int typeId, int localisationId) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    BoundaryStateMachine* sm = GetStateMachine(releaseKey);
+    
+    if (sm) {
+        std::map<std::string, std::string> params;
+        params["id_content"] = std::to_string(contentId);
+        params["id_type"] = std::to_string(typeId);
+        params["id_localisation"] = std::to_string(localisationId);
+        sm->Transition(ReleaseStateEvent::NEW_CPL, params);
+    }
+}
+
+void BoundaryStateManager::ProcessCloseRelease(int contentId, int typeId, int localisationId) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    BoundaryStateMachine* sm = GetStateMachine(releaseKey);
+    
+    if (sm) {
+        std::map<std::string, std::string> params;
+        params["id_content"] = std::to_string(contentId);
+        params["id_type"] = std::to_string(typeId);
+        params["id_localisation"] = std::to_string(localisationId);
+        sm->Transition(ReleaseStateEvent::CLOSE_RELEASE, params);
+    }
+}
+
+void BoundaryStateManager::CheckAndTransitionToWaitClose(int contentId, int typeId, int localisationId) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    
+    auto it = _releaseStateMachineMap.find(releaseKey);
+    if (it != _releaseStateMachineMap.end()) {
+        BoundaryStateMachine* stateMachine = it->second;
+        COB_Context& context = stateMachine->getContext();
+        
+        bool cisComplete = context.cisFinish && *context.cisFinish;
+        bool syncComplete = context.syncFinish && *context.syncFinish;
+        
+        if (cisComplete && syncComplete) {
+            std::map<std::string, std::string> params;
+            params["id_content"] = std::to_string(contentId);
+            params["id_type"] = std::to_string(typeId);
+            params["id_localisation"] = std::to_string(localisationId);
+            stateMachine->Transition(ReleaseStateEvent::ARCHIVE_COMPLETE, params);
+        }
+    }
 }

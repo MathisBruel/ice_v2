@@ -92,12 +92,12 @@
                 document.getElementById("cpl_file").setAttribute("hidden", true);
                 document.getElementById("sync_file").setAttribute("hidden", true);
 
-                document.getElementById("name").value = cpl.$.CPL_name;
-                document.getElementById("uuid").value = cpl.$.CPL_uuid;
-                document.getElementById("path_cpl").value = cpl.$.pathCpl;
-                document.getElementById("path_sync").value = cpl.$.pathSync;
-                document.getElementById("sha1_sync").value = cpl.$.sha1Sync;
-                document.getElementById("type_cpl").value = cpl.$.typeCpl;
+                document.getElementById("name").value = cpl.$.name;
+                document.getElementById("uuid").value = cpl.$.uuid;
+                document.getElementById("path_cpl").value = cpl.$.path_cpl;
+                document.getElementById("path_sync").value = cpl.$.path_sync;
+                document.getElementById("sha1_sync").value = cpl.$.sha1_sync;
+                document.getElementById("type_cpl").value = cpl.$.type_cpl;
             }
             else {
                 showErrorMessage("message-box", result.message);

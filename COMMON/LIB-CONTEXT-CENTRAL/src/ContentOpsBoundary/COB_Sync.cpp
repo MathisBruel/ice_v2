@@ -10,6 +10,13 @@ COB_Sync::COB_Sync(int id_serv_pair_config, int id_content, int id_type, int id_
     SetSyncInfos(syncPath);
 }
 
+COB_Sync::COB_Sync(const COD_Sync& src)
+    : COD_Sync() {
+    const int* srcId = src.GetSyncID();
+    SetSyncId(srcId[0], srcId[1], srcId[2], srcId[3]);
+    SetSyncInfos(src.GetSyncPath());
+}
+
 
 COB_Sync::operator std::string() const
 {

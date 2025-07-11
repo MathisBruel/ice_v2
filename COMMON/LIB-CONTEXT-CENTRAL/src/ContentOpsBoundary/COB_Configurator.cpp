@@ -10,4 +10,7 @@ COB_Configurator::COB_Configurator() {
     _localisationRepo = std::make_shared<COB_LocalisationRepo>(std::make_shared<MySQLLocalisationRepo>());
     _typeRepo = std::make_shared<COB_TypeRepo>(std::make_shared<MySQLTypeRepo>());
     _cplRepo = std::make_shared<COB_CplRepo>(std::make_shared<MySQLCplRepo>());
+    _serverPairRepo = std::make_shared<COB_ServerPairRepo>(std::make_shared<MySQLServerPairRepo>(_dbConn.get()));
+    _syncRepo = std::make_shared<COB_SyncRepo>(std::make_shared<MySQLSyncRepo>());
+    _syncLoopRepo = std::make_shared<COB_SyncLoopRepo>(std::make_shared<MySQLSyncLoopRepo>());
 } 

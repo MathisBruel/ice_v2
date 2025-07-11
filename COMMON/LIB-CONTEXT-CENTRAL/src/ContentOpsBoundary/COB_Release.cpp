@@ -1,4 +1,5 @@
 #include "ContentOpsBoundary/COB_Release.h"
+#include "ContentOpsBoundary/BoundaryManager.h"
 
 COB_Release::COB_Release(int id_content, int typeMovie, int localisationMovie)
     : COD_Releases(id_content, typeMovie, localisationMovie)
@@ -13,6 +14,19 @@ COB_Release::operator std::string() const
     xml += " id_localisation=\"" + std::to_string(this->GetReleaseId()[2]) + "\"";
     xml += " release_cpl_ref_path=\"" + this->GetCPLRefPath() + "\"";
     xml += " release_cis_path=\"" + this->GetCISPath() + "\"";
+    
+    // Ajouter l'état de la release via BoundaryManager
+    try {
+        std::string releaseState = BoundaryManager::GetInstance().GetReleaseState(
+            this->GetReleaseId()[0], 
+            this->GetReleaseId()[1], 
+            this->GetReleaseId()[2]
+        );
+        xml += " state=\"" + releaseState + "\"";
+    } catch (const std::exception& e) {
+        xml += " state=\"UNKNOWN\"";
+    }
+    
     if (!this->GetTypeName().empty()) {
         xml += " type_name=\"" + this->GetTypeName() + "\"";
     }

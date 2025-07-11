@@ -6,7 +6,6 @@
 #include "ContentOpsDomain/COD_Content.h"
 #include "ContentOpsDomain/COD_Release.h"
 
-#include "ContentOpsApp/State.h"
 #include "ContentOpsApp/ContentInteraction.h"
 #include "ContentOpsApp/PublishingInteraction.h"
 #include "ContentOpsApp/ReleaseInteraction.h"

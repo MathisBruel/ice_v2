@@ -12,6 +12,7 @@ public:
     ~COB_SyncRepo();
 
     COB_Syncs GetSyncs();
+    COB_Syncs GetSyncsByRelease(int contentId, int typeId, int localisationId);
     void Create(COB_Sync* sync);
     void Remove(COB_Sync* sync);
     void Update(COB_Sync* sync);

@@ -1,0 +1,73 @@
+@startuml workflow.puml
+
+participant Client as "Client/API"
+participant CCT as "ContextCentralThread"
+participant BM as "BoundaryManager"
+participant BSM as "BoundaryStateManager"
+participant SM as "StateMachine(release)"
+participant DB as "Database"
+
+note over Client,DB: Workflow Complet Release-Centric
+
+' Création Release
+Client -> CCT: CREATE_RELEASE(123,1,2)
+CCT -> BM: CreateRelease(123,1,2)
+BM -> BSM: CreateRelease(123,1,2)
+BSM -> DB: Insert Release(123,1,2)
+BSM -> SM: new StateMachine("123_1_2")
+SM -> SM: StateCreateRelease
+SM -> SM: StateArchiveRelease
+SM --> BSM: State Machine Ready
+BSM --> BM: TransitionResponse
+BM --> CCT: TransitionResponse
+CCT --> Client: Response(OK)
+
+' Upload CIS
+Client -> CCT: UPDATE_CIS(123,1,2)
+CCT -> BM: ProcessUploadCIS(123,1,2)
+BM -> BSM: ProcessUploadCIS(123,1,2)
+BSM -> SM: CIS_CREATED event
+SM -> SM: StateUploadCIS
+SM -> SM: StateWaitCloseRelease
+SM --> BSM: CIS Upload Complete
+BSM --> BM: Process Complete
+BM --> CCT: void
+CCT --> Client: Response(OK)
+
+' Upload Sync
+Client -> CCT: CREATE_SYNCLOOP(123,1,2)
+CCT -> BM: ProcessUploadSync(123,1,2)
+BM -> BSM: ProcessUploadSync(123,1,2)
+BSM -> SM: SYNC_CREATED event
+SM -> SM: StateUploadSyncLoop
+SM -> SM: StateWaitCloseRelease
+SM --> BSM: Sync Upload Complete
+BSM --> BM: Process Complete
+BM --> CCT: void
+CCT --> Client: Response(OK)
+
+' Consultation État
+Client -> CCT: GET_RELEASE_STATE(123,1,2)
+CCT -> BM: GetReleaseState(123,1,2)
+BM -> BSM: GetReleaseState(123,1,2)
+BSM -> SM: GetCurrentState()
+SM --> BSM: StateWaitCloseRelease
+BSM --> BM: StateWaitCloseRelease
+BM --> CCT: StateWaitCloseRelease
+CCT --> Client: Response(OK, state)
+
+' Fermeture Release
+note over SM: Conditions parallèles remplies
+SM -> SM: StateInProd
+SM -> BSM: Notify State Change
+BSM -> DB: Update Release Status
+
+' Consultation Traditionnelle
+Client -> CCT: GET_GROUPS(-1)
+CCT -> BM: GetGroupsAsXml()
+BM -> DB: Query Groups
+DB --> BM: Groups Data
+BM --> CCT: XML Response
+CCT --> Client: Response(OK, groups)
+
+@enduml

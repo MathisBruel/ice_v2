@@ -11,4 +11,5 @@ public:
     virtual void Update(COD_Sync* sync) = 0;
     virtual void Remove(COD_Sync* sync) = 0;
     virtual std::unique_ptr<ResultQuery> getSyncs() = 0;
+    virtual std::unique_ptr<ResultQuery> getSyncsByRelease(int contentId, int typeId, int localisationId) = 0;
 };

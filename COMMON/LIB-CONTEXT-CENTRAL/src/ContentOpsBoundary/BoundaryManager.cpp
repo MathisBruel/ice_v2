@@ -18,6 +18,18 @@
 #include "ContentOpsBoundary/COB_CplRepo.h"
 #include "ContentOpsInfra/MySQLCplRepo.h"
 #include "ContentOpsBoundary/COB_Cpl.h"
+#include "ContentOpsBoundary/COB_ServerPairRepo.h"
+#include "ContentOpsInfra/MySQLServerPairRepo.h"
+#include "ContentOpsBoundary/COB_ServerPair.h"
+#include "ContentOpsBoundary/COB_ServerPairs.h"
+#include "ContentOpsBoundary/COB_SyncRepo.h"
+#include "ContentOpsInfra/MySQLSyncRepo.h"
+#include "ContentOpsBoundary/COB_Sync.h"
+#include "ContentOpsBoundary/COB_Syncs.h"
+#include "ContentOpsBoundary/COB_SyncLoopRepo.h"
+#include "ContentOpsInfra/MySQLSyncLoopRepo.h"
+#include "ContentOpsBoundary/COB_SyncLoop.h"
+#include "ContentOpsBoundary/COB_SyncLoops.h"
 #include "ContentOpsBoundary/BoundaryStateManager.h"
 #include <stdexcept>
 
@@ -28,6 +40,79 @@ BoundaryManager::BoundaryManager()
 
 BoundaryManager::~BoundaryManager()
 {
+}
+
+std::unique_ptr<COB_Content> BoundaryManager::CreateContent(const std::string& contentTitle) {
+    try {
+        // Créer le content via le repository qui gère l'ID automatiquement
+        return _configurator->GetContentRepo()->Create(contentTitle);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors de la création du content : ") + e.what());
+    }
+}
+
+TransitionResponse BoundaryManager::CreateRelease(int contentId, int typeId, int localisationId, std::string releaseCplRefPath) {
+    try {
+        return _boundaryStateManager.CreateRelease(contentId, typeId, localisationId, releaseCplRefPath);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors de la création de la release : ") + e.what());
+    }
+}
+
+TransitionResponse BoundaryManager::StartReleaseStateMachine(int contentId, int typeId, int localisationId) {
+    try {
+        return _boundaryStateManager.StartReleaseStateMachine(contentId, typeId, localisationId);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors du démarrage de la state machine : ") + e.what());
+    }
+}
+
+std::string BoundaryManager::GetReleaseState(int contentId, int typeId, int localisationId) {
+    try {
+        return _boundaryStateManager.GetReleaseState(contentId, typeId, localisationId);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors de la récupération de l'état de la release : ") + e.what());
+    }
+}
+
+void BoundaryManager::ProcessUploadCIS(int contentId, int typeId, int localisationId, std::string releaseCisPath) {
+    try {
+        _boundaryStateManager.ProcessUploadCIS(contentId, typeId, localisationId, releaseCisPath);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors du traitement de l'upload CIS : ") + e.what());
+    }
+}
+
+void BoundaryManager::ProcessUploadSync(int contentId, int typeId, int localisationId, int servPairConfigId, std::string syncPath) {
+    try {
+        _boundaryStateManager.ProcessUploadSync(contentId, typeId, localisationId, servPairConfigId, syncPath);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors du traitement de l'upload Sync : ") + e.what());
+    }
+}
+
+void BoundaryManager::ProcessNewCPL(int contentId, int typeId, int localisationId) {
+    try {
+        _boundaryStateManager.ProcessNewCPL(contentId, typeId, localisationId);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors du traitement du nouveau CPL : ") + e.what());
+    }
+}
+
+void BoundaryManager::ProcessCloseRelease(int contentId, int typeId, int localisationId) {
+    try {
+        _boundaryStateManager.ProcessCloseRelease(contentId, typeId, localisationId);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors de la fermeture de la release : ") + e.what());
+    }
+}
+
+void BoundaryManager::InitReleaseStateMachines() {
+    try {
+        _boundaryStateManager.InitReleaseStateMachines();
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Erreur lors de l'initialisation des state machines : ") + e.what());
+    }
 }
 
 std::string BoundaryManager::GetAllContentsAsXml() {
@@ -63,7 +148,7 @@ std::string BoundaryManager::GetContentReleasesAsXml(int contentId) {
     }
 }
 
-std::string BoundaryManager::GetContentReleasesAsXml(int contentId,int typeId, int localizationId) {
+std::string BoundaryManager::GetContentReleasesAsXml(int contentId, int typeId, int localizationId) {
     try {
         COB_Release release = _configurator->GetReleaseRepo()->GetRelease(contentId, typeId, localizationId);
         return static_cast<std::string>(release);
@@ -115,18 +200,6 @@ std::string BoundaryManager::GetSiteCplsAsXml(int siteId) {
     catch(const std::exception& e) { 
         std::string errorMsg = "Failed to get cpls for site " + std::to_string(siteId) + " : " + std::string(e.what());
         throw std::runtime_error(errorMsg); 
-    }
-}
-
-void BoundaryManager::UpdateContent(int contentId) {
-    throw std::logic_error("UpdateContent not implemented");
-}
-
-TransitionResponse BoundaryManager::CreateContent(std::string title) {
-    try {
-        return _boundaryStateManager.CreateContent(title);
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("Erreur lors de la création du content : ") + e.what());
     }
 }
 
@@ -185,9 +258,7 @@ std::string BoundaryManager::GetCplAsXmlByUuid(const std::string& uuid) {
     }
 }
 
-std::string BoundaryManager::GetCplsByScriptAsXml(int scriptId) {
-    throw std::logic_error("GetCplsByScriptAsXml not implemented");
-}
+
 
 std::string BoundaryManager::GetCplsByReleaseAsXml(int releaseId) {
     try {
@@ -222,7 +293,11 @@ std::string BoundaryManager::GetReleaseCplsAsXml(int contentId, int typeId, int 
     }
 }
 
-// Implémentation des méthodes de suppression pour StatePublishing
+std::string BoundaryManager::GetCplsByScriptAsXml(int scriptId) {
+    throw std::logic_error("GetCplsByScriptAsXml not implemented");
+}
+
+
 void BoundaryManager::DeleteRelease(int contentId, int typeId, int localisationId) {
     try {
         auto releaseRepo = _configurator->GetReleaseRepo();
@@ -231,6 +306,10 @@ void BoundaryManager::DeleteRelease(int contentId, int typeId, int localisationI
         COB_Release* releasePtr = new COB_Release(release);
         releaseRepo->Remove(releasePtr);
         delete releasePtr;
+        
+        // Nettoyage de la state machine associée
+        std::string releaseKey = _boundaryStateManager.MakeReleaseKey(contentId, typeId, localisationId);
+        // La state machine sera nettoyée automatiquement par le BoundaryStateManager
         
         // Suppression du content associé si nécessaire
         auto content = _configurator->GetContentRepo()->GetContent(contentId);
@@ -296,5 +375,64 @@ void BoundaryManager::DeleteSyncLoop(int contentId, int typeId, int localisation
     catch(const std::exception& e) {
         std::string errorMsg = "Failed to delete SyncLoop : " + std::string(e.what());
         throw std::runtime_error(errorMsg);
+    }
+}
+
+std::string BoundaryManager::GetServerPairsAsXml() {
+    try {
+        COB_ServerPairs serverPairs = _configurator->GetServerPairRepo()->GetServerPairs();
+        return serverPairs;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get server pairs : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetServerPairsAsXml(int id_serv_pair_config) {
+    try {
+        COB_ServerPair serverPair = _configurator->GetServerPairRepo()->GetServerPair(id_serv_pair_config);
+        return serverPair;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get server pair " + std::to_string(id_serv_pair_config) + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetServerPairsBySiteAsXml(int id_site) {
+    try {
+        COB_ServerPairs serverPairs = _configurator->GetServerPairRepo()->GetServerPairsBySite(id_site);
+        return serverPairs;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get server pairs for site " + std::to_string(id_site) + " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetReleaseSyncsAsXml(int contentId, int typeId, int localisationId) {
+    try {
+        COB_Syncs syncs = _configurator->GetSyncRepo()->GetSyncsByRelease(contentId, typeId, localisationId);
+        return syncs;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get syncs for release " + std::to_string(contentId) + 
+                              "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
+                              " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
+    }
+}
+
+std::string BoundaryManager::GetReleaseSyncLoopsAsXml(int contentId, int typeId, int localisationId) {
+    try {
+        COB_SyncLoops syncLoops = _configurator->GetSyncLoopRepo()->GetSyncLoopsByRelease(contentId, typeId, localisationId);
+        return syncLoops;
+    }
+    catch(const std::exception& e) { 
+        std::string errorMsg = "Failed to get syncLoops for release " + std::to_string(contentId) + 
+                              "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
+                              " : " + std::string(e.what());
+        throw std::runtime_error(errorMsg); 
     }
 }

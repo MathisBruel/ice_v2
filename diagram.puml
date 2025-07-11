@@ -1,0 +1,987 @@
+@startuml
+!theme plain
+
+' Configuration pour améliorer la lisibilité et l'espacement
+skinparam linetype ortho
+skinparam ranksep 60
+skinparam nodesep 40
+skinparam minClassWidth 150
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam classFontSize 12
+skinparam packageStyle rectangle
+skinparam packageFontStyle bold
+skinparam packageFontSize 14
+
+' Style des classes
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    BorderThickness 1
+    ArrowColor Black
+    FontSize 10
+}
+
+' Style des packages/namespaces
+skinparam package {
+    BackgroundColor LightGray
+    BorderColor Black
+    FontStyle bold
+}
+
+' Style des relations
+skinparam arrow {
+    Color Black
+    Thickness 1
+}
+
+' Légende des symboles d'accès
+' + : public
+' - : private
+' # : protected
+
+' Configuration de la disposition
+!define SPACING_LARGE 100
+!define SPACING_MEDIUM 50
+!define SPACING_SMALL 25
+
+' Affichage limité à 25 classes sur 132 trouvées
+
+' Classe: DownloadedScripts
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/DownloadedScripts.h
+class DownloadedScripts {
+}
+
+' Classe: PresentCpl
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/PresentCpls.h
+class PresentCpl {
+}
+
+' Classe: CentralContext
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/CentralContext.h
+class CentralContext {
+  ' === Attributs publics ===
+  + **commandHandler** : {return
+
+}
+
+' Classe: ScriptState
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ScriptState.h
+class ScriptState {
+}
+
+' Classe: StateServer
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/StateServer.h
+class StateServer {
+  ' === Attributs publics ===
+  + **id** : {return
+
+}
+
+' Classe: HTTPSyncLoopInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPSyncLoopInteraction.h
+class HTTPSyncLoopInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateSyncLoop**() : { return SyncLoopInteraction::
+
+}
+
+' Classe: HTTPContentInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPContentInteraction.h
+class HTTPContentInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateContentInit**() : { return ContentInteraction::
+
+}
+
+' Classe: MySQLGroupRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLGroupRepo.h
+class MySQLGroupRepo {
+  ' === Méthodes publiques ===
+  + **move**() : { return
+
+}
+
+' Classe: MySQLDBConnection
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLDBConnection.h
+class MySQLDBConnection {
+}
+
+' Classe: MySQLSyncLoopRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLSyncLoopRepo.h
+class MySQLSyncLoopRepo {
+  ' === Attributs publics ===
+  + **_query** : { = MySQLcreate(syncloop)
+
+  __
+
+  ' === Méthodes publiques ===
+  + **MySQLcreate**() : { _query =
+
+}
+
+' Classe: HTTPSyncInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPSyncInteraction.h
+class HTTPSyncInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateSync**() : { return SyncInteraction::
+
+}
+
+' Classe: HTTPReleaseInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPReleaseInteraction.h
+class HTTPReleaseInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateReleaseCreation**() : { return ReleaseInteraction::
+
+}
+
+' Classe: HTTPInProdInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPInProdInteraction.h
+class HTTPInProdInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateInProd**() : { return InProdInteraction::
+
+}
+
+' Classe: MySQLReleaseRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLReleaseRepo.h
+class MySQLReleaseRepo {
+  ' === Attributs publics ===
+  + **_query** : { = MySQLcreate(release)
+
+  __
+
+  ' === Méthodes publiques ===
+  + **MySQLcreate**() : { _query =
+
+}
+
+' Classe: HTTPCPLInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPCPLInteraction.h
+class HTTPCPLInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateCPL**() : { return CPLInteraction::
+
+}
+
+' Classe: HTTPCISInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPCISInteraction.h
+class HTTPCISInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateUploadCIS**() : { return CISInteraction::
+
+}
+
+' Classe: MySQLLocalisationRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLLocalisationRepo.h
+class MySQLLocalisationRepo {
+}
+
+' Classe: MySQLTypeRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLTypeRepo.h
+class MySQLTypeRepo {
+}
+
+' Classe: MySQLSyncRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLSyncRepo.h
+class MySQLSyncRepo {
+  ' === Attributs publics ===
+  + **_query** : { = MySQLcreate(sync)
+
+  __
+
+  ' === Méthodes publiques ===
+  + **MySQLcreate**() : { _query =
+
+}
+
+' Classe: HTTPPublishingInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPPublishingInteraction.h
+class HTTPPublishingInteraction {
+  ' === Méthodes publiques ===
+  + **pfStatePublishing**() : { return PublishingInteraction::
+
+}
+
+' Classe: MySQLCplRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLCplRepo.h
+class MySQLCplRepo {
+  ' === Méthodes publiques ===
+  + **get**() : { return _query.
+
+}
+
+' Classe: MySQLSiteRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLSiteRepo.h
+class MySQLSiteRepo {
+  ' === Méthodes publiques ===
+  + **move**() : { return
+
+}
+
+' Classe: HTTPInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPInteraction.h
+class HTTPInteraction {
+  ' === Méthodes publiques ===
+  + **TransitionResponse**() : { return
+
+}
+
+' Classe: MySQLContentRepo
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/MySQLContentRepo.h
+class MySQLContentRepo {
+  ' === Méthodes publiques ===
+  + **get**() : { return _query.
+
+}
+
+' Classe: HTTPIdleSyncInteraction
+' Fichier: ./COMMON/LIB-CONTEXT-CENTRAL/include/ContentOpsInfra/HTTPIdleSyncInteraction.h
+class HTTPIdleSyncInteraction {
+  ' === Méthodes publiques ===
+  + **pfStateIdleSync**() : { return IdleSyncInteraction::
+
+}
+
+' Directives d'espacement pour améliorer la lisibilité
+!pragma layout smetana
+
+' Relations entre les classes
+' Héritage: HTTPSyncLoopInteraction -> HTTPInteraction
+HTTPSyncLoopInteraction --|> HTTPInteraction
+' Héritage: HTTPSyncLoopInteraction -> SyncLoopInteraction
+HTTPSyncLoopInteraction --|> SyncLoopInteraction
+' Héritage: HTTPContentInteraction -> HTTPInteraction
+HTTPContentInteraction --|> HTTPInteraction
+' Héritage: HTTPContentInteraction -> ContentInteraction
+HTTPContentInteraction --|> ContentInteraction
+' Héritage: MySQLGroupRepo -> COD_GroupRepo
+MySQLGroupRepo --|> COD_GroupRepo
+' Héritage: MySQLSyncLoopRepo -> COD_SyncLoopRepo
+MySQLSyncLoopRepo --|> COD_SyncLoopRepo
+' Héritage: HTTPSyncInteraction -> HTTPInteraction
+HTTPSyncInteraction --|> HTTPInteraction
+' Héritage: HTTPSyncInteraction -> SyncInteraction
+HTTPSyncInteraction --|> SyncInteraction
+' Héritage: HTTPReleaseInteraction -> HTTPInteraction
+HTTPReleaseInteraction --|> HTTPInteraction
+' Héritage: HTTPReleaseInteraction -> ReleaseInteraction
+HTTPReleaseInteraction --|> ReleaseInteraction
+' Héritage: HTTPInProdInteraction -> HTTPInteraction
+HTTPInProdInteraction --|> HTTPInteraction
+' Héritage: HTTPInProdInteraction -> InProdInteraction
+HTTPInProdInteraction --|> InProdInteraction
+' Héritage: MySQLReleaseRepo -> COD_ReleaseRepo
+MySQLReleaseRepo --|> COD_ReleaseRepo
+' Héritage: HTTPCPLInteraction -> HTTPInteraction
+HTTPCPLInteraction --|> HTTPInteraction
+' Héritage: HTTPCPLInteraction -> CPLInteraction
+HTTPCPLInteraction --|> CPLInteraction
+' Héritage: HTTPCISInteraction -> HTTPInteraction
+HTTPCISInteraction --|> HTTPInteraction
+' Héritage: HTTPCISInteraction -> CISInteraction
+HTTPCISInteraction --|> CISInteraction
+' Héritage: MySQLLocalisationRepo -> COD_LocalisationRepo
+MySQLLocalisationRepo --|> COD_LocalisationRepo
+' Héritage: MySQLTypeRepo -> COD_TypeRepo
+MySQLTypeRepo --|> COD_TypeRepo
+' Héritage: MySQLSyncRepo -> COD_SyncRepo
+MySQLSyncRepo --|> COD_SyncRepo
+' Héritage: HTTPPublishingInteraction -> HTTPInteraction
+HTTPPublishingInteraction --|> HTTPInteraction
+' Héritage: HTTPPublishingInteraction -> PublishingInteraction
+HTTPPublishingInteraction --|> PublishingInteraction
+' Héritage: MySQLCplRepo -> COD_CplRepo
+MySQLCplRepo --|> COD_CplRepo
+' Héritage: MySQLSiteRepo -> COD_SiteRepo
+MySQLSiteRepo --|> COD_SiteRepo
+' Héritage: MySQLContentRepo -> COD_ContentRepo
+MySQLContentRepo --|> COD_ContentRepo
+' Héritage: HTTPIdleSyncInteraction -> HTTPInteraction
+HTTPIdleSyncInteraction --|> HTTPInteraction
+' Héritage: HTTPIdleSyncInteraction -> IdleSyncInteraction
+HTTPIdleSyncInteraction --|> IdleSyncInteraction
+' Héritage: COB_Site -> COD_Site
+COB_Site --|> COD_Site
+' Héritage: COB_Group -> COD_Group
+COB_Group --|> COD_Group
+' Héritage: COB_Localisation -> COD_Localisation
+COB_Localisation --|> COD_Localisation
+' Héritage: COB_Release -> COD_Releases
+COB_Release --|> COD_Releases
+' Héritage: COB_Type -> COD_Type
+COB_Type --|> COD_Type
+' Héritage: COB_Content -> COD_Content
+COB_Content --|> COD_Content
+' Héritage: COB_Sync -> COD_Sync
+COB_Sync --|> COD_Sync
+' Héritage: COB_Cpl -> COD_Cpl
+COB_Cpl --|> COD_Cpl
+' Héritage: COB_SyncLoop -> COD_SyncLoop
+COB_SyncLoop --|> COD_SyncLoop
+' Héritage: ContentInitState -> ContentStateBase
+ContentInitState --|> ContentStateBase
+' Héritage: StateCancel -> ContentStateBase
+StateCancel --|> ContentStateBase
+' Héritage: StateInProd -> ContentStateBase
+StateInProd --|> ContentStateBase
+' Héritage: StateReleaseCreation -> ContentStateBase
+StateReleaseCreation --|> ContentStateBase
+' Héritage: StateUploadCIS -> ContentStateBase
+StateUploadCIS --|> ContentStateBase
+' Héritage: StatePublishing -> ContentStateBase
+StatePublishing --|> ContentStateBase
+' Héritage: StateSync -> ContentStateBase
+StateSync --|> ContentStateBase
+' Héritage: StateSyncCreate -> ContentStateBase
+StateSyncCreate --|> ContentStateBase
+' Héritage: StateIdleSync -> ContentStateBase
+StateIdleSync --|> ContentStateBase
+' Héritage: StateSyncLoop -> ContentStateBase
+StateSyncLoop --|> ContentStateBase
+' Héritage: StateCPL -> ContentStateBase
+StateCPL --|> ContentStateBase
+' Héritage: COB_SyncLoopInteraction -> COB_Interaction
+COB_SyncLoopInteraction --|> COB_Interaction
+' Héritage: COB_SyncLoopInteraction -> SyncLoopInteraction
+COB_SyncLoopInteraction --|> SyncLoopInteraction
+' Héritage: COB_PublishingInteraction -> COB_Interaction
+COB_PublishingInteraction --|> COB_Interaction
+' Héritage: COB_PublishingInteraction -> PublishingInteraction
+COB_PublishingInteraction --|> PublishingInteraction
+' Héritage: COB_IdleSyncInteraction -> COB_Interaction
+COB_IdleSyncInteraction --|> COB_Interaction
+' Héritage: COB_IdleSyncInteraction -> IdleSyncInteraction
+COB_IdleSyncInteraction --|> IdleSyncInteraction
+' Héritage: COB_InProdInteraction -> COB_Interaction
+COB_InProdInteraction --|> COB_Interaction
+' Héritage: COB_InProdInteraction -> InProdInteraction
+COB_InProdInteraction --|> InProdInteraction
+' Héritage: COB_SyncInteraction -> COB_Interaction
+COB_SyncInteraction --|> COB_Interaction
+' Héritage: COB_SyncInteraction -> SyncInteraction
+COB_SyncInteraction --|> SyncInteraction
+' Héritage: COB_CISInteraction -> COB_Interaction
+COB_CISInteraction --|> COB_Interaction
+' Héritage: COB_CISInteraction -> CISInteraction
+COB_CISInteraction --|> CISInteraction
+' Héritage: COB_ReleaseInteraction -> COB_Interaction
+COB_ReleaseInteraction --|> COB_Interaction
+' Héritage: COB_ReleaseInteraction -> ReleaseInteraction
+COB_ReleaseInteraction --|> ReleaseInteraction
+' Héritage: COB_ContentInteraction -> COB_Interaction
+COB_ContentInteraction --|> COB_Interaction
+' Héritage: COB_ContentInteraction -> ContentInteraction
+COB_ContentInteraction --|> ContentInteraction
+' Héritage: COB_CPLInteraction -> COB_Interaction
+COB_CPLInteraction --|> COB_Interaction
+' Héritage: COB_CPLInteraction -> CPLInteraction
+COB_CPLInteraction --|> CPLInteraction
+' Dépendance: PresentCpl -> Cpl
+PresentCpl ..> Cpl
+' Dépendance: CentralContext -> StateServer
+CentralContext ..> StateServer
+' Dépendance: CentralContext -> ScriptState
+CentralContext ..> ScriptState
+' Dépendance: CentralContext -> PresentCpl
+CentralContext ..> PresentCpl
+' Dépendance: CentralContext -> Group
+CentralContext ..> Group
+' Dépendance: CentralContext -> LinkParam
+CentralContext ..> LinkParam
+' Dépendance: CentralContext -> Cinema
+CentralContext ..> Cinema
+' Dépendance: CentralContext -> DownloadedScripts
+CentralContext ..> DownloadedScripts
+' Dépendance: CentralContext -> Script
+CentralContext ..> Script
+' Dépendance: CentralContext -> Feature
+CentralContext ..> Feature
+' Dépendance: MySQLGroupRepo -> COD_Group
+MySQLGroupRepo ..> COD_Group
+' Dépendance: MySQLGroupRepo -> MySQLDBConnection
+MySQLGroupRepo ..> MySQLDBConnection
+' Dépendance: MySQLGroupRepo -> COB_Group
+MySQLGroupRepo ..> COB_Group
+' Dépendance: MySQLSyncLoopRepo -> COD_SyncLoop
+MySQLSyncLoopRepo ..> COD_SyncLoop
+' Dépendance: MySQLSyncRepo -> COD_Sync
+MySQLSyncRepo ..> COD_Sync
+' Dépendance: MySQLCplRepo -> COD_Cpl
+MySQLCplRepo ..> COD_Cpl
+' Dépendance: MySQLCplRepo -> COD_CplRelease
+MySQLCplRepo ..> COD_CplRelease
+' Dépendance: MySQLCplRepo -> MySQLDBConnection
+MySQLCplRepo ..> MySQLDBConnection
+' Dépendance: MySQLCplRepo -> COB_Cpl
+MySQLCplRepo ..> COB_Cpl
+' Dépendance: MySQLSiteRepo -> COB_Site
+MySQLSiteRepo ..> COB_Site
+' Dépendance: MySQLSiteRepo -> MySQLDBConnection
+MySQLSiteRepo ..> MySQLDBConnection
+' Dépendance: MySQLSiteRepo -> COD_Site
+MySQLSiteRepo ..> COD_Site
+' Dépendance: HTTPInteraction -> TransitionResponse
+HTTPInteraction ..> TransitionResponse
+' Dépendance: MySQLContentRepo -> COD_Content
+MySQLContentRepo ..> COD_Content
+' Dépendance: MySQLContentRepo -> COB_Content
+MySQLContentRepo ..> COB_Content
+' Dépendance: MySQLContentRepo -> MySQLDBConnection
+MySQLContentRepo ..> MySQLDBConnection
+' Dépendance: COB_LocalisationRepo -> COB_Localisations
+COB_LocalisationRepo ..> COB_Localisations
+' Dépendance: COB_LocalisationRepo -> COB_Localisation
+COB_LocalisationRepo ..> COB_Localisation
+' Dépendance: COB_LocalisationRepo -> COD_LocalisationRepo
+COB_LocalisationRepo ..> COD_LocalisationRepo
+' Dépendance: COB_GroupRepo -> COD_GroupRepo
+COB_GroupRepo ..> COD_GroupRepo
+' Dépendance: COB_GroupRepo -> COB_Groups
+COB_GroupRepo ..> COB_Groups
+' Dépendance: COB_GroupRepo -> COB_Group
+COB_GroupRepo ..> COB_Group
+' Dépendance: COB_ContentRepo -> MySQLContentRepo
+COB_ContentRepo ..> MySQLContentRepo
+' Dépendance: COB_ContentRepo -> COD_ContentRepo
+COB_ContentRepo ..> COD_ContentRepo
+' Dépendance: COB_ContentRepo -> COB_Content
+COB_ContentRepo ..> COB_Content
+' Dépendance: COB_ContentRepo -> COB_Contents
+COB_ContentRepo ..> COB_Contents
+' Dépendance: COB_Sites -> COB_Site
+COB_Sites ..> COB_Site
+' Dépendance: ContentContext -> COB_ContentRepo
+ContentContext ..> COB_ContentRepo
+' Dépendance: ContentContext -> COB_Content
+ContentContext ..> COB_Content
+' Dépendance: ContentContext -> COB_ReleaseRepo
+ContentContext ..> COB_ReleaseRepo
+' Dépendance: COB_Configurator -> COB_Content
+COB_Configurator ..> COB_Content
+' Dépendance: COB_Configurator -> MySQLLocalisationRepo
+COB_Configurator ..> MySQLLocalisationRepo
+' Dépendance: COB_Configurator -> COB_ContentRepo
+COB_Configurator ..> COB_ContentRepo
+' Dépendance: COB_Configurator -> MySQLContentRepo
+COB_Configurator ..> MySQLContentRepo
+' Dépendance: COB_Configurator -> MySQLReleaseRepo
+COB_Configurator ..> MySQLReleaseRepo
+' Dépendance: COB_Configurator -> MySQLGroupRepo
+COB_Configurator ..> MySQLGroupRepo
+' Dépendance: COB_Configurator -> COB_CplRepo
+COB_Configurator ..> COB_CplRepo
+' Dépendance: COB_Configurator -> COB_GroupRepo
+COB_Configurator ..> COB_GroupRepo
+' Dépendance: COB_Configurator -> MySQLTypeRepo
+COB_Configurator ..> MySQLTypeRepo
+' Dépendance: COB_Configurator -> MySQLSiteRepo
+COB_Configurator ..> MySQLSiteRepo
+' Dépendance: COB_Configurator -> MySQLCplRepo
+COB_Configurator ..> MySQLCplRepo
+' Dépendance: COB_Configurator -> COB_TypeRepo
+COB_Configurator ..> COB_TypeRepo
+' Dépendance: COB_Configurator -> COB_SiteRepo
+COB_Configurator ..> COB_SiteRepo
+' Dépendance: COB_Configurator -> COB_LocalisationRepo
+COB_Configurator ..> COB_LocalisationRepo
+' Dépendance: COB_Configurator -> COB_ReleaseRepo
+COB_Configurator ..> COB_ReleaseRepo
+' Dépendance: COB_Configurator -> MySQLDBConnection
+COB_Configurator ..> MySQLDBConnection
+' Dépendance: COB_Configurator -> COB_Context
+COB_Configurator ..> COB_Context
+' Dépendance: COB_Types -> COB_Type
+COB_Types ..> COB_Type
+' Dépendance: COB_CplRepo -> MySQLCplRepo
+COB_CplRepo ..> MySQLCplRepo
+' Dépendance: COB_CplRepo -> COB_Cpls
+COB_CplRepo ..> COB_Cpls
+' Dépendance: COB_CplRepo -> COD_CplRepo
+COB_CplRepo ..> COD_CplRepo
+' Dépendance: COB_CplRepo -> COB_Cpl
+COB_CplRepo ..> COB_Cpl
+' Dépendance: COB_Cpls -> COB_Cpl
+COB_Cpls ..> COB_Cpl
+' Dépendance: COB_TypeRepo -> COB_Type
+COB_TypeRepo ..> COB_Type
+' Dépendance: COB_TypeRepo -> COB_Types
+COB_TypeRepo ..> COB_Types
+' Dépendance: COB_TypeRepo -> COD_TypeRepo
+COB_TypeRepo ..> COD_TypeRepo
+' Dépendance: COB_Contents -> COB_Content
+COB_Contents ..> COB_Content
+' Dépendance: BoundaryStateMachine -> StatePublishing
+BoundaryStateMachine ..> StatePublishing
+' Dépendance: BoundaryStateMachine -> StateUploadCIS
+BoundaryStateMachine ..> StateUploadCIS
+' Dépendance: BoundaryStateMachine -> ContentInitState
+BoundaryStateMachine ..> ContentInitState
+' Dépendance: BoundaryStateMachine -> StateInProd
+BoundaryStateMachine ..> StateInProd
+' Dépendance: BoundaryStateMachine -> StateReleaseCreation
+BoundaryStateMachine ..> StateReleaseCreation
+' Dépendance: BoundaryStateMachine -> StateIdleSync
+BoundaryStateMachine ..> StateIdleSync
+' Dépendance: BoundaryStateMachine -> StateCancel
+BoundaryStateMachine ..> StateCancel
+' Dépendance: BoundaryStateMachine -> StateSync
+BoundaryStateMachine ..> StateSync
+' Dépendance: BoundaryStateMachine -> StateCPL
+BoundaryStateMachine ..> StateCPL
+' Dépendance: BoundaryStateMachine -> StateSyncLoop
+BoundaryStateMachine ..> StateSyncLoop
+' Dépendance: BoundaryStateMachine -> COB_Context
+BoundaryStateMachine ..> COB_Context
+' Dépendance: BoundaryStateMachine -> StateSyncCreate
+BoundaryStateMachine ..> StateSyncCreate
+' Dépendance: COB_SyncLoops -> COB_SyncLoop
+COB_SyncLoops ..> COB_SyncLoop
+' Dépendance: COB_SiteRepo -> COB_Site
+COB_SiteRepo ..> COB_Site
+' Dépendance: COB_SiteRepo -> COD_SiteRepo
+COB_SiteRepo ..> COD_SiteRepo
+' Dépendance: COB_SiteRepo -> COB_Sites
+COB_SiteRepo ..> COB_Sites
+' Dépendance: COB_SyncRepo -> MySQLSyncRepo
+COB_SyncRepo ..> MySQLSyncRepo
+' Dépendance: COB_SyncRepo -> COD_SyncRepo
+COB_SyncRepo ..> COD_SyncRepo
+' Dépendance: COB_SyncRepo -> COB_Syncs
+COB_SyncRepo ..> COB_Syncs
+' Dépendance: COB_Cpl -> COD_CplRelease
+COB_Cpl ..> COD_CplRelease
+' Dépendance: COB_Localisations -> COB_Localisation
+COB_Localisations ..> COB_Localisation
+' Dépendance: COB_Groups -> COB_Group
+COB_Groups ..> COB_Group
+' Dépendance: COB_Context -> COB_Content
+COB_Context ..> COB_Content
+' Dépendance: COB_Context -> COB_Release
+COB_Context ..> COB_Release
+' Dépendance: COB_Context -> COB_ContentRepo
+COB_Context ..> COB_ContentRepo
+' Dépendance: COB_Context -> COB_ReleaseRepo
+COB_Context ..> COB_ReleaseRepo
+' Dépendance: COB_Context -> MySQLDBConnection
+COB_Context ..> MySQLDBConnection
+' Dépendance: COB_Context -> COB_InteractionConfigurator
+COB_Context ..> COB_InteractionConfigurator
+' Dépendance: BoundaryStateManager -> COB_Content
+BoundaryStateManager ..> COB_Content
+' Dépendance: BoundaryStateManager -> COB_ContentRepo
+BoundaryStateManager ..> COB_ContentRepo
+' Dépendance: BoundaryStateManager -> TransitionResponse
+BoundaryStateManager ..> TransitionResponse
+' Dépendance: BoundaryStateManager -> COB_ReleaseRepo
+BoundaryStateManager ..> COB_ReleaseRepo
+' Dépendance: BoundaryStateManager -> MySQLContentRepo
+BoundaryStateManager ..> MySQLContentRepo
+' Dépendance: BoundaryStateManager -> MySQLReleaseRepo
+BoundaryStateManager ..> MySQLReleaseRepo
+' Dépendance: COB_ReleaseRepo -> COD_ReleaseRepo
+COB_ReleaseRepo ..> COD_ReleaseRepo
+' Dépendance: COB_ReleaseRepo -> COB_Release
+COB_ReleaseRepo ..> COB_Release
+' Dépendance: COB_ReleaseRepo -> COB_Releases
+COB_ReleaseRepo ..> COB_Releases
+' Dépendance: COB_ReleaseRepo -> MySQLReleaseRepo
+COB_ReleaseRepo ..> MySQLReleaseRepo
+' Dépendance: BoundaryManager -> BoundaryStateManager
+BoundaryManager ..> BoundaryStateManager
+' Dépendance: BoundaryManager -> COB_Configurator
+BoundaryManager ..> COB_Configurator
+' Dépendance: BoundaryManager -> BoundaryStateMachine
+BoundaryManager ..> BoundaryStateMachine
+' Dépendance: BoundaryManager -> TransitionResponse
+BoundaryManager ..> TransitionResponse
+' Dépendance: COB_Releases -> COB_Release
+COB_Releases ..> COB_Release
+' Dépendance: COB_SyncLoopRepo -> COB_SyncLoops
+COB_SyncLoopRepo ..> COB_SyncLoops
+' Dépendance: COB_SyncLoopRepo -> COD_SyncLoopRepo
+COB_SyncLoopRepo ..> COD_SyncLoopRepo
+' Dépendance: COB_SyncLoopRepo -> MySQLSyncLoopRepo
+COB_SyncLoopRepo ..> MySQLSyncLoopRepo
+' Dépendance: COB_Syncs -> COB_Sync
+COB_Syncs ..> COB_Sync
+' Dépendance: ContentInitState -> StatePublishing
+ContentInitState ..> StatePublishing
+' Dépendance: ContentInitState -> COB_ContentInteraction
+ContentInitState ..> COB_ContentInteraction
+' Dépendance: ContentInitState -> COB_Content
+ContentInitState ..> COB_Content
+' Dépendance: ContentInitState -> ContentContext
+ContentInitState ..> ContentContext
+' Dépendance: ContentInitState -> ContentInteraction
+ContentInitState ..> ContentInteraction
+' Dépendance: ContentInitState -> TransitionResponse
+ContentInitState ..> TransitionResponse
+' Dépendance: ContentInitState -> MySQLContentRepo
+ContentInitState ..> MySQLContentRepo
+' Dépendance: StateUploadCIS -> StateInProd
+StateUploadCIS ..> StateInProd
+' Dépendance: StatePublishing -> StateReleaseCreation
+StatePublishing ..> StateReleaseCreation
+' Dépendance: StatePublishing -> StateCancel
+StatePublishing ..> StateCancel
+' Dépendance: StatePublishing -> TransitionResponse
+StatePublishing ..> TransitionResponse
+' Dépendance: StatePublishing -> PublishingInteraction
+StatePublishing ..> PublishingInteraction
+' Dépendance: StatePublishing -> COB_PublishingInteraction
+StatePublishing ..> COB_PublishingInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_PublishingInteraction
+COB_InteractionConfigurator ..> COB_PublishingInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_ReleaseInteraction
+COB_InteractionConfigurator ..> COB_ReleaseInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_CPLInteraction
+COB_InteractionConfigurator ..> COB_CPLInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_IdleSyncInteraction
+COB_InteractionConfigurator ..> COB_IdleSyncInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_ContentInteraction
+COB_InteractionConfigurator ..> COB_ContentInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_CISInteraction
+COB_InteractionConfigurator ..> COB_CISInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_SyncInteraction
+COB_InteractionConfigurator ..> COB_SyncInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_SyncLoopInteraction
+COB_InteractionConfigurator ..> COB_SyncLoopInteraction
+' Dépendance: COB_InteractionConfigurator -> COB_Interaction
+COB_InteractionConfigurator ..> COB_Interaction
+' Dépendance: COB_InteractionConfigurator -> COB_InProdInteraction
+COB_InteractionConfigurator ..> COB_InProdInteraction
+' Dépendance: COB_Interaction -> TransitionResponse
+COB_Interaction ..> TransitionResponse
+' Dépendance: COD_Cpl -> COD_Sync
+COD_Cpl ..> COD_Sync
+' Dépendance: COD_CplRelease -> COD_Sync
+COD_CplRelease ..> COD_Sync
+' Dépendance: COD_Releases -> COD_Cpl
+COD_Releases ..> COD_Cpl
+' Dépendance: COD_Releases -> COD_CplRelease
+COD_Releases ..> COD_CplRelease
+' Dépendance: COD_Releases -> COD_SyncLoop
+COD_Releases ..> COD_SyncLoop
+' Dépendance: COD_ReleaseRepo -> COD_Releases
+COD_ReleaseRepo ..> COD_Releases
+' Dépendance: COD_SyncLoopRepo -> COD_SyncLoop
+COD_SyncLoopRepo ..> COD_SyncLoop
+' Dépendance: COD_Sync -> COD_SyncRepo
+COD_Sync ..> COD_SyncRepo
+' Dépendance: Feature -> COB_Release
+Feature ..> COB_Release
+' Dépendance: Feature -> COD_Releases
+Feature ..> COD_Releases
+' Dépendance: Feature -> Release
+Feature ..> Release
+' Dépendance: Release -> ReleaseCut
+Release ..> ReleaseCut
+' Dépendance: Release -> Cinema
+Release ..> Cinema
+' Dépendance: Release -> Script
+Release ..> Script
+' Dépendance: Release -> COB_Cpl
+Release ..> COB_Cpl
+' Dépendance: Release -> COD_Cpl
+Release ..> COD_Cpl
+' Dépendance: Release -> COD_CplRelease
+Release ..> COD_CplRelease
+' Dépendance: Release -> Cpl
+Release ..> Cpl
+' Dépendance: Cinema -> Auditorium
+Cinema ..> Auditorium
+' Dépendance: Group -> Cinema
+Group ..> Cinema
+' Dépendance: Group -> Release
+Group ..> Release
+' Dépendance: Auditorium -> StateServer
+Auditorium ..> StateServer
+' Dépendance: Auditorium -> Server
+Auditorium ..> Server
+' Dépendance: Script -> COB_Cpl
+Script ..> COB_Cpl
+' Dépendance: Script -> COD_Cpl
+Script ..> COD_Cpl
+' Dépendance: Script -> COD_CplRelease
+Script ..> COD_CplRelease
+' Dépendance: Script -> Cpl
+Script ..> Cpl
+' Dépendance: Server -> Script
+Server ..> Script
+' Dépendance: StateMachine -> Context
+StateMachine ..> Context
+' Dépendance: StateMachine -> CentralContext
+StateMachine ..> CentralContext
+' Dépendance: StateMachine -> ContentContext
+StateMachine ..> ContentContext
+' Dépendance: StateMachine -> COB_Context
+StateMachine ..> COB_Context
+' Dépendance: StateMachine -> MySQLCplRepo
+StateMachine ..> MySQLCplRepo
+' Dépendance: StateMachine -> MySQLSyncLoopRepo
+StateMachine ..> MySQLSyncLoopRepo
+' Dépendance: StateMachine -> MySQLSyncRepo
+StateMachine ..> MySQLSyncRepo
+' Dépendance: StateMachine -> MySQLContentRepo
+StateMachine ..> MySQLContentRepo
+' Dépendance: StateMachine -> MySQLReleaseRepo
+StateMachine ..> MySQLReleaseRepo
+' Dépendance: CISInteraction -> ContentInitEvent
+CISInteraction ..> ContentInitEvent
+' Dépendance: CISInteraction -> CreateCPLEvent
+CISInteraction ..> CreateCPLEvent
+' Dépendance: CISInteraction -> CreateSyncEvent
+CISInteraction ..> CreateSyncEvent
+' Dépendance: CISInteraction -> SyncCreatedEvent
+CISInteraction ..> SyncCreatedEvent
+' Dépendance: CISInteraction -> PushCISEvent
+CISInteraction ..> PushCISEvent
+' Dépendance: CISInteraction -> PublishEvent
+CISInteraction ..> PublishEvent
+' Dépendance: CISInteraction -> CreateReleaseEvent
+CISInteraction ..> CreateReleaseEvent
+' Dépendance: CISInteraction -> ReleaseCreatedEvent
+CISInteraction ..> ReleaseCreatedEvent
+' Dépendance: CISInteraction -> CancelEvent
+CISInteraction ..> CancelEvent
+' Dépendance: ReleaseInteraction -> ContentInitEvent
+ReleaseInteraction ..> ContentInitEvent
+' Dépendance: ReleaseInteraction -> CreateCPLEvent
+ReleaseInteraction ..> CreateCPLEvent
+' Dépendance: ReleaseInteraction -> CreateSyncEvent
+ReleaseInteraction ..> CreateSyncEvent
+' Dépendance: ReleaseInteraction -> SyncCreatedEvent
+ReleaseInteraction ..> SyncCreatedEvent
+' Dépendance: ReleaseInteraction -> PushCISEvent
+ReleaseInteraction ..> PushCISEvent
+' Dépendance: ReleaseInteraction -> PublishEvent
+ReleaseInteraction ..> PublishEvent
+' Dépendance: ReleaseInteraction -> CreateReleaseEvent
+ReleaseInteraction ..> CreateReleaseEvent
+' Dépendance: ReleaseInteraction -> ReleaseCreatedEvent
+ReleaseInteraction ..> ReleaseCreatedEvent
+' Dépendance: ReleaseInteraction -> CancelEvent
+ReleaseInteraction ..> CancelEvent
+' Dépendance: InProdInteraction -> ContentInitEvent
+InProdInteraction ..> ContentInitEvent
+' Dépendance: InProdInteraction -> CreateCPLEvent
+InProdInteraction ..> CreateCPLEvent
+' Dépendance: InProdInteraction -> CreateSyncEvent
+InProdInteraction ..> CreateSyncEvent
+' Dépendance: InProdInteraction -> SyncCreatedEvent
+InProdInteraction ..> SyncCreatedEvent
+' Dépendance: InProdInteraction -> PushCISEvent
+InProdInteraction ..> PushCISEvent
+' Dépendance: InProdInteraction -> PublishEvent
+InProdInteraction ..> PublishEvent
+' Dépendance: InProdInteraction -> CreateReleaseEvent
+InProdInteraction ..> CreateReleaseEvent
+' Dépendance: InProdInteraction -> ReleaseCreatedEvent
+InProdInteraction ..> ReleaseCreatedEvent
+' Dépendance: InProdInteraction -> CancelEvent
+InProdInteraction ..> CancelEvent
+' Dépendance: IdleSyncInteraction -> ContentInitEvent
+IdleSyncInteraction ..> ContentInitEvent
+' Dépendance: IdleSyncInteraction -> CreateCPLEvent
+IdleSyncInteraction ..> CreateCPLEvent
+' Dépendance: IdleSyncInteraction -> CreateSyncEvent
+IdleSyncInteraction ..> CreateSyncEvent
+' Dépendance: IdleSyncInteraction -> SyncCreatedEvent
+IdleSyncInteraction ..> SyncCreatedEvent
+' Dépendance: IdleSyncInteraction -> PushCISEvent
+IdleSyncInteraction ..> PushCISEvent
+' Dépendance: IdleSyncInteraction -> PublishEvent
+IdleSyncInteraction ..> PublishEvent
+' Dépendance: IdleSyncInteraction -> CreateReleaseEvent
+IdleSyncInteraction ..> CreateReleaseEvent
+' Dépendance: IdleSyncInteraction -> ReleaseCreatedEvent
+IdleSyncInteraction ..> ReleaseCreatedEvent
+' Dépendance: IdleSyncInteraction -> CancelEvent
+IdleSyncInteraction ..> CancelEvent
+' Dépendance: SyncLoopInteraction -> ContentInitEvent
+SyncLoopInteraction ..> ContentInitEvent
+' Dépendance: SyncLoopInteraction -> CreateCPLEvent
+SyncLoopInteraction ..> CreateCPLEvent
+' Dépendance: SyncLoopInteraction -> CreateSyncEvent
+SyncLoopInteraction ..> CreateSyncEvent
+' Dépendance: SyncLoopInteraction -> SyncCreatedEvent
+SyncLoopInteraction ..> SyncCreatedEvent
+' Dépendance: SyncLoopInteraction -> PushCISEvent
+SyncLoopInteraction ..> PushCISEvent
+' Dépendance: SyncLoopInteraction -> PublishEvent
+SyncLoopInteraction ..> PublishEvent
+' Dépendance: SyncLoopInteraction -> CreateReleaseEvent
+SyncLoopInteraction ..> CreateReleaseEvent
+' Dépendance: SyncLoopInteraction -> ReleaseCreatedEvent
+SyncLoopInteraction ..> ReleaseCreatedEvent
+' Dépendance: SyncLoopInteraction -> CancelEvent
+SyncLoopInteraction ..> CancelEvent
+' Dépendance: Context -> IdleSyncInteraction
+Context ..> IdleSyncInteraction
+' Dépendance: Context -> COD_Sync
+Context ..> COD_Sync
+' Dépendance: Context -> ContentInitEvent
+Context ..> ContentInitEvent
+' Dépendance: Context -> CreateCPLEvent
+Context ..> CreateCPLEvent
+' Dépendance: Context -> CreateSyncEvent
+Context ..> CreateSyncEvent
+' Dépendance: Context -> SyncCreatedEvent
+Context ..> SyncCreatedEvent
+' Dépendance: Context -> PushCISEvent
+Context ..> PushCISEvent
+' Dépendance: Context -> PublishEvent
+Context ..> PublishEvent
+' Dépendance: Context -> CreateReleaseEvent
+Context ..> CreateReleaseEvent
+' Dépendance: Context -> ReleaseCreatedEvent
+Context ..> ReleaseCreatedEvent
+' Dépendance: Context -> CancelEvent
+Context ..> CancelEvent
+' Dépendance: Context -> SyncInteraction
+Context ..> SyncInteraction
+' Dépendance: Context -> COD_Content
+Context ..> COD_Content
+' Dépendance: Context -> COD_Cpl
+Context ..> COD_Cpl
+' Dépendance: Context -> COD_CplRelease
+Context ..> COD_CplRelease
+' Dépendance: Context -> COD_Releases
+Context ..> COD_Releases
+' Dépendance: Context -> SyncLoopInteraction
+Context ..> SyncLoopInteraction
+' Dépendance: Context -> COD_SyncLoop
+Context ..> COD_SyncLoop
+' Dépendance: Context -> ContentInteraction
+Context ..> ContentInteraction
+' Dépendance: Context -> ReleaseInteraction
+Context ..> ReleaseInteraction
+' Dépendance: Context -> PublishingInteraction
+Context ..> PublishingInteraction
+' Dépendance: Context -> CISInteraction
+Context ..> CISInteraction
+' Dépendance: Context -> MySQLDBConnection
+Context ..> MySQLDBConnection
+' Dépendance: Context -> InProdInteraction
+Context ..> InProdInteraction
+' Dépendance: Context -> CPLInteraction
+Context ..> CPLInteraction
+' Dépendance: PublishingInteraction -> ContentInitEvent
+PublishingInteraction ..> ContentInitEvent
+' Dépendance: PublishingInteraction -> CreateCPLEvent
+PublishingInteraction ..> CreateCPLEvent
+' Dépendance: PublishingInteraction -> CreateSyncEvent
+PublishingInteraction ..> CreateSyncEvent
+' Dépendance: PublishingInteraction -> SyncCreatedEvent
+PublishingInteraction ..> SyncCreatedEvent
+' Dépendance: PublishingInteraction -> PushCISEvent
+PublishingInteraction ..> PushCISEvent
+' Dépendance: PublishingInteraction -> PublishEvent
+PublishingInteraction ..> PublishEvent
+' Dépendance: PublishingInteraction -> CreateReleaseEvent
+PublishingInteraction ..> CreateReleaseEvent
+' Dépendance: PublishingInteraction -> ReleaseCreatedEvent
+PublishingInteraction ..> ReleaseCreatedEvent
+' Dépendance: PublishingInteraction -> CancelEvent
+PublishingInteraction ..> CancelEvent
+' Dépendance: SyncInteraction -> ContentInitEvent
+SyncInteraction ..> ContentInitEvent
+' Dépendance: SyncInteraction -> CreateCPLEvent
+SyncInteraction ..> CreateCPLEvent
+' Dépendance: SyncInteraction -> CreateSyncEvent
+SyncInteraction ..> CreateSyncEvent
+' Dépendance: SyncInteraction -> SyncCreatedEvent
+SyncInteraction ..> SyncCreatedEvent
+' Dépendance: SyncInteraction -> PushCISEvent
+SyncInteraction ..> PushCISEvent
+' Dépendance: SyncInteraction -> PublishEvent
+SyncInteraction ..> PublishEvent
+' Dépendance: SyncInteraction -> CreateReleaseEvent
+SyncInteraction ..> CreateReleaseEvent
+' Dépendance: SyncInteraction -> ReleaseCreatedEvent
+SyncInteraction ..> ReleaseCreatedEvent
+' Dépendance: SyncInteraction -> CancelEvent
+SyncInteraction ..> CancelEvent
+' Dépendance: ContentInitEvent -> TransitionResponse
+ContentInitEvent ..> TransitionResponse
+' Dépendance: CreateCPLEvent -> TransitionResponse
+CreateCPLEvent ..> TransitionResponse
+' Dépendance: CreateSyncEvent -> TransitionResponse
+CreateSyncEvent ..> TransitionResponse
+' Dépendance: SyncCreatedEvent -> TransitionResponse
+SyncCreatedEvent ..> TransitionResponse
+' Dépendance: PushCISEvent -> TransitionResponse
+PushCISEvent ..> TransitionResponse
+' Dépendance: PublishEvent -> TransitionResponse
+PublishEvent ..> TransitionResponse
+' Dépendance: CreateReleaseEvent -> TransitionResponse
+CreateReleaseEvent ..> TransitionResponse
+' Dépendance: ReleaseCreatedEvent -> TransitionResponse
+ReleaseCreatedEvent ..> TransitionResponse
+' Dépendance: CancelEvent -> TransitionResponse
+CancelEvent ..> TransitionResponse
+' Dépendance: CPLInteraction -> ContentInitEvent
+CPLInteraction ..> ContentInitEvent
+' Dépendance: CPLInteraction -> CreateCPLEvent
+CPLInteraction ..> CreateCPLEvent
+' Dépendance: CPLInteraction -> CreateSyncEvent
+CPLInteraction ..> CreateSyncEvent
+' Dépendance: CPLInteraction -> SyncCreatedEvent
+CPLInteraction ..> SyncCreatedEvent
+' Dépendance: CPLInteraction -> PushCISEvent
+CPLInteraction ..> PushCISEvent
+' Dépendance: CPLInteraction -> PublishEvent
+CPLInteraction ..> PublishEvent
+' Dépendance: CPLInteraction -> CreateReleaseEvent
+CPLInteraction ..> CreateReleaseEvent
+' Dépendance: CPLInteraction -> ReleaseCreatedEvent
+CPLInteraction ..> ReleaseCreatedEvent
+' Dépendance: CPLInteraction -> CancelEvent
+CPLInteraction ..> CancelEvent
+' Dépendance: ContentInteraction -> ContentInitEvent
+ContentInteraction ..> ContentInitEvent
+' Dépendance: ContentInteraction -> CreateCPLEvent
+ContentInteraction ..> CreateCPLEvent
+' Dépendance: ContentInteraction -> CreateSyncEvent
+ContentInteraction ..> CreateSyncEvent
+' Dépendance: ContentInteraction -> SyncCreatedEvent
+ContentInteraction ..> SyncCreatedEvent
+' Dépendance: ContentInteraction -> PushCISEvent
+ContentInteraction ..> PushCISEvent
+' Dépendance: ContentInteraction -> PublishEvent
+ContentInteraction ..> PublishEvent
+' Dépendance: ContentInteraction -> CreateReleaseEvent
+ContentInteraction ..> CreateReleaseEvent
+' Dépendance: ContentInteraction -> ReleaseCreatedEvent
+ContentInteraction ..> ReleaseCreatedEvent
+' Dépendance: ContentInteraction -> CancelEvent
+ContentInteraction ..> CancelEvent
+' Dépendance: StateMachineManager -> Context
+StateMachineManager ..> Context
+' Dépendance: StateMachineManager -> HTTPCISInteraction
+StateMachineManager ..> HTTPCISInteraction
+' Dépendance: StateMachineManager -> HTTPCPLInteraction
+StateMachineManager ..> HTTPCPLInteraction
+' Dépendance: StateMachineManager -> HTTPContentInteraction
+StateMachineManager ..> HTTPContentInteraction
+' Dépendance: StateMachineManager -> MySQLDBConnection
+StateMachineManager ..> MySQLDBConnection
+' Dépendance: StateMachineManager -> HTTPPublishingInteraction
+StateMachineManager ..> HTTPPublishingInteraction
+' Dépendance: StateMachineManager -> HTTPSyncLoopInteraction
+StateMachineManager ..> HTTPSyncLoopInteraction
+' Dépendance: StateMachineManager -> HTTPReleaseInteraction
+StateMachineManager ..> HTTPReleaseInteraction
+' Dépendance: StateMachineManager -> HTTPInProdInteraction
+StateMachineManager ..> HTTPInProdInteraction
+' Dépendance: StateMachineManager -> HTTPSyncInteraction
+StateMachineManager ..> HTTPSyncInteraction
+' Dépendance: StateMachineManager -> HTTPIdleSyncInteraction
+StateMachineManager ..> HTTPIdleSyncInteraction
+
+' Directives pour améliorer l'espacement final
+!pragma layout smetana
+
+@enduml

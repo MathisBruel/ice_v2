@@ -10,6 +10,13 @@ COB_SyncLoop::COB_SyncLoop(int id_serv_pair_config, int id_content, int id_type,
     SetSyncLoopInfos(syncLoopPath);
 }
 
+COB_SyncLoop::COB_SyncLoop(const COD_SyncLoop& src)
+    : COD_SyncLoop() {
+    const int* srcId = src.GetSyncLoopId();
+    SetSyncLoopId(srcId[0], srcId[1], srcId[2], srcId[3]);
+    SetSyncLoopInfos(src.GetSyncLoopPath());
+}
+
 COB_SyncLoop::operator std::string() const
 {
     std::string xml = "<syncLoop";

@@ -1,5 +1,9 @@
 #pragma once
-#include "ContentOpsApp/State.h"
+#include "ContentOpsApp/TransitionResponse.h"
+#include <functional>
+#include <map>
+#include <string>
+
 class ReleaseInteraction
 {
 public:
