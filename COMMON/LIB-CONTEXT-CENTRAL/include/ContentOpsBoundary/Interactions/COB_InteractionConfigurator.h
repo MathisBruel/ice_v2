@@ -3,7 +3,7 @@
 #include "COB_ReleaseInteraction.h"
 #include "COB_CPLInteraction.h"
 #include "COB_InProdInteraction.h"
-#include "COB_UploadInteraction.h"  // Interaction unifiée pour uploads BPMN
+#include "COB_UploadInteraction.h"  
 #include "COB_ArchiveInteraction.h"
 #include "commandCentral.h"
 

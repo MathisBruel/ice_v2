@@ -3,9 +3,9 @@
 #include "ContentOpsApp/TransitionResponse.h"
 #include "commandCentral.h"
 #include "ContentOpsBoundary/Interactions/COB_UploadInteraction.h"
-#include "ContentOpsBoundary/COB_SyncLoop.h"
 #include "ContentOpsBoundary/FSMTypes.h"
 #include "ContentOpsBoundary/States/Release/StateCreateRelease.h"
+#include "ContentOpsBoundary/COB_Release.h"
 #include <iostream>
 
 struct StateUploadSyncLoop : ContentStateBase {
@@ -22,34 +22,25 @@ struct StateUploadSyncLoop : ContentStateBase {
         if (uploadInteraction) {
             uploadInteraction->pfStateUploadSyncLoop = [control, this](std::string UUID, std::map<std::string, std::string> Params) {
                 this->response.cmdUUID = UUID;
-                
                 try {
                     std::string syncPath = Params.find("syncPath") != Params.end() ? 
                                            Params.at("syncPath") : "";
-                    int servPairConfigId = Params.find("id_serv_pair_config") != Params.end() ? 
-                                           std::stoi(Params.at("id_serv_pair_config")) : 1;
-                    
-                    if (control.context()->syncLoopRepo && !syncPath.empty()) {
-                        COB_SyncLoop syncLoop(servPairConfigId, 
-                                            control.context()->contentId,
-                                            control.context()->typeId, 
-                                            control.context()->localisationId, 
-                                            syncPath);
-                        control.context()->syncLoopRepo->Create(&syncLoop);
+                    // On édite juste la release
+                    if (!syncPath.empty()) {
+                        control.context()->release->SetSyncLoopPath(syncPath);
+                        if (control.context()->releaseRepo) {
+                            control.context()->releaseRepo->Update(control.context()->release.get());
+                        }
                     }
-                    
                     if (control.context()->syncCount) {
                         (*control.context()->syncCount)++;
                     }
-                    
                     if (control.context()->syncFinish) {
                         *control.context()->syncFinish = true;
                     }
-                    
                     this->response.cmdStatus = "OK";
                     this->response.cmdComment = "SyncLoop uploaded successfully";
                     this->response.cmdDatasXML = "<syncLoop path=\"" + syncPath + "\">Upload processed</syncLoop>";
-                    
                 } catch (const std::exception& e) {
                     this->response.cmdStatus = "KO";
                     this->response.cmdComment = "Failed to process syncloop: " + std::string(e.what());

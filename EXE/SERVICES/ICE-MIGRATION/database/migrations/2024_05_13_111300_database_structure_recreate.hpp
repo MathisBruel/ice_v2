@@ -80,6 +80,7 @@ namespace Migrations
 				table.unsignedBigInteger("id_type");
 				table.unsignedBigInteger("id_localisation");
 				table.string("release_cis_path", 50).defaultValue("NULL").nullable();
+				table.string("release_syncloop_path", 50).defaultValue("NULL").nullable();
 				table.string("release_cpl_ref_path", 50);
 				table.primary({"id_content", "id_type", "id_localisation"});
 				table.foreign("id_content").references("id_content").on("content");

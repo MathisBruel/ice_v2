@@ -26,10 +26,6 @@
 #include "ContentOpsInfra/MySQLSyncRepo.h"
 #include "ContentOpsBoundary/COB_Sync.h"
 #include "ContentOpsBoundary/COB_Syncs.h"
-#include "ContentOpsBoundary/COB_SyncLoopRepo.h"
-#include "ContentOpsInfra/MySQLSyncLoopRepo.h"
-#include "ContentOpsBoundary/COB_SyncLoop.h"
-#include "ContentOpsBoundary/COB_SyncLoops.h"
 #include "ContentOpsBoundary/BoundaryStateManager.h"
 #include <stdexcept>
 
@@ -117,7 +113,22 @@ void BoundaryManager::InitReleaseStateMachines() {
 
 std::string BoundaryManager::GetAllContentsAsXml() {
     try {
-        COB_Contents contents = _configurator->GetContentRepo()->GetContents(); 
+        COB_Contents contents = _configurator->GetContentRepo()->GetContents();
+
+        std::for_each(contents.begin(), contents.end(), [this](const COB_Content& content) {
+            int contentId = content.GetContentId();
+            COB_Releases releases = _configurator->GetReleaseRepo()->GetReleases(contentId);
+            std::for_each(releases.begin(), releases.end(), [this, contentId](const COB_Release& release) {
+                const int* ids = release.GetReleaseId();
+                int typeId = ids[1];
+                int localisationId = ids[2];
+                std::string releaseKey = _boundaryStateManager.MakeReleaseKey(contentId, typeId, localisationId);
+                if (!_boundaryStateManager.GetStateMachine(releaseKey)) {
+                    _boundaryStateManager.StartReleaseStateMachine(contentId, typeId, localisationId);
+                }
+            });
+        });
+
         return contents; 
     }
     catch(const std::exception& e) { 
@@ -129,6 +140,16 @@ std::string BoundaryManager::GetAllContentsAsXml() {
 std::string BoundaryManager::GetContentAsXml(int contentId) {
     try {
         COB_Content content = _configurator->GetContentRepo()->GetContent(contentId);
+
+        // Initialiser les state machines pour chaque release du content
+        COB_Releases releases = _configurator->GetReleaseRepo()->GetReleases(contentId);
+        for (const auto& release : releases) {
+            const int* ids = release.GetReleaseId();
+            int typeId = ids[1];
+            int localisationId = ids[2];
+            _boundaryStateManager.StartReleaseStateMachine(contentId, typeId, localisationId);
+        }
+
         return content;
     }
     catch(const std::exception& e) { 
@@ -361,23 +382,6 @@ void BoundaryManager::DeleteSync(int contentId, int typeId, int localisationId, 
     }
 }
 
-void BoundaryManager::DeleteSyncLoop(int contentId, int typeId, int localisationId, int servPairConfigId) {
-    try {
-        auto releaseRepo = _configurator->GetReleaseRepo();
-        auto release = releaseRepo->GetRelease(contentId, typeId, localisationId);
-        std::string compositeId = std::to_string(servPairConfigId) + "_" + std::to_string(contentId) + "_" + std::to_string(typeId) + "_" + std::to_string(localisationId);
-        auto syncLoop = release.GetSyncLoop(compositeId);
-        if (syncLoop) {
-            // Suppression du syncLoop directement depuis le release
-            release.DeleteSyncLoop(compositeId);
-        }
-    }
-    catch(const std::exception& e) {
-        std::string errorMsg = "Failed to delete SyncLoop : " + std::string(e.what());
-        throw std::runtime_error(errorMsg);
-    }
-}
-
 std::string BoundaryManager::GetServerPairsAsXml() {
     try {
         COB_ServerPairs serverPairs = _configurator->GetServerPairRepo()->GetServerPairs();
@@ -418,19 +422,6 @@ std::string BoundaryManager::GetReleaseSyncsAsXml(int contentId, int typeId, int
     }
     catch(const std::exception& e) { 
         std::string errorMsg = "Failed to get syncs for release " + std::to_string(contentId) + 
-                              "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
-                              " : " + std::string(e.what());
-        throw std::runtime_error(errorMsg); 
-    }
-}
-
-std::string BoundaryManager::GetReleaseSyncLoopsAsXml(int contentId, int typeId, int localisationId) {
-    try {
-        COB_SyncLoops syncLoops = _configurator->GetSyncLoopRepo()->GetSyncLoopsByRelease(contentId, typeId, localisationId);
-        return syncLoops;
-    }
-    catch(const std::exception& e) { 
-        std::string errorMsg = "Failed to get syncLoops for release " + std::to_string(contentId) + 
                               "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
                               " : " + std::string(e.what());
         throw std::runtime_error(errorMsg); 

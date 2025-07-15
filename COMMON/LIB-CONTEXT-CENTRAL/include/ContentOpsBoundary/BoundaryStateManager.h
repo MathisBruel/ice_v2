@@ -41,4 +41,5 @@ private:
     std::shared_ptr<COB_Configurator> _configurator;
     
     void CheckAndTransitionToWaitClose(int contentId, int typeId, int localisationId);
+    void loadRelease(int contentId, int typeId, int localisationId);
 };

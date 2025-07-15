@@ -29,6 +29,6 @@ private:
     int _releaseIds[3];
     std::string _CPLRefPath;
     std::string _CISPath;
-
+    std::string _SyncLoopPath;
     std::unique_ptr<Query> _query;
 };

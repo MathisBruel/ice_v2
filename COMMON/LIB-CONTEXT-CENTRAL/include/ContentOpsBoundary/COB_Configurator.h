@@ -11,7 +11,6 @@
 #include "ContentOpsBoundary/COB_CplRepo.h"
 #include "ContentOpsBoundary/COB_ServerPairRepo.h"
 #include "ContentOpsBoundary/COB_SyncRepo.h"
-#include "ContentOpsBoundary/COB_SyncLoopRepo.h"
 #include "ContentOpsBoundary/COB_Content.h"
 #include "ContentOpsInfra/MySQLDBConnection.h"
 #include "ContentOpsInfra/MySQLSiteRepo.h"
@@ -23,7 +22,6 @@
 #include "ContentOpsInfra/MySQLCplRepo.h"
 #include "ContentOpsInfra/MySQLServerPairRepo.h"
 #include "ContentOpsInfra/MySQLSyncRepo.h"
-#include "ContentOpsInfra/MySQLSyncLoopRepo.h"
 
 
 class COB_Configurator {
@@ -42,7 +40,6 @@ public:
     std::shared_ptr<COB_CplRepo> GetCplRepo() { return _cplRepo; }
     std::shared_ptr<COB_ServerPairRepo> GetServerPairRepo() { return _serverPairRepo; }
     std::shared_ptr<COB_SyncRepo> GetSyncRepo() { return _syncRepo; }
-    std::shared_ptr<COB_SyncLoopRepo> GetSyncLoopRepo() { return _syncLoopRepo; }
 
 
 private:
@@ -56,5 +53,4 @@ private:
     std::shared_ptr<COB_CplRepo> _cplRepo;
     std::shared_ptr<COB_ServerPairRepo> _serverPairRepo;
     std::shared_ptr<COB_SyncRepo> _syncRepo;
-    std::shared_ptr<COB_SyncLoopRepo> _syncLoopRepo;
 }; 

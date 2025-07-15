@@ -2554,28 +2554,9 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         }
     }
     else if (cmd->getType() == CommandCentral::GET_RELEASE_SYNCLOOPS) {
-        int contentId = cmd->getIntParameter("id_content");
-        int typeId = cmd->getIntParameter("id_type");
-        int localisationId = cmd->getIntParameter("id_localisation");
-        
-        try {
-            std::string syncLoopsXml = _boundaryManager.GetReleaseSyncLoopsAsXml(contentId, typeId, localisationId);
-            response->setDatas(syncLoopsXml);
-            response->setStatus(CommandCentralResponse::OK);
-            response->setComments("SyncLoops get success");
-            
-            Poco::Logger::get("ContextCentralThread").information(
-                "SyncLoops retrieved for release " + std::to_string(contentId) + 
-                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId), __FILE__, __LINE__);
-        }
-        catch (const std::exception& e) {
-            response->setStatus(CommandCentralResponse::KO);
-            response->setComments("SyncLoops get failed: " + std::string(e.what()));
-            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
-            
-            Poco::Logger::get("ContextCentralThread").error(
-                "Error getting syncLoops: " + std::string(e.what()), __FILE__, __LINE__);
-        }
+        response->setStatus(CommandCentralResponse::KO);
+        response->setComments("Commande GET_RELEASE_SYNCLOOPS obsolète : gestion SyncLoop supprimée.");
+        response->setDatas("<e><message>Commande GET_RELEASE_SYNCLOOPS obsolète</message></e>");
     }
     else if (cmd->getType() == CommandCentral::GET_SERVER_PAIR) {
         int serverPairId = cmd->getIntParameter("id_serv_pair_config");
@@ -2715,27 +2696,23 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
         int contentId = cmd->getIntParameter("id_content");
         int typeId = cmd->getIntParameter("id_type");
         int localisationId = cmd->getIntParameter("id_localisation");
-        int servPairConfigId = cmd->getIntParameter("id_serv_pair_config");
-        std::string syncPath = cmd->getStringParameter("path_syncloop");
-        
+        std::string syncLoopPath = cmd->getStringParameter("syncloop_path");
+
         try {
-            _boundaryManager.ProcessUploadSync(contentId, typeId, localisationId, servPairConfigId, syncPath);
-            
+            _boundaryManager.ProcessUploadSync(contentId, typeId, localisationId, 0, syncLoopPath);
             response->setStatus(CommandCentralResponse::OK);
-            response->setComments("Sync upload processed successfully");
-            response->setDatas("<sync>Upload processed</sync>");
-            
+            response->setComments("SyncLoop uploaded successfully");
+            response->setDatas("<syncLoop path=\"" + syncLoopPath + "\">SyncLoop uploaded</syncLoop>");
             Poco::Logger::get("ContextCentralThread").information(
-                "Sync processed for release " + std::to_string(contentId) + 
-                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId), __FILE__, __LINE__);
-        }
-        catch (const std::exception& e) {
+                "SyncLoop uploaded for release " + std::to_string(contentId) +
+                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) +
+                " with path: " + syncLoopPath, __FILE__, __LINE__);
+        } catch (const std::exception& e) {
             response->setStatus(CommandCentralResponse::KO);
-            response->setComments("Sync upload processing failed: " + std::string(e.what()));
+            response->setComments("SyncLoop upload failed: " + std::string(e.what()));
             response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
-            
             Poco::Logger::get("ContextCentralThread").error(
-                "Error processing sync upload: " + std::string(e.what()), __FILE__, __LINE__);
+                "Error uploading SyncLoop: " + std::string(e.what()), __FILE__, __LINE__);
         }
     }
     else if (cmd->getType() == CommandCentral::CREATE_CPL) {
@@ -2792,36 +2769,6 @@ void ContextCentralThread::executeCommand(std::shared_ptr<CommandCentral> cmd)
             
             Poco::Logger::get("ContextCentralThread").error(
                 "Error creating CPL: " + std::string(e.what()), __FILE__, __LINE__);
-        }
-    }
-    else if (cmd->getType() == CommandCentral::SYNCLOOP_CREATED) {
-        int contentId = cmd->getIntParameter("id_content");
-        int typeId = cmd->getIntParameter("id_type");
-        int localisationId = cmd->getIntParameter("id_localisation");
-        int servPairConfigId = cmd->getIntParameter("id_serv_pair_config");
-        std::string syncLoopPath = cmd->getStringParameter("syncloop_path");
-        
-        try {
-            // Créer le syncloop directement via le repository (pas via la state machine)
-            COB_SyncLoop newSyncLoop(servPairConfigId, contentId, typeId, localisationId, syncLoopPath);
-            _boundaryManager.GetConfigurator()->GetSyncLoopRepo()->Create(&newSyncLoop);
-            
-            response->setStatus(CommandCentralResponse::OK);
-            response->setComments("SyncLoop created successfully");
-            response->setDatas(static_cast<std::string>(newSyncLoop));
-            
-            Poco::Logger::get("ContextCentralThread").information(
-                "SyncLoop created for release " + std::to_string(contentId) + 
-                "_" + std::to_string(typeId) + "_" + std::to_string(localisationId) + 
-                " with path: " + syncLoopPath, __FILE__, __LINE__);
-        }
-        catch (const std::exception& e) {
-            response->setStatus(CommandCentralResponse::KO);
-            response->setComments("SyncLoop creation failed: " + std::string(e.what()));
-            response->setDatas("<e><message>" + std::string(e.what()) + "</message></e>");
-            
-            Poco::Logger::get("ContextCentralThread").error(
-                "Error creating SyncLoop: " + std::string(e.what()), __FILE__, __LINE__);
         }
     }
     

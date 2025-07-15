@@ -45,9 +45,10 @@ TransitionResponse BoundaryStateManager::CreateRelease(int contentId, int typeId
         
         auto context = std::make_shared<COB_Context>(contentId, typeId, localisationId);
         context->releaseRepo = _releaseRepo;
-        context->syncLoopRepo = _configurator->GetSyncLoopRepo();
         context->interactionConfigurator = std::make_shared<COB_InteractionConfigurator>();
         context->release = std::make_shared<COB_Release>(newRelease);
+        context->isNewContent = std::make_shared<bool>(true);
+        context->syncFinish = std::make_shared<bool>(context->releaseRepo->IsSyncLoopUploaded(contentId, typeId, localisationId));
         
         sm = new BoundaryStateMachine(context);
         sm->start();
@@ -82,17 +83,38 @@ TransitionResponse BoundaryStateManager::CreateRelease(int contentId, int typeId
     }
 }
 
+// Fonction utilitaire pour charger une release existante et initialiser la state machine
+void BoundaryStateManager::loadRelease(int contentId, int typeId, int localisationId) {
+    std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
+    COB_Release release = _releaseRepo->GetRelease(contentId, typeId, localisationId);
+    auto context = std::make_shared<COB_Context>(contentId, typeId, localisationId);
+    context->releaseRepo = _releaseRepo;
+    context->interactionConfigurator = std::make_shared<COB_InteractionConfigurator>();
+    context->release = std::make_shared<COB_Release>(release);
+    context->isNewContent = std::make_shared<bool>(false);
+    context->cisFinish = std::make_shared<bool>(context->releaseRepo->IsCISUploaded(contentId, typeId, localisationId));
+    context->syncFinish = std::make_shared<bool>(context->releaseRepo->IsSyncLoopUploaded(contentId, typeId, localisationId));
+    BoundaryStateMachine* sm = new BoundaryStateMachine(context);
+    sm->start();
+    _releaseStateMachineMap[releaseKey] = sm;
+}
+
 TransitionResponse BoundaryStateManager::StartReleaseStateMachine(int contentId, int typeId, int localisationId) {
     std::string releaseKey = MakeReleaseKey(contentId, typeId, localisationId);
     
     BoundaryStateMachine* sm = GetStateMachine(releaseKey);
     if (!sm) {
-        return CreateRelease(contentId, typeId, localisationId, "");
+        if (_releaseRepo->IsReleaseCreated(contentId, typeId, localisationId)) {
+            loadRelease(contentId, typeId, localisationId);
+            sm = GetStateMachine(releaseKey);
+        } else {
+            // Si la release n'existe pas, la créer en base
+            return CreateRelease(contentId, typeId, localisationId, "");
+        }
+    } else {
+        sm->start();
     }
-    
-    sm->start();
     sm->update();
-    
     return TransitionResponse{"", "StateMachine démarrée pour release " + releaseKey, "OK", ""};
 }
 

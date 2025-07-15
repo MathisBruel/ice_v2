@@ -30,14 +30,21 @@ COB_Releases COB_ReleaseRepo::GetReleases()
         std::string* cisPath = result->getStringValue(i, "release_cis_path");
         std::string* typeName = result->getStringValue(i, "type_name");
         std::string* localisationName = result->getStringValue(i, "localisation_name");
+        std::string* syncLoopPath = result->getStringValue(i, "release_syncloop_path");
         if (id && type && localisation && cplRefPath) {
             COB_Release release(*id, *type, *localisation);
             release.SetReleaseInfos(*cplRefPath);
+            if (cisPath) {
+                release.SetCISPath(*cisPath);
+            }
             if (typeName) {
                 release.SetTypeName(*typeName);
             }
             if (localisationName) {
                 release.SetLocalisationName(*localisationName);
+            }
+            if (syncLoopPath) {
+                release.SetSyncLoopPath(*syncLoopPath);
             }
             releases.emplace_back(release);
         }
@@ -61,14 +68,21 @@ COB_Releases COB_ReleaseRepo::GetReleases(int contentId)
         std::string* cisPath = result->getStringValue(i, "release_cis_path");
         std::string* typeName = result->getStringValue(i, "type_name");
         std::string* localisationName = result->getStringValue(i, "localisation_name");
+        std::string* syncLoopPath = result->getStringValue(i, "release_syncloop_path");
         if (id && type && localisation && cplRefPath) {
             COB_Release release(*id, *type, *localisation);
             release.SetReleaseInfos(*cplRefPath);
+            if (cisPath) {
+                release.SetCISPath(*cisPath);
+            }
             if (typeName) {
                 release.SetTypeName(*typeName);
             }
             if (localisationName) {
                 release.SetLocalisationName(*localisationName);
+            }
+            if (syncLoopPath) {
+                release.SetSyncLoopPath(*syncLoopPath);
             }
             releases.emplace_back(release);
         }
@@ -92,6 +106,7 @@ COB_Release COB_ReleaseRepo::GetRelease(int contentId, int typeId, int localisat
     std::string* cisPath = result->getStringValue(0, "release_cis_path");
     std::string* typeName = result->getStringValue(0, "type_name");
     std::string* localisationName = result->getStringValue(0, "localisation_name");
+    std::string* syncLoopPath = result->getStringValue(0, "release_syncloop_path");
     
     COB_Release release(*id, *type, *localisation);
     release.SetReleaseInfos(*cplRefPath);
@@ -101,6 +116,9 @@ COB_Release COB_ReleaseRepo::GetRelease(int contentId, int typeId, int localisat
     }
     if (localisationName) {
         release.SetLocalisationName(*localisationName);
+    }
+    if (syncLoopPath) {
+        release.SetSyncLoopPath(*syncLoopPath);
     }
     return std::move(release);
 }
@@ -119,4 +137,30 @@ void COB_ReleaseRepo::Update(COB_Release* release) {
 
 Query* COB_ReleaseRepo::GetQuery() const {
     return static_cast<MySQLReleaseRepo*>(_releaseRepo.get())->GetQuery();
+}
+
+bool COB_ReleaseRepo::IsReleaseCreated(int contentId, int typeId, int localisationId) {
+    try {
+        auto release = GetRelease(contentId, typeId, localisationId);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+bool COB_ReleaseRepo::IsCISUploaded(int contentId, int typeId, int localisationId) {
+    try {
+        auto release = GetRelease(contentId, typeId, localisationId);
+        return !release.GetCISPath().empty() && release.GetCISPath() != "NULL";
+    } catch (...) {
+        return false;
+    }
+}
+
+bool COB_ReleaseRepo::IsSyncLoopUploaded(int contentId, int typeId, int localisationId) {
+    try {
+        auto release = GetRelease(contentId, typeId, localisationId);
+        return !release.GetSyncLoopPath().empty() && release.GetSyncLoopPath() != "NULL";
+    } catch (...) {
+        return false;
+    }
 }

@@ -68,22 +68,5 @@ struct StateWaitCloseRelease : ContentStateBase {
         }
     }
     
-    template <typename Control>
-    void react(const UploadCISEvent& event, Control& control) {
-        if (control.context()->cisFinish) {
-            *control.context()->cisFinish = false;
-        }
-        
-        control.changeTo(BoundaryStateMachineFSM::stateId<StateUploadCIS>());
-    }
-    
-    template <typename Control>
-    void react(const UploadSyncEvent& event, Control& control) {
-        if (control.context()->syncFinish) {
-            *control.context()->syncFinish = false;
-        }
-        
-        control.changeTo(BoundaryStateMachineFSM::stateId<StateUploadSyncLoop>());
-    }
     
 }; 

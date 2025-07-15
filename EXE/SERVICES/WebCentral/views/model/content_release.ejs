@@ -32,15 +32,14 @@
     </div>
     <h2>CIS</h2>
     <div class="ul-model" id="cisBox" style="display: flex; width: 90%; margin: 0 2%;"></div>
-    <h2>CPL / SYNC / SYNCLOOP</h2>
-    <div class="ul-model" id="cplBox"></div>
-    <br/>
+    <h2>SyncLoop</h2>
+    <div class="ul-model" id="syncLoopBox" style="display: flex; width: 90%; margin: 0 2%;"></div>
+    <h2>CPLs</h2>
     <div class="ul-model" id="cplContent"></div>
     <div id="message-box" class="success"></div>
 </div>
 
 <script>
-    // Variables globales pour stocker les données dynamiques
     let contentLocalisation = {};
     let contentType = {};
     
@@ -52,7 +51,6 @@
     let contentTitle = "";
     
     document.addEventListener('DOMContentLoaded', async function(){
-        // Charger les données de localisation et type au démarrage
         await loadLocalisations();
         await loadTypes();
         await loadContent();
@@ -70,16 +68,13 @@
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
         let response = await (await fetch(`/getReleasesContent`, options)).json();
         if (response.ok == true) {
-            // Cas 1 : réponse unique (release)
             let releaseData = null;
             if (response.data.release) {
                 releaseData = response.data.release;
             } else if (response.data.releases && response.data.releases.release) {
-                // Cas 2 : ancienne structure (tableau)
                 releaseData = response.data.releases.release[0];
             }
             if (releaseData) {
-                // Remplir l'état de la release
                 const inputCurrentState = document.getElementById("currentState");
                 if (releaseData.$.state) {
                     inputCurrentState.value = releaseData.$.state;
@@ -123,106 +118,89 @@
                 const inputIdMovie = document.getElementById("cplRefPath");
                 inputIdMovie.value = releaseData.$.release_cpl_ref_path;
 
+                // CIS (lecture seule, champ vide si NULL, bouton d'ajout si vide)
                 const cisBox = document.getElementById("cisBox");
                 const containerCis = createDOM("div", { class: "BlockLabel", style:"width: 25%;" });
                 const labelCis = createDOM("label", { for: "cisPath" });
                 labelCis.innerHTML = "CIS Path";
                 let cispathValue = releaseData.$.release_cis_path;
-                const inputCisPath = createDOM("input", { type: "text", id: "cisPath"});
-                inputCisPath.value = cispathValue;
+                const inputCisPath = createDOM("input", { type: "text", id: "cisPath" });
+                inputCisPath.value = (cispathValue && cispathValue !== "NULL") ? cispathValue : "";
                 containerCis.appendChild(labelCis);
                 containerCis.appendChild(inputCisPath);
                 cisBox.appendChild(containerCis);
-                const cisPath = document.getElementById("cisPath");
-                if (cispathValue == "NULL") { 
-                    inputCisPath.value = "";
+                if (!cispathValue || cispathValue === "NULL") {
                     const createImgCIS = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createCIS"});
                     cisBox.appendChild(createImgCIS);
                     createImgCIS.addEventListener("click", async function(){
-                        if (cisPath.value == "") { 
+                        if (inputCisPath.value == "") {
                             inputCisPath.style.backgroundColor = "red";
                             showErrorMessage("message-box", "Content is empty");
-                        }
-                        else {
-                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
+                        } else {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: inputCisPath.value };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
                             let response = await fetch(`/createCIS`, options);
                             if (response.ok == true) {
                                 const body = await response.json();
                                 if (body.code == 200) { 
                                     window.location.reload();
-                                }
-                                else {
+                                } else {
                                     showErrorMessage("message-box", body.message);
                                 }
-                            }
-                            else {
+                            } else {
                                 showErrorMessage("message-box", response.message);
                             }
                         }
                     });
+                } else {
+                    inputCisPath.readOnly = true;
                 }
-                else {
-                    const updateImgCIS = createDOM("img", {class:"image-line-add", src:"/add.png", id:"updateCIS"});
-                    cisBox.appendChild(updateImgCIS);
-                    updateImgCIS.addEventListener("click", async function(){
-                        if (cisPath.value == "") { 
-                            cisPath.style.backgroundColor = "red";
+
+                const syncLoopBox = document.getElementById("syncLoopBox");
+                const containerSyncLoop = createDOM("div", { class: "BlockLabel", style:"width: 25%;" });
+                const labelSyncLoop = createDOM("label", { for: "syncLoopPath" });
+                labelSyncLoop.innerHTML = "SyncLoop Path";
+                let syncLoopValue = releaseData.$.release_syncloop_path;
+                const inputSyncLoopPath = createDOM("input", { type: "text", id: "syncLoopPath" });
+                inputSyncLoopPath.value = (syncLoopValue && syncLoopValue !== "NULL") ? syncLoopValue : "";
+                containerSyncLoop.appendChild(labelSyncLoop);
+                containerSyncLoop.appendChild(inputSyncLoopPath);
+                syncLoopBox.appendChild(containerSyncLoop);
+                if (!syncLoopValue || syncLoopValue === "NULL") {
+                    const createImgSyncLoop = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSyncLoop"});
+                    syncLoopBox.appendChild(createImgSyncLoop);
+                    createImgSyncLoop.addEventListener("click", async function(){
+                        if (inputSyncLoopPath.value == "") {
+                            inputSyncLoopPath.style.backgroundColor = "red";
                             showErrorMessage("message-box", "Content is empty");
-                        }
-                        else if (cisPath.value == releaseData.$.release_cis_path) {
-                            cisPath.style.backgroundColor = "orange";
-                            showErrorMessage("message-box", "No changes detected");
-                        }
-                        else {
-                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, release_cis_path: cisPath.value };
+                        } else {
+                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, syncloop_path: inputSyncLoopPath.value };
                             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
-                            let response = await fetch(`/createCIS`, options);
+                            let response = await fetch(`/createSyncLoop`, options);
                             if (response.ok == true) {
                                 const body = await response.json();
                                 if (body.code == 200) { 
                                     window.location.reload();
-                                }
-                                else {
+                                } else {
                                     showErrorMessage("message-box", body.message);
                                 }
-                            }
-                            else {
+                            } else {
                                 showErrorMessage("message-box", response.message);
                             }
                         }
                     });
+                } else {
+                    inputSyncLoopPath.readOnly = true;
                 }
-                const cplBox = document.getElementById("cplBox");
-                const selectCpl = createDOM("select", {id:"selectCpl", style:" margin-left: 2%; width: 180px; font-size: 16px;"});
-                const option = createDOM("option", {value:-1, text:"Choissier votre option", selected:true, style:"display:none"});
-                selectCpl.appendChild(option);
-                const optionCPL = createDOM("option", {value:1, text:"CPL/Sync"});
-                selectCpl.appendChild(optionCPL);
-                const optionSyncLoop = createDOM("option", {value:2, text:"SyncLoop"});
-                selectCpl.appendChild(optionSyncLoop);
-                cplBox.appendChild(selectCpl);
-                selectCpl.value = 0;
-                const cplContent = document.getElementById("cplContent");
-                selectCpl.addEventListener("change", function(){
-                    let seletValue = selectCpl.value;
-                    cplContent.innerHTML = "";
-                    if (seletValue == 1) {
-                        disaplyCPL(cplContent);
-                    }
-                    else {
-                        disaplySyncLoop(cplContent);
-                    }
-                });
+
+                disaplyCPL(document.getElementById("cplContent"));
             }
         }
     });
     async function disaplyCPL(box) {
-        // Création d'un conteneur flex pour les deux tableaux
         const tablesContainer = createDOM("div", {style: "display: flex; gap: 32px; width: 100%;"});
         box.appendChild(tablesContainer);
 
-        // Conteneur pour le tableau CPL
         const cplContainer = createDOM("div", {class:"releaseDetailsContainer", style:"flex:2; min-width:0;"});
         tablesContainer.appendChild(cplContainer);
 
@@ -309,13 +287,11 @@
                         }
                     });
                 }
-                // Création du conteneur pour le tableau Sync (à côté du tableau CPL)
                 const syncContainer = createDOM("div", {class:"releaseDetailsContainer", style:"flex:1; min-width:0;"});
                 tablesContainer.appendChild(syncContainer);
                 disaplySync(syncContainer, true, cplIds);
             }
             else {
-                // Création du conteneur pour le tableau Sync même s'il n'y a pas de CPL
                 const syncContainer = createDOM("div", {class:"releaseDetailsContainer", style:"flex:1; min-width:0;"});
                 tablesContainer.appendChild(syncContainer);
                 disaplySync(syncContainer, false, []);
@@ -536,146 +512,6 @@
             imgAddSync.style.display = "none";
         }
     }
-    async function disaplySyncLoop(box) {
-        const syncLoopContainer = createDOM("div", {class:"releaseDetailsContainer"});
-        box.appendChild(syncLoopContainer);
-        const syncLoopTable = createDOM("table", {id:"syncLoopTable", style:"width: 75%;"});
-        syncLoopContainer.appendChild(syncLoopTable);
-        const syncLoopTableHead = createDOM("thead", {class: "trHeader"});
-        syncLoopTable.appendChild(syncLoopTableHead);
-        const syncLoopTableHeadRow = createDOM("tr");
-        syncLoopTableHead.appendChild(syncLoopTableHeadRow);
-        const syncLoopIdCell = createDOM("th", {style:"width: 130px;"});
-        syncLoopTableHeadRow.appendChild(syncLoopIdCell);
-        syncLoopIdCell.innerText = "SyncLoop ID";
-        const syncLoopPathCell = createDOM("th");
-        syncLoopTableHeadRow.appendChild(syncLoopPathCell);
-        syncLoopPathCell.innerText = "SyncLoop Path";
-        const syncLoopActionCell = createDOM("th", {class: "actionCell"});
-        syncLoopTableHeadRow.appendChild(syncLoopActionCell);
-        const imgAddSyncLoop = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSyncLoop"});
-        syncLoopActionCell.appendChild(imgAddSyncLoop);
-        
-        const servPairJson = {id_serv_pair_config : -1};
-        const servPairOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(servPairJson) };
-        let servPairResponse = await (await fetch(`/getServerPair`, servPairOptions)).json();
-        let servPairs = [];
-        if (servPairResponse.ok) {
-            if (servPairResponse.data.servPairs != "") {
-                for (const servPair of servPairResponse.data.servPairs.servPair) {
-                    servPairs.push({id_serv_pair_config: servPair.$.id_serv_pair_config, name: servPair.$.name});
-                }
-            }
-        }
-
-        const syncLoopJson = { id_content: id_content, id_type: id_type, id_localisation: id_localisation};
-        const syncLoopOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(syncLoopJson) };
-        let syncLoopResponse = await (await fetch(`/getSyncLoop`, syncLoopOptions)).json(); 
-
-        const syncLoopTableBody = createDOM("tbody");
-        syncLoopTable.appendChild(syncLoopTableBody);
-        if (syncLoopResponse.ok){
-            if (syncLoopResponse.data.syncLoops != "") {
-                for (const syncLoop of syncLoopResponse.data.syncLoops.syncLoop) {
-                    const syncLoopTableRow = createDOM("tr");
-                    syncLoopTableBody.appendChild(syncLoopTableRow);
-                    const syncLoopIdCell = createDOM("td", {align:"center", valign:"center"});
-                    syncLoopTableRow.appendChild(syncLoopIdCell);
-                    servPairs = servPairs.filter(servPair => servPair.id_serv_pair_config != syncLoop.$.id_serv_pair_config);
-                    syncLoopIdCell.innerText = syncLoop.$.id_serv_pair_config + "_" + syncLoop.$.id_content + "_" + syncLoop.$.id_type + "_" + syncLoop.$.id_localisation;
-                    const syncLoopPathCell = createDOM("td", {align:"center", valign:"center"});
-                    syncLoopTableRow.appendChild(syncLoopPathCell);
-                    syncLoopPathCell.innerText = syncLoop.$.path_sync_loop;
-                    const syncLoopActionCell = createDOM("td", {class: "actionCell"});
-                    syncLoopTableRow.appendChild(syncLoopActionCell);
-                    const imgDeleteSyncLoop = createDOM("img", {class:"image-line-add", src:"/remove.png", id:"deleteSyncLoop"});
-                    syncLoopActionCell.appendChild(imgDeleteSyncLoop);
-                    imgDeleteSyncLoop.addEventListener("click", async function(){
-                        if (confirm("Confirme la suppression du sync : " + syncLoop.$.id_serv_pair_config + "_" + id_content + "_" + id_type + "_" + id_localisation +" ?")) {
-                            const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: syncLoop.$.id_serv_pair_config, typeOfElement:"SYCLOOP" };
-                            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
-                            let response = await fetch(`/deleteSyncLoop`, options);
-                            if (response.ok == true) {
-                                const body = await response.json();
-                                if (body.code == 200) {
-                                    window.location.reload();   
-                                }
-                                else {
-                                    showErrorMessage("message-box", body.message);
-                                }
-                            }
-                            else {
-                                showErrorMessage("message-box", response.message);
-                            }
-                        }   
-                    });
-                }
-            }
-        }
-        imgAddSyncLoop.addEventListener("click", async function() {
-            const imageAdd = document.getElementById("createSyncLoop");
-            imageAdd.style.display = "none";
-            const newSyncLoopRow = createDOM("tr");
-            syncLoopTable.appendChild(newSyncLoopRow);
-            const newSyncLoopIdCell = createDOM("td", {align:"center", valign:"center"});
-            newSyncLoopRow.appendChild(newSyncLoopIdCell);
-            const newSyncLoopIdSelect = createDOM("select", {type:"text", id:"newSyncLoopIdSelect"});
-            newSyncLoopIdCell.appendChild(newSyncLoopIdSelect);
-            if (servPairs.length == 0) {
-                const option = createDOM("option", {value:-1, text:"No Server Pair available", selected:true, style:"display:none"});
-                newSyncLoopIdSelect.appendChild(option);
-            }
-            else {
-                const option = createDOM("option", {value:-1, text:"Choissier votre SeverPair", selected:true, style:"display:none"});
-                newSyncLoopIdSelect.appendChild(option);
-                for (const servPair of servPairs) {
-                    const option = createDOM("option", {value:servPair.id_serv_pair_config, text:servPair.name});
-                    newSyncLoopIdSelect.appendChild(option);
-                }
-            }
-            const newSyncLoopPathCell = createDOM("td", {align:"center", valign:"center"});
-            newSyncLoopRow.appendChild(newSyncLoopPathCell);
-            const newSyncLoopPathInput = createDOM("input", {type:"text", id:"newSyncLoopPathInput"});
-            newSyncLoopPathCell.appendChild(newSyncLoopPathInput);
-            const newSyncLoopActionCell = createDOM("td", {class: "actionCell"});
-            newSyncLoopRow.appendChild(newSyncLoopActionCell);
-            const imgAddSyncLoop = createDOM("img", {class:"image-line-add", src:"/add.png", id:"createSyncLoopRow"});
-            newSyncLoopActionCell.appendChild(imgAddSyncLoop);
-            imgAddSyncLoop.addEventListener("click", async function(){
-                const newSyncLoopIdSelect = document.getElementById("newSyncLoopIdSelect");
-                const newSyncLoopPathInput = document.getElementById("newSyncLoopPathInput");
-                newSyncLoopIdSelect.style.backgroundColor = "";
-                newSyncLoopPathInput.style.backgroundColor = "";
-                if (newSyncLoopIdSelect.value == -1) {
-                    newSyncLoopIdInput.style.backgroundColor = "red";
-                    showErrorMessage("message-box", "Content is empty");
-                }
-                else if (newSyncLoopPathInput.value == "") {
-                    newSyncLoopPathInput.style.backgroundColor = "red";
-                    showErrorMessage("message-box", "Content is empty");
-                }
-                else {
-                    const json = { id_content: id_content, id_type: id_type, id_localisation: id_localisation, id_serv_pair_config: newSyncLoopIdSelect.value, path_syncloop: newSyncLoopPathInput.value };
-                    const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(json) };
-                    let response = await fetch(`/createSyncLoop`, options);
-                    if (response.ok == true) {
-                        const body = await response.json();
-                        if (body.code == 200) { 
-                            window.location.reload();
-                        }
-                        else {
-                            showErrorMessage("message-box", body.message);
-                        }
-                    }
-                    else {
-                        showErrorMessage("message-box", response.message);
-                    }
-                }
-            });
-        });
-        if (syncLoopResponse.data.syncLoops == "") { imgAddSyncLoop.dispatchEvent(new Event('click')); }
-
-    }
 
     // Fonction pour charger les localisations depuis l'API
     async function loadLocalisations() {
@@ -704,7 +540,6 @@
         }
     }
 
-    // Fonction pour charger les types depuis l'API
     async function loadTypes() {
         try {
             const json = JSON.stringify({});
@@ -715,13 +550,11 @@
             if (result.ok && result.data && result.data.types) {
                 contentType = {};
                 if (result.data.types.type) {
-                    // Si c'est un tableau
                     if (Array.isArray(result.data.types.type)) {
                         for (const type of result.data.types.type) {
                             contentType[type.$.id] = type.$.name;
                         }
                     } else {
-                        // Si c'est un seul élément
                         contentType[result.data.types.type.$.id] = result.data.types.type.$.name;
                     }
                 }
@@ -745,7 +578,6 @@
         }
     }
 
-    // Fonction pour obtenir le nom d'une localisation avec fallback
     function getLocalisationName(id, fallbackName) {
         if (fallbackName && fallbackName.trim() !== "") {
             return fallbackName;
@@ -753,7 +585,6 @@
         return contentLocalisation[id] || `Localisation ${id}`;
     }
 
-    // Fonction pour obtenir le nom d'un type avec fallback
     function getTypeName(id, fallbackName) {
         if (fallbackName && fallbackName.trim() !== "") {
             return fallbackName;

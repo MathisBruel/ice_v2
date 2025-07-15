@@ -19,6 +19,9 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLcreate(COD_Releases* release)
     _releaseIds[1] = releaseIds[1];
     _releaseIds[2] = releaseIds[2];
     _CPLRefPath = release->GetCPLRefPath();
+    _CISPath = release->GetCISPath();
+    _SyncLoopPath = release->GetSyncLoopPath();
+    if (_SyncLoopPath.empty()) _SyncLoopPath = "NULL";
     if (_releaseIds[0] == -1 || _releaseIds[1] == -1 || _releaseIds[2] == -1) { return nullptr; }
     
     std::unique_ptr<Query> createQuery = std::make_unique<Query>(Query::INSERT, _database, _table);
@@ -26,6 +29,8 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLcreate(COD_Releases* release)
     createQuery->addParameter("id_type", &_releaseIds[1], "int");
     createQuery->addParameter("id_localisation", &_releaseIds[2], "int");
     createQuery->addParameter("release_cpl_ref_path", &_CPLRefPath , "string");
+    createQuery->addParameter("release_cis_path", &_CISPath , "string");
+    createQuery->addParameter("release_syncloop_path", &_SyncLoopPath , "string");
     return createQuery;
 }
 
@@ -50,6 +55,7 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLread(COD_Releases* release)
     readQuery->addParameter("id_localisation", nullptr, "int");
     readQuery->addParameter("release_cis_path",nullptr, "string");
     readQuery->addParameter("release_cpl_ref_path", nullptr, "string");
+    readQuery->addParameter("release_syncloop_path", nullptr, "string");
     if (*&_releaseIds[0] != -1 ) {readQuery->addWhereParameter("id_content", &_releaseIds[0], "int");};
     if (*&_releaseIds[1] != -1 ) {readQuery->addWhereParameter("id_type", &_releaseIds[1], "int");};
     if (*&_releaseIds[2] != -1 ) {readQuery->addWhereParameter("id_localisation", &_releaseIds[2], "int");};
@@ -73,6 +79,8 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLupdate(COD_Releases* release)
     _releaseIds[2] = releaseIds[2];
     _CPLRefPath = release->GetCPLRefPath();
     _CISPath = release->GetCISPath();
+    _SyncLoopPath = release->GetSyncLoopPath();
+    if (_SyncLoopPath.empty()) _SyncLoopPath = "NULL";
 
 
     if (_releaseIds[0] == -1 || _releaseIds[1] == -1 || _releaseIds[2] == -1) { return nullptr; }
@@ -81,6 +89,7 @@ std::unique_ptr<Query> MySQLReleaseRepo::MySQLupdate(COD_Releases* release)
 
     updateQuery->addParameter("release_cpl_ref_path", &_CPLRefPath, "string");
     updateQuery->addParameter("release_cis_path", &_CISPath, "string");
+    updateQuery->addParameter("release_syncloop_path", &_SyncLoopPath, "string");
     updateQuery->addWhereParameter("id_content", &_releaseIds[0], "int");
     updateQuery->addWhereParameter("id_type", &_releaseIds[1], "int");
     updateQuery->addWhereParameter("id_localisation", &_releaseIds[2], "int");
@@ -124,10 +133,11 @@ std::unique_ptr<ResultQuery> MySQLReleaseRepo::getReleases()
     query->addParameter("id_localisation", nullptr, "int");
     query->addParameter("release_cis_path", nullptr, "string");
     query->addParameter("release_cpl_ref_path", nullptr, "string");
+    query->addParameter("release_syncloop_path", nullptr, "string");
     query->addParameter("type_name", nullptr, "string");
     query->addParameter("localisation_name", nullptr, "string");
     
-    std::string customSQL = "SELECT r.id_content, r.id_type, r.id_localisation, r.release_cis_path, r.release_cpl_ref_path, "
+    std::string customSQL = "SELECT r.id_content, r.id_type, r.id_localisation, r.release_cis_path, r.release_cpl_ref_path, r.release_syncloop_path, "
                            "t.name as type_name, l.name as localisation_name "
                            "FROM " + _database + "." + _table + " r "
                            "LEFT JOIN " + _database + ".type t ON r.id_type = t.id_type "
@@ -150,10 +160,11 @@ std::unique_ptr<ResultQuery> MySQLReleaseRepo::getReleases(int contentId)
     query->addParameter("id_localisation", nullptr, "int");
     query->addParameter("release_cis_path", nullptr, "string");
     query->addParameter("release_cpl_ref_path", nullptr, "string");
+    query->addParameter("release_syncloop_path", nullptr, "string");
     query->addParameter("type_name", nullptr, "string");
     query->addParameter("localisation_name", nullptr, "string");
     
-    std::string customSQL = "SELECT r.id_content, r.id_type, r.id_localisation, r.release_cis_path, r.release_cpl_ref_path, "
+    std::string customSQL = "SELECT r.id_content, r.id_type, r.id_localisation, r.release_cis_path, r.release_cpl_ref_path, r.release_syncloop_path, "
                            "t.name as type_name, l.name as localisation_name "
                            "FROM " + _database + "." + _table + " r "
                            "LEFT JOIN " + _database + ".type t ON r.id_type = t.id_type "
@@ -177,10 +188,11 @@ std::unique_ptr<ResultQuery> MySQLReleaseRepo::getRelease(int contentId, int typ
     query->addParameter("id_localisation", nullptr, "int");
     query->addParameter("release_cis_path", nullptr, "string");
     query->addParameter("release_cpl_ref_path", nullptr, "string");
+    query->addParameter("release_syncloop_path", nullptr, "string");
     query->addParameter("type_name", nullptr, "string");
     query->addParameter("localisation_name", nullptr, "string");
     
-    std::string customSQL = "SELECT r.id_content, r.id_type, r.id_localisation, r.release_cis_path, r.release_cpl_ref_path, "
+    std::string customSQL = "SELECT r.id_content, r.id_type, r.id_localisation, r.release_cis_path, r.release_cpl_ref_path, r.release_syncloop_path, "
                            "t.name as type_name, l.name as localisation_name "
                            "FROM " + _database + "." + _table + " r "
                            "LEFT JOIN " + _database + ".type t ON r.id_type = t.id_type "

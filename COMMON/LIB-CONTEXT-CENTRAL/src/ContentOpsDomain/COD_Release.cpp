@@ -42,15 +42,9 @@ void COD_Releases::UploadCPL(int id_serv_pair_config, std::string uuid, std::str
     this->_cpls[compositeId]->SetCplInfos(cplPath);
 }
 
-void COD_Releases::UploadSyncLoop(int id_serv_pair_config, std::string SyncLoopPath)
+void COD_Releases::UploadSyncLoop(std::string SyncLoopPath)
 {
-    std::string compositeId = std::to_string(id_serv_pair_config) + "_" 
-                        + std::to_string(_releaseId[0]) + "_" 
-                        + std::to_string(_releaseId[1]) + "_" 
-                        + std::to_string(_releaseId[2]);
-    this->_syncLoops[compositeId] = new COD_SyncLoop();
-    this->_syncLoops[compositeId]->SetSyncLoopId(id_serv_pair_config, _releaseId[0], _releaseId[1], _releaseId[2]);
-    this->_syncLoops[compositeId]->SetSyncLoopInfos(SyncLoopPath);
+    this->_syncLoopPath = SyncLoopPath;
 }
 
 void COD_Releases::SetReleaseId(int id_content, TypeMovie typeMovie, LocalisationMovie localisationMovie)

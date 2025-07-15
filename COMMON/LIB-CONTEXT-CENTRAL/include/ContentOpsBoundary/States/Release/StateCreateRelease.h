@@ -23,6 +23,31 @@ struct StateCreateRelease : ContentStateBase {
     
     template <typename Control>
     void entryGuard(Control& control) {
+        if (*control.context()->isNewContent) {
+            if (!control.context()->releaseRepo->IsReleaseCreated(
+                    control.context()->contentId,
+                    control.context()->typeId,
+                    control.context()->localisationId)) {
+                return;
+            }
+            if (!control.context()->releaseRepo->IsCISUploaded(
+                    control.context()->contentId,
+                    control.context()->typeId,
+                    control.context()->localisationId)) {
+                control.changeTo(BoundaryStateMachineFSM::stateId<StateUploadCIS>());
+                return;
+            }
+            if (!control.context()->releaseRepo->IsSyncLoopUploaded(
+                    control.context()->contentId,
+                    control.context()->typeId,
+                    control.context()->localisationId)) {
+                control.changeTo(BoundaryStateMachineFSM::stateId<StateUploadSyncLoop>());
+                return;
+            }
+
+            control.changeTo(BoundaryStateMachineFSM::stateId<StateWaitCloseRelease>());
+            return;
+        }
         
         auto releaseInteraction = dynamic_cast<COB_ReleaseInteraction*>(
             control.context()->interactionConfigurator->GetInteractions()[CommandCentral::CREATE_RELEASE]

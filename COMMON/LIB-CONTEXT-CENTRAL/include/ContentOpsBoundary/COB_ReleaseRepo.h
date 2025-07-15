@@ -20,6 +20,10 @@ public:
     void Remove(COB_Release* release);
     void Update(COB_Release* release);
     Query* GetQuery() const;
+    
+    bool IsReleaseCreated(int contentId, int typeId, int localisationId);
+    bool IsCISUploaded(int contentId, int typeId, int localisationId);
+    bool IsSyncLoopUploaded(int contentId, int typeId, int localisationId);
 
 private:
     std::shared_ptr<COD_ReleaseRepo> _releaseRepo;

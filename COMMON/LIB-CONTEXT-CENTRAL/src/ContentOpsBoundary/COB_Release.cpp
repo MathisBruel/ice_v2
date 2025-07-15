@@ -33,6 +33,9 @@ COB_Release::operator std::string() const
     if (!this->GetLocalisationName().empty()) {
         xml += " localisation_name=\"" + this->GetLocalisationName() + "\"";
     }
+    if (!this->GetSyncLoopPath().empty()) {
+        xml += " release_syncloop_path=\"" + this->GetSyncLoopPath() + "\"";
+    }
     
     xml += "/>";
     return xml;
